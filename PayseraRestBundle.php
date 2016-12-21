@@ -7,7 +7,7 @@ use Paysera\Bundle\RestBundle\DependencyInjection\Compiler\ApiCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class EvpRestBundle extends Bundle
+class PayseraRestBundle extends Bundle
 {
     /**
      * Builds the bundle.
