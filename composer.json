@@ -9,7 +9,7 @@
     "require": {
         "php": ">=5.3.3",
         "symfony/symfony": "2.*|3.*",
-        "paysera/lib-serializer": "^1.0",
+        "paysera/lib-serializer": "^1.2",
         "doctrine/orm": "^2.0"
     },
     "require-dev": {
