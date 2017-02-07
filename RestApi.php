@@ -518,6 +518,10 @@ class RestApi
      */
     public function getCacheStrategy($controllerKey, array $options = array())
     {
+        if (isset($options[CacheStrategyInterface::NO_CACHE]) && $options[CacheStrategyInterface::NO_CACHE]) {
+            return null;
+        }
+
         $controllerKey = $this->normalizeControllerKey($controllerKey);
         return isset($this->cacheStrategies[$controllerKey])
             ? $this->cacheStrategies[$controllerKey]
