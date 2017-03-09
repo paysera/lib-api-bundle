@@ -33,7 +33,6 @@ class ResultProvider
         if ($this->repository instanceof CursorFilterAwareRepositoryInterface) {
             $this->repository->populateResultCursors($result);
         }
-
         if ($filter->getOffset() !== null && $result->getTotalCount() !== null) {
             $result->setHasNext($filter->getOffset() + count($result->getItems()) < $result->getTotalCount());
         } elseif ($this->repository instanceof CursorFilterAwareRepositoryInterface) {
@@ -59,7 +58,9 @@ class ResultProvider
         $nextFilter = clone $filter;
         $nextFilter->setLimit(1);
         $nextFilter->setBefore(null);
-        $nextFilter->setAfter($result->getAfter());
+        if ($result->getAfter() !== null) {
+            $nextFilter->setAfter($result->getAfter());
+        }
         return count($this->repository->findByFilter($nextFilter)) > 0;
     }
 
@@ -73,7 +74,9 @@ class ResultProvider
         $previousFilter = clone $filter;
         $previousFilter->setLimit(1);
         $previousFilter->setAfter(null);
-        $previousFilter->setBefore($result->getBefore());
+        if ($result->getBefore() !== null) {
+            $previousFilter->setBefore($result->getBefore());
+        }
         return count($this->repository->findByFilter($previousFilter)) > 0;
     }
 }
