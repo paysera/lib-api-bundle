@@ -37,7 +37,7 @@ class RestApiTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider controllerKeyProvider
      */
-    public function testNormalizeControllerKeyUsingGetValidationGroups($controllerKey, $expectedNormalizedKey)
+    public function testNormalizeControllerKeyUsingGetValidationGroups($controllerKey)
     {
         $restApi = new RestApi($this->serviceContainer, $this->logger);
         $restApi->getValidationGroups($controllerKey);
