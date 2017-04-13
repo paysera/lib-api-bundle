@@ -19,6 +19,9 @@ class RoleAndIpStrategyTest extends PHPUnit_Framework_TestCase
             'ROLE_USER',
         ],
         'ROLE_ADMIN' => [
+            'ROLE_USER',
+        ],
+        'ROLE_FEATURE_MANAGER' => [
             'ROLE_USER'
         ],
     ];
@@ -35,7 +38,7 @@ class RoleAndIpStrategyTest extends PHPUnit_Framework_TestCase
         $tokenStorageMock
             ->expects($this->any())
             ->method('getToken')
-            ->willReturn(new AnonymousToken('secret', 'user', ['ROLE_ADMIN']))
+            ->willReturn(new AnonymousToken('secret', 'user', ['ROLE_ADMIN', 'ROLE_FEATURE_MANAGER']))
         ;
 
         $this->strategy = new RoleAndIpStrategy(
