@@ -391,6 +391,20 @@ class ApiManager
         return $this;
     }
 
+    public function getLogger(Request $request)
+    {
+        $api = $this->getApiForRequest($request);
+        if ($api) {
+            return $api->getLogger();
+        }
+        return null;
+    }
+
+    public function getApiKeyForRequest(Request $request)
+    {
+        return $request->attributes->get($this->routingAttribute);
+    }
+
     /**
      * Finds API for this request. Returns null if none found
      *
@@ -401,7 +415,7 @@ class ApiManager
      */
     protected function getApiForRequest(Request $request)
     {
-        $apiKey = $request->attributes->get($this->routingAttribute);
+        $apiKey = $this->getApiKeyForRequest($request);
         if ($apiKey !== null) {
             if (!isset($this->apiByKey[$apiKey])) {
                 throw new \RuntimeException('Api not registered with such key: ' . $apiKey);

@@ -597,6 +597,14 @@ class RestApi
     {
         return $this->errorConfig->getConfig($errorCode);
     }
+
+    /**
+     * @return LoggerInterface
+     */
+    public function getLogger()
+    {
+        return $this->logger;
+    }
     
     /**
      * Returns controller key without namespace prefix. Ie ApiController::getPaymentAction

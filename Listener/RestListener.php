@@ -23,30 +23,16 @@ use Psr\Log\LoggerInterface;
 
 class RestListener
 {
-    /**
-     * @var LoggerInterface
-     */
-    protected $logger;
-
-    /**
-     * @var RequestLogger
-     */
-    protected $requestLogger;
-
-    /**
-     * @var ContextAwareNormalizerFactory
-     */
-    protected $normalizerFactory;
-
-    /**
-     * @var ApiManager
-     */
-    protected $apiManager;
-
-    /**
-     * @var ParameterToEntityMapBuilder
-     */
+    private $logger;
+    private $requestLogger;
+    private $normalizerFactory;
+    private $apiManager;
     private $parameterToEntityMapBuilder;
+
+    /**
+     * @var LoggerInterface[]
+     */
+    private $loggersCache;
 
     public function __construct(
         ApiManager $apiManager,
@@ -60,6 +46,8 @@ class RestListener
         $this->logger = $logger;
         $this->parameterToEntityMapBuilder = $parameterToEntityMapBuilder;
         $this->requestLogger = $requestLogger;
+
+        $this->loggersCache = array();
     }
 
     public function onKernelRequest(GetResponseEvent $event)
@@ -87,10 +75,12 @@ class RestListener
      */
     public function onKernelController(FilterControllerEvent $event)
     {
-        $this->logger->debug('Handling kernel.controller', array($event->getRequest()->attributes->get('_controller')));
-        /** @var $request \Symfony\Component\HttpFoundation\Request */
+        /** @var $request Request */
         $request = $event->getRequest();
-        
+        $logger = $this->getLogger($request);
+
+        $logger->debug('Handling kernel.controller', array($event->getRequest()->attributes->get('_controller')));
+
         if ($this->apiManager->isRestRequest($request) && $parts = $this->apiManager->getRequestLoggingParts($request)) {
             $this->requestLogger->log($request, $parts);
         }
@@ -119,12 +109,14 @@ class RestListener
      */
     public function onKernelView(GetResponseForControllerResultEvent $event)
     {
-        $this->logger->debug('Handling kernel.view', array($event));
         /** @var $request Request */
         $request = $event->getRequest();
+        $logger = $this->getLogger($request);
+
+        $logger->debug('Handling kernel.view', array($event));
 
         if (!$this->apiManager->isRestRequest($request)) {
-            $this->logger->debug('Not rest request');
+            $logger->debug('Not rest request');
 
             return;
         }
@@ -150,14 +142,14 @@ class RestListener
 
             $modifiedAt = $cacheStrategy->getModifiedAt($result);
             if ($modifiedAt !== null) {
-                $this->logger->debug(
+                $logger->debug(
                     'Setting modified at',
                     array($modifiedAt, $request->headers->get('If-Modified-Since'))
                 );
                 $response->setLastModified($modifiedAt);
                 $etag = $modifiedAt->getTimestamp();
                 if ($response->isNotModified($request)) {
-                    $this->logger->debug('Response not modified - returning 304');
+                    $logger->debug('Response not modified - returning 304');
                     $response->setEtag($etag);
                     $event->setResponse($response);
                     return;
@@ -176,7 +168,7 @@ class RestListener
         if ($result !== null) {
             $responseMapper = $this->apiManager->getResponseMapper($request, $options);
             if ($responseMapper === null) {
-                $this->logger->debug('No response mapper set');
+                $logger->debug('No response mapper set');
 
                 return;
             }
@@ -197,12 +189,12 @@ class RestListener
             $response->headers->set('Content-Type', $encoder->getContentType());
             $responseContent = $encoder->encode($content);
 
-            $this->logger->debug('Encoded data, setting response');
+            $logger->debug('Encoded data, setting response');
         } else {
             $response->setStatusCode(204);
             $responseContent = null;
 
-            $this->logger->debug('Empty response(code: 204)');
+            $logger->debug('Empty response(code: 204)');
         }
 
         $response->setContent($responseContent);
@@ -219,23 +211,24 @@ class RestListener
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
-        $this->logger->debug('Handling kernel.exception', array($event));
-        $this->logger->debug($event->getException());
-
         /** @var $request Request */
         $request = $event->getRequest();
+        $logger = $this->getLogger($request);
+
+        $logger->debug('Handling kernel.exception', array($event));
+        $logger->debug($event->getException());
 
         $response = $this->apiManager->getResponseForException($request, $event->getException());
         if ($response !== null) {
             $event->setResponse($response);
-            $this->logger->debug('Setting error response', array($response->getContent()));
+            $logger->debug('Setting error response', array($response->getContent()));
 
             if ($response->getStatusCode() === 500) {
-                $this->logger->error((string)$event->getException(), array($event->getException()));
+                $logger->error((string)$event->getException(), array($event->getException()));
             } elseif ($response->getStatusCode() === 404) {
-                $this->logger->notice((string)$event->getException(), array($event->getException()));
+                $logger->notice((string)$event->getException(), array($event->getException()));
             } else {
-                $this->logger->warning((string)$event->getException(), array($event->getException()));
+                $logger->warning((string)$event->getException(), array($event->getException()));
             }
         }
     }
@@ -253,7 +246,7 @@ class RestListener
         try {
             $validationGroups = $this->apiManager->getValidationGroups($request);
             if (is_array($validationGroups) && count($validationGroups) > 0) {
-                $this->logger->debug('Validating entity', array($entity));
+                $this->getLogger($request)->debug('Validating entity', array($entity));
 
                 $propertiesValidator = $this->apiManager->createPropertiesValidator($request);
                 if ($propertiesValidator !== null) {
@@ -261,6 +254,10 @@ class RestListener
                 }
             }
         } catch (InvalidDataException $exception) {
+            $this->getLogger($request)->notice(
+                'Invalid data exception caught: ' . $exception,
+                count($exception->getProperties()) > 0 ? $exception->getProperties() : array()
+            );
             $this->handleException($exception);
         }
     }
@@ -294,7 +291,7 @@ class RestListener
             } catch (InvalidDataException $exception) {
                 $this->handleException($exception);
             }
-            $this->logger->debug('Mapped data to entity', array($entity));
+            $this->getLogger($request)->debug('Mapped data to entity', array($entity));
 
             $this->validateEntity($request, $entity);
 
@@ -318,7 +315,7 @@ class RestListener
             } catch (InvalidDataException $exception) {
                 $this->handleException($exception);
             }
-            $this->logger->debug('Mapped query data to entity', array($entity));
+            $this->getLogger($request)->debug('Mapped query data to entity', array($entity));
 
             $this->validateEntity($request, $entity);
 
@@ -335,7 +332,6 @@ class RestListener
      */
     protected function handleException(InvalidDataException $exception)
     {
-        $this->logger->notice('Invalid data exception caught: ' . $exception);
         throw new ApiException(
             $exception->getCustomCode() ?: ApiException::INVALID_PARAMETERS,
             $exception->getMessage(),
@@ -343,5 +339,26 @@ class RestListener
             $exception,
             $exception->getProperties()
         );
+    }
+
+    /**
+     * @param Request $request
+     * @return LoggerInterface
+     */
+    private function getLogger(Request $request)
+    {
+        $apiKey = $this->apiManager->getApiKeyForRequest($request);
+
+        if (isset($this->loggersCache[$apiKey])) {
+            return $this->loggersCache[$apiKey];
+        }
+
+        $logger = $this->apiManager->getLogger($request);
+        if ($logger === null) {
+            $logger = $this->logger;
+        }
+        $this->loggersCache[$apiKey] = $logger;
+
+        return $logger;
     }
 }
