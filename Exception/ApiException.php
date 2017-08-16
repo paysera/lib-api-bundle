@@ -37,20 +37,27 @@ class ApiException extends \Exception
     protected $data;
 
     /**
+     * @var array|null
+     */
+    protected $codes;
+
+    /**
      * @param string $errorCode
      * @param string $message
      * @param integer $statusCode
      * @param \Exception $previous
      * @param array $properties
      * @param array $data
+     * @param array $codes
      */
-    public function __construct($errorCode, $message = null, $statusCode = 0, $previous = null, $properties = null, $data = null) {
+    public function __construct($errorCode, $message = null, $statusCode = 0, $previous = null, $properties = null, $data = null, $codes = null) {
         parent::__construct($message, 0, $previous);
 
         $this->errorCode = $errorCode;
         $this->statusCode = $statusCode;
         $this->properties = $properties;
         $this->data = $data;
+        $this->codes = $codes;
     }
 
     /**
@@ -105,5 +112,24 @@ class ApiException extends \Exception
     public function getData()
     {
         return $this->data;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getCodes()
+    {
+        return $this->codes;
+    }
+
+    /**
+     * @param array|null $codes
+     *
+     * @return $this
+     */
+    public function setCodes($codes)
+    {
+        $this->codes = $codes;
+        return $this;
     }
 }

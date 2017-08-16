@@ -337,7 +337,9 @@ class RestListener
             $exception->getMessage(),
             null,
             $exception,
-            $exception->getProperties()
+            $exception->getProperties(),
+            null,
+            $exception->getCodes()
         );
     }
 
