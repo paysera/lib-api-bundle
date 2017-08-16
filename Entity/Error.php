@@ -35,6 +35,11 @@ class Error
     protected $data;
 
     /**
+     * @var array|null
+     */
+    protected $errorCodes;
+
+    /**
      * Creates self. For fluent interface
      *
      * @return self
@@ -170,6 +175,25 @@ class Error
     }
 
     /**
+     * @return array|null
+     */
+    public function getErrorCodes()
+    {
+        return $this->errorCodes;
+    }
+
+    /**
+     * @param array|null $errorCodes
+     *
+     * @return $this
+     */
+    public function setErrorCodes($errorCodes)
+    {
+        $this->errorCodes = $errorCodes;
+        return $this;
+    }
+
+    /**
      * Returns array representing this error. Keys are as in OAuth error
      *
      * @return array
@@ -188,6 +212,9 @@ class Error
         }
         if ($this->data) {
             $error['error_data'] = $this->data;
+        }
+        if ($this->errorCodes) {
+            $error['error_properties_codes'] = $this->errorCodes;
         }
         return $error;
     }

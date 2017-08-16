@@ -447,48 +447,52 @@ class ApiManager
                 ->setMessage($exception->getMessage())
                 ->setStatusCode($exception->getStatusCode())
                 ->setProperties($exception->getProperties())
-                ->setData($exception->getData());
+                ->setData($exception->getData())
+                ->setErrorCodes($exception->getCodes())
+            ;
         } elseif ($exception instanceof InvalidDataException) {
             return Error::create()
-                ->setCode('invalid_parameters')
+                ->setCode(ApiException::INVALID_PARAMETERS)
                 ->setMessage($exception->getMessage())
                 ->setStatusCode(400)
-                ->setProperties($exception->getProperties());
+                ->setProperties($exception->getProperties())
+                ->setErrorCodes($exception->getCodes())
+            ;
         } elseif ($exception instanceof AuthenticationCredentialsNotFoundException) {
-            return Error::create()->setCode('unauthorized')->setMessage('No authorization data found');
+            return Error::create()->setCode(ApiException::UNAUTHORIZED)->setMessage('No authorization data found');
         } elseif ($exception instanceof AuthenticationException) {
-            $error = Error::create()->setCode('unauthorized');
+            $error = Error::create()->setCode(ApiException::UNAUTHORIZED);
             if ($exception->getCode() === 999) {
                 $error->setMessage($exception->getMessage());
             }
             return $error;
         } elseif ($exception instanceof AccessDeniedException) {
-            return Error::create()->setCode('forbidden')->setMessage($exception->getMessage());
+            return Error::create()->setCode(ApiException::FORBIDDEN)->setMessage($exception->getMessage());
         } elseif ($exception instanceof AccessDeniedHttpException) {
-            return Error::create()->setCode('forbidden')->setMessage($exception->getMessage());
+            return Error::create()->setCode(ApiException::FORBIDDEN)->setMessage($exception->getMessage());
         } elseif ($exception instanceof ResourceNotFoundException || $exception instanceof NotFoundHttpException) {
-            return Error::create()->setCode('not_found')->setMessage('Provided url not found')->setStatusCode(404);
+            return Error::create()->setCode(ApiException::NOT_FOUND)->setMessage('Provided url not found')->setStatusCode(404);
         } elseif ($exception instanceof MethodNotAllowedException) {
             return Error::create()
-                ->setCode('not_found')
+                ->setCode(ApiException::NOT_FOUND)
                 ->setMessage('Provided method not allowed for this url')
                 ->setStatusCode(404)
             ;
         } elseif ($exception instanceof HttpExceptionInterface && $exception->getStatusCode() < 500) {
             if ($exception->getStatusCode() === 405 || $exception->getStatusCode() === 404) {
                 return Error::create()
-                    ->setCode('not_found')
+                    ->setCode(ApiException::NOT_FOUND)
                     ->setStatusCode($exception->getStatusCode())
                     ->setMessage('Used method is not allowed for this url')
                     ;
             } elseif ($exception->getStatusCode() === 401) {
-                return Error::create()->setCode('unauthorized');
+                return Error::create()->setCode(ApiException::UNAUTHORIZED);
             } elseif ($exception->getStatusCode() === 403) {
-                return Error::create()->setCode('forbidden');
+                return Error::create()->setCode(ApiException::FORBIDDEN);
             }
         }
 
-        return Error::create()->setCode('internal_server_error')->setStatusCode(500);
+        return Error::create()->setCode(ApiException::INTERNAL_SERVER_ERROR)->setStatusCode(500);
     }
 
     /**
