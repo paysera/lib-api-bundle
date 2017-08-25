@@ -89,27 +89,23 @@
             <tag name="paysera_rest.encoder" format="json" />
             <tag name="paysera_rest.decoder" format="json" />
         </service>
-        <service id="paysera_rest.encoding.png" class="Paysera\Component\Serializer\Encoding\Plain"
-                 factory-service="paysera_rest.factory.encoder"
-                 factory-method="createPngEncoder">
+        <service id="paysera_rest.encoding.png" class="Paysera\Component\Serializer\Encoding\Plain">
+            <factory class="paysera_rest.factory.encoder" method="createPngEncoder"/>
             <tag name="paysera_rest.encoder" format="png"/>
             <tag name="paysera_rest.decoder" format="png"/>
         </service>
-        <service id="paysera_rest.encoding.gif" class="Paysera\Component\Serializer\Encoding\Plain"
-                 factory-service="paysera_rest.factory.encoder"
-                 factory-method="createPngEncoder">
+        <service id="paysera_rest.encoding.gif" class="Paysera\Component\Serializer\Encoding\Plain">
+            <factory class="paysera_rest.factory.encoder" method="createPngEncoder"/>
             <tag name="paysera_rest.encoder" format="gif"/>
             <tag name="paysera_rest.decoder" format="gif"/>
         </service>
-        <service id="paysera_rest.encoding.jpeg" class="Paysera\Component\Serializer\Encoding\Plain"
-                 factory-service="paysera_rest.factory.encoder"
-                 factory-method="createJpegEncoder">
+        <service id="paysera_rest.encoding.jpeg" class="Paysera\Component\Serializer\Encoding\Plain">
+            <factory class="paysera_rest.factory.encoder" method="createJpegEncoder"/>
             <tag name="paysera_rest.encoder" format="jpg"/>
             <tag name="paysera_rest.decoder" format="jpg"/>
         </service>
-        <service id="paysera_rest.encoding.plain_text" class="Paysera\Component\Serializer\Encoding\Plain"
-                 factory-service="paysera_rest.factory.encoder"
-                 factory-method="createPlainTextEncoder">
+        <service id="paysera_rest.encoding.plain_text" class="Paysera\Component\Serializer\Encoding\Plain">
+            <factory class="paysera_rest.factory.encoder" method="createPlainTextEncoder"/>
             <tag name="paysera_rest.encoder" format="txt"/>
             <tag name="paysera_rest.decoder" format="txt"/>
         </service>
@@ -165,9 +161,9 @@
             <argument type="service" id="paysera_rest.serializer.fields_filter"/>
         </service>
         <service id="paysera_rest.serializer.distributed_normalizer" abstract="true"
-                 class="Paysera\Component\Serializer\Normalizer\DistributedNormalizer"
-                 factory-service="paysera_rest.serializer.context_aware_normalizer_factory"
-                 factory-method="create"/>
+                 class="Paysera\Component\Serializer\Normalizer\DistributedNormalizer">
+                <factory service="paysera_rest.serializer.context_aware_normalizer_factory" method="create"/>
+        </service>
 
         <service id="paysera_rest.serializer.validation.properties_aware_validator"
                  class="Paysera\Component\Serializer\Validation\PropertiesAwareValidator">
