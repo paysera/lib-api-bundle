@@ -36,48 +36,42 @@ class ApiManager
     /**
      * @var RestApi[]
      */
-    protected $apiByUriPattern = array();
+    private $apiByUriPattern;
 
     /**
      * @var RestApi[]
      */
-    protected $apiByKey = array();
+    private $apiByKey;
 
     /**
      * @var EncoderInterface[]
      */
-    protected $encoders = array();
+    private $encoders;
 
     /**
      * @var DecoderInterface[]
      */
-    protected $decoders = array();
+    private $decoders;
 
-    /**
-     * @var ErrorConfig
-     */
-    protected $errorConfig;
+    private $errorConfig;
 
-    protected $validator;
+    private $validator;
 
-    /**
-     * @var LoggerInterface
-     */
-    protected $logger;
+    private $logger;
 
     /**
      * @var string
      */
-    protected $routingAttribute;
+    private $routingAttribute;
 
     /**
      * @var PropertyPathConverterInterface|null
      */
-    protected $propertyPathConverter;
+    private $propertyPathConverter;
+
+    private $formatDetector;
 
     /**
-     * Constructs object
-     *
      * @param FormatDetector     $formatDetector
      * @param LoggerInterface    $logger
      * @param ValidatorInterface $validator
@@ -94,6 +88,11 @@ class ApiManager
         $this->validator = $validator;
         $this->routingAttribute = $routingAttribute;
         $this->errorConfig = new ErrorConfig();
+
+        $this->apiByUriPattern = [];
+        $this->apiByKey = [];
+        $this->encoders = [];
+        $this->decoders = [];
     }
 
     /**
