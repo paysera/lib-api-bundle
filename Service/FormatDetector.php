@@ -30,18 +30,6 @@ class FormatDetector
      */
     public function getResponseFormat(Request $request, $formats)
     {
-        $extension = $request->get('_format');
-        if ($extension !== null) {
-            $this->logger->warning('_format Request attribute is deprecated since 2.0.3 and will be removed in future', [
-                'uri' => $request->getUri(),
-                'method' => $request->getMethod(),
-                '_format' => $extension,
-            ]);
-        }
-        if ($extension !== null && in_array($extension, $formats)) {
-            return $extension;
-        }
-
         $acceptHeader = $request->headers->get('Accept');
         if ($acceptHeader === null) {
             return reset($formats);
@@ -80,19 +68,7 @@ class FormatDetector
         );
 
         $contentTypeHeader = $request->headers->get('Content-Type');
-        $extension = $request->attributes->get('_format');
-        if ($extension !== null) {
-            $this->logger->warning('_format Request attribute is deprecated since 2.0.3 and will be removed in future', [
-                'uri' => $request->getUri(),
-                'method' => $request->getMethod(),
-                '_format' => $extension,
-            ]);
-        }
-        if (empty($contentTypeHeader) && empty($extension)) {
-            $this->logger->warning('Failing back to default format with no Content-Type and _format provided', [
-                'uri' => $request->getUri(),
-                'method' => $request->getMethod(),
-            ]);
+        if (empty($contentTypeHeader)) {
             return reset($formats);
         }
         
@@ -101,16 +77,6 @@ class FormatDetector
         }
 
         $format = $request->getFormat($contentTypeHeader);
-
-        if ($format === null) {
-            $this->logger->warning('Unrecognized Content-Type, failing back to _format attribute', [
-                'Content-Type' => $contentTypeHeader,
-                '_format' => $extension,
-                'uri' => $request->getUri(),
-                'method' => $request->getMethod(),
-            ]);
-            $format = $extension;
-        }
 
         if ($format === null || !in_array($format, $formats)) {
             throw new ApiException(
