@@ -57,6 +57,8 @@ class ApiManager
 
     private $validator;
 
+    private $errorNormalizer;
+
     private $logger;
 
     /**
@@ -75,17 +77,20 @@ class ApiManager
      * @param FormatDetector     $formatDetector
      * @param LoggerInterface    $logger
      * @param ValidatorInterface $validator
+     * @param NormalizerInterface $errorNormalizer
      * @param string             $routingAttribute
      */
     public function __construct(
         FormatDetector $formatDetector,
         LoggerInterface $logger,
         ValidatorInterface $validator,
+        NormalizerInterface $errorNormalizer,
         $routingAttribute = 'api_key'
     ) {
         $this->logger = $logger;
         $this->formatDetector = $formatDetector;
         $this->validator = $validator;
+        $this->errorNormalizer = $errorNormalizer;
         $this->routingAttribute = $routingAttribute;
         $this->errorConfig = new ErrorConfig();
 
@@ -173,7 +178,7 @@ class ApiManager
             $this->fillErrorDefaults($error, $api);
             try {
                 $encoder = $this->getEncoderForApi($request, $api);
-                $result = $encoder->encode($error->toArray(), $request);
+                $result = $encoder->encode($this->errorNormalizer->mapFromEntity($error));
                 $headers = array('Content-Type' => $encoder->getContentType());
             } catch (ApiException $exception) {
                 if ($exception->getErrorCode() === $exception::NOT_ACCEPTABLE) {
@@ -447,7 +452,7 @@ class ApiManager
                 ->setStatusCode($exception->getStatusCode())
                 ->setProperties($exception->getProperties())
                 ->setData($exception->getData())
-                ->setErrorCodes($exception->getCodes())
+                ->setViolations($exception->getViolations())
             ;
         } elseif ($exception instanceof InvalidDataException) {
             return Error::create()
@@ -455,7 +460,7 @@ class ApiManager
                 ->setMessage($exception->getMessage())
                 ->setStatusCode(400)
                 ->setProperties($exception->getProperties())
-                ->setErrorCodes($exception->getCodes())
+                ->setViolations($exception->getViolations())
             ;
         } elseif ($exception instanceof AuthenticationCredentialsNotFoundException) {
             return Error::create()->setCode(ApiException::UNAUTHORIZED)->setMessage('No authorization data found');

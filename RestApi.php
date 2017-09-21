@@ -14,7 +14,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Paysera\Bundle\RestBundle\Entity\ErrorConfig;
 use Paysera\Bundle\RestBundle\Security\SecurityStrategyInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Paysera\Component\Serializer\Normalizer\NormalizerInterface;
 
 class RestApi
 {
@@ -238,6 +238,11 @@ class RestApi
 
     /**
      * Adds an attribute (_controller, _method etc) mapper for a specific controller
+     *
+     * @param string $serviceKey
+     * @param string $controllerKey
+     * @param string $attributeName
+     * @param string $parameterName
      */
     public function addRequestAttributeResolver($serviceKey, $controllerKey, $attributeName, $parameterName)
     {
@@ -420,9 +425,9 @@ class RestApi
         if (isset($this->requestMappers[$controllerKey])) {
             $closure = $this->requestMappers[$controllerKey];
             return $closure();
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
@@ -439,9 +444,9 @@ class RestApi
         if (isset($this->requestQueryMappers[$controllerKey])) {
             $closure = $this->requestQueryMappers[$controllerKey];
             return $closure();
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
@@ -456,13 +461,13 @@ class RestApi
         $controllerKey = $this->normalizeControllerKey($controllerKey);
         if (isset($this->requestLoggingParts[$controllerKey])) {
             return $this->requestLoggingParts[$controllerKey];
-        } else {
-            return array(
-                'url' => true,
-                'header' => true,
-                'content' => false
-            );
         }
+
+        return array(
+            'url' => true,
+            'header' => true,
+            'content' => false
+        );
     }
 
     /**
@@ -470,7 +475,7 @@ class RestApi
      *
      * @param string $controllerKey
      *
-     * @return \Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface|null
+     * @return \Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface|null|array
      */
     public function getRequestAttributeResolvers($controllerKey)
     {
@@ -484,9 +489,9 @@ class RestApi
                 },
                 $closures
             );
-        } else {
-            return array();
         }
+
+        return array();
     }
 
     /**
@@ -503,11 +508,12 @@ class RestApi
         $controllerKey = $this->normalizeControllerKey($controllerKey);
         if (isset($this->responseMapperFactories[$controllerKey])) {
             return $this->responseMapperFactories[$controllerKey]->createResponseMapper($options);
-        } else {
-            return isset($this->responseMappers[$controllerKey])
-                ? $this->serviceContainer->get($this->responseMappers[$controllerKey])
-                : null;
         }
+
+        return isset($this->responseMappers[$controllerKey])
+            ? $this->serviceContainer->get($this->responseMappers[$controllerKey])
+            : null
+        ;
     }
 
     /**
@@ -525,7 +531,8 @@ class RestApi
         $controllerKey = $this->normalizeControllerKey($controllerKey);
         return isset($this->cacheStrategies[$controllerKey])
             ? $this->cacheStrategies[$controllerKey]
-            : null;
+            : null
+        ;
     }
 
 
@@ -573,7 +580,8 @@ class RestApi
     {
         return isset($this->encoderFactories[$format])
             ? $this->encoderFactories[$format]->createEncoder($options)
-            : null;
+            : null
+        ;
     }
 
     /**

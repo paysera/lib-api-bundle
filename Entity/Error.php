@@ -2,42 +2,44 @@
 
 namespace Paysera\Bundle\RestBundle\Entity;
 
+use Paysera\Component\Serializer\Entity\Violation;
+
 class Error
 {
     /**
      * @var string|null
      */
-    protected $code;
+    private $code;
 
     /**
      * @var integer|null
      */
-    protected $statusCode;
+    private $statusCode;
 
     /**
      * @var string|null
      */
-    protected $uri;
+    private $uri;
 
     /**
      * @var string|null
      */
-    protected $message;
+    private $message;
 
     /**
      * @var array|null
      */
-    protected $properties;
+    private $properties;
 
     /**
      * @var array|null
      */
-    protected $data;
+    private $data;
 
     /**
-     * @var array|null
+     * @var array
      */
-    protected $errorCodes;
+    private $violations;
 
     /**
      * Creates self. For fluent interface
@@ -58,6 +60,7 @@ class Error
     public function __construct($code = null, $statusCode = null, $message = null, $uri = null)
     {
         $this->setCode($code)->setStatusCode($statusCode)->setMessage($message)->setUri($uri);
+        $this->violations = [];
     }
 
     /**
@@ -175,47 +178,21 @@ class Error
     }
 
     /**
-     * @return array|null
+     * @return Violation[]
      */
-    public function getErrorCodes()
+    public function getViolations()
     {
-        return $this->errorCodes;
+        return $this->violations;
     }
 
     /**
-     * @param array|null $errorCodes
+     * @param Violation[] $violations
      *
      * @return $this
      */
-    public function setErrorCodes($errorCodes)
+    public function setViolations(array $violations)
     {
-        $this->errorCodes = $errorCodes;
+        $this->violations = $violations;
         return $this;
-    }
-
-    /**
-     * Returns array representing this error. Keys are as in OAuth error
-     *
-     * @return array
-     */
-    public function toArray()
-    {
-        $error = array('error' => $this->code);
-        if ($this->message) {
-            $error['error_description'] = $this->message;
-        }
-        if ($this->uri) {
-            $error['error_uri'] = $this->uri;
-        }
-        if ($this->properties) {
-            $error['error_properties'] = $this->properties;
-        }
-        if ($this->data) {
-            $error['error_data'] = $this->data;
-        }
-        if ($this->errorCodes) {
-            $error['error_properties_codes'] = $this->errorCodes;
-        }
-        return $error;
     }
 }

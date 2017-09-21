@@ -2,7 +2,10 @@
 
 namespace Paysera\Bundle\RestBundle\Exception;
 
-class ApiException extends \Exception
+use Paysera\Component\Serializer\Entity\Violation;
+use Exception;
+
+class ApiException extends Exception
 {
     const INVALID_REQUEST = 'invalid_request';
     const INVALID_PARAMETERS = 'invalid_parameters';
@@ -19,45 +22,53 @@ class ApiException extends \Exception
     /**
      * @var string
      */
-    protected $errorCode;
+    private $errorCode;
 
     /**
      * @var integer
      */
-    protected $statusCode;
+    private $statusCode;
 
     /**
      * @var array|null
      */
-    protected $properties;
+    private $properties;
 
     /**
      * @var array|null
      */
-    protected $data;
+    private $data;
 
     /**
-     * @var array|null
+     * @var Violation[]
      */
-    protected $codes;
+    private $violations;
 
     /**
      * @param string $errorCode
-     * @param string $message
+     * @param string|null $message
      * @param integer $statusCode
-     * @param \Exception $previous
-     * @param array $properties
-     * @param array $data
-     * @param array $codes
+     * @param Exception|null $previous
+     * @param array|null $properties
+     * @param array|null $data
+     * @param array $violations
      */
-    public function __construct($errorCode, $message = null, $statusCode = 0, $previous = null, $properties = null, $data = null, $codes = null) {
+    public function __construct(
+        $errorCode,
+        $message = null,
+        $statusCode = 0,
+        Exception $previous = null,
+        $properties = null,
+        $data = null,
+        array $violations = []
+    ) {
         parent::__construct($message, 0, $previous);
 
         $this->errorCode = $errorCode;
         $this->statusCode = $statusCode;
         $this->properties = $properties;
         $this->data = $data;
-        $this->codes = $codes;
+        $this->violations = $violations;
     }
 
     /**
@@ -115,21 +126,21 @@ class ApiException extends \Exception
     }
 
     /**
-     * @return array|null
+     * @return Violation[]
      */
-    public function getCodes()
+    public function getViolations()
     {
-        return $this->codes;
+        return $this->violations;
     }
 
     /**
-     * @param array|null $codes
+     * @param Violation[] $violations
      *
      * @return $this
      */
-    public function setCodes($codes)
+    public function setViolations($violations)
     {
-        $this->codes = $codes;
+        $this->violations = $violations;
         return $this;
     }
 }

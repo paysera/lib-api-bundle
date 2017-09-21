@@ -22,6 +22,7 @@ use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ValidatorInterface as LegacyValidatorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Paysera\Component\Serializer\Entity\Violation;
 
 /**
  * These tests use heavy object mocking, however it makes sure that as much code as possible is executed
@@ -77,6 +78,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $request->attributes = $parameterBag;
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturnNull();
@@ -106,6 +109,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturnNull();
@@ -136,6 +141,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn('name');
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getDecoder')->andThrow(EncodingException::class);
@@ -164,6 +171,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn('name');
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturnNull();
@@ -192,6 +201,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturnNull();
@@ -221,6 +232,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturnNull();
@@ -257,6 +270,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturnNull();
@@ -292,6 +307,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn('name');
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturn($requestMapper);
@@ -323,6 +340,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturn($requestMapper);
@@ -359,6 +378,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturn($requestMapper);
@@ -399,6 +420,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(false);
         $this->apiManager->shouldReceive('getSecurityStrategy')->andReturnNull();
         $this->apiManager->shouldReceive('getRequestQueryMapper')->andReturn($requestMapper);
@@ -437,6 +460,14 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
                     'LAST_NAME' => ['lastName message'],
                 ],
                 $apiException->getProperties()
+            );
+
+            $this->assertEquals(
+                [
+                    (new Violation())->setField('FIRSTNAME')->setMessage('firstName message'),
+                    (new Violation())->setField('LAST_NAME')->setMessage('lastName message'),
+                ],
+                $apiException->getViolations()
             );
         }
 
