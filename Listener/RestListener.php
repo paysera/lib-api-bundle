@@ -224,11 +224,11 @@ class RestListener
             $logger->debug('Setting error response', array($response->getContent()));
 
             if ($response->getStatusCode() === 500) {
-                $logger->error((string)$event->getException(), array($event->getException()));
+                $logger->error($event->getException()->getMessage(), ['exception' => $event->getException()]);
             } elseif ($response->getStatusCode() === 404) {
-                $logger->notice((string)$event->getException(), array($event->getException()));
+                $logger->notice($event->getException()->getMessage(), ['exception' => $event->getException()]);
             } else {
-                $logger->warning((string)$event->getException(), array($event->getException()));
+                $logger->warning($event->getException()->getMessage(), ['exception' => $event->getException()]);
             }
         }
     }
