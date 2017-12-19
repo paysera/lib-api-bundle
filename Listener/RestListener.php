@@ -162,7 +162,10 @@ class RestListener
         if ($cacheStrategy !== null && $cacheStrategy instanceof ResponseAwareCacheStrategy) {
             $cacheStrategy->setResponse($response);
         } else {
-            $response->setPrivate();
+            $responseHeaders = $response->headers;
+
+            $responseHeaders->removeCacheControlDirective('public');
+            $responseHeaders->addCacheControlDirective('no-store, no-cache, must-revalidate, private');
         }
 
         if ($result !== null) {
