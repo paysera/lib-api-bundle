@@ -18,6 +18,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ValidatorInterface as LegacyValidatorInterface;
@@ -473,6 +475,34 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($exceptionThrowed);
         $this->assertNull($parameterBag->get($name));
+    }
+
+    public function testOnKernelViewResponseHasXFrameOptionsHeader()
+    {
+        $restListener = $this->createRestListener();
+
+        $this->apiManager->shouldReceive('getApiKeyForRequest');
+        $this->apiManager->shouldReceive('getLogger');
+        $this->apiManager->shouldReceive('isRestRequest')->andReturn(true);
+        $this->apiManager->shouldReceive('getCacheStrategy');
+
+        $httpKernelMock = \Mockery::mock(HttpKernelInterface::class);
+        $requestMock = \Mockery::mock(Request::class);
+
+        $event = new GetResponseForControllerResultEvent(
+            $httpKernelMock,
+            $requestMock,
+            null,
+            null
+        );
+
+        $restListener->onKernelView($event);
+
+        $responseHeaders = $event->getResponse()->headers;
+        $headerName = 'x-frame-options';
+
+        $this->assertTrue($responseHeaders->has($headerName));
+        $this->assertEquals('DENY', $responseHeaders->get($headerName));
     }
 
     private function storeLoggerMessage()
