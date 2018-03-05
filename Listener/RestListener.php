@@ -203,6 +203,7 @@ class RestListener
         $response->setContent($responseContent);
 
         $response->setEtag($etag === null ? hash('sha256', $responseContent) : $etag);
+        $response->headers->set('X-Frame-Options', 'Deny');
 
         $event->setResponse($response);
     }
