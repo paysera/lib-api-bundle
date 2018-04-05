@@ -1,5 +1,8 @@
 # Change Log
 
+**4.0**
+- `Paysera\Bundle\RestBundle\RestApi` property `propertyPathConverter` now has default value set to `CamelCaseToSnakeCaseConverter`
+
 **3.0**
 - `Paysera\Bundle\RestBundle\Entity\Error` all properties are now private instead of protected
 - `Paysera\Bundle\RestBundle\Entity\Error` removed `errorCodes` property and related getters/setters

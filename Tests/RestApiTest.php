@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Paysera\Bundle\RestBundle\RestApi;
+use Paysera\Component\Serializer\Converter\CamelCaseToSnakeCaseConverter;
 
 class RestApiTest extends \PHPUnit_Framework_TestCase
 {
@@ -14,7 +15,13 @@ class RestApiTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->serviceContainer = \Mockery::mock('Symfony\Component\DependencyInjection\ContainerInterface');
-        
+
+        $this->serviceContainer
+            ->shouldReceive('get')
+            ->with('paysera_rest.service.property_path_converter.camel_case_to_snake_case')
+            ->andReturn(new CamelCaseToSnakeCaseConverter())
+        ;
+
         $this->logger = \Mockery::mock('Psr\Log\LoggerInterface');
         $this->logger->shouldReceive('debug')->andReturnUsing($this->storeMessage());
     }
