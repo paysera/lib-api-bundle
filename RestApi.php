@@ -106,6 +106,11 @@ class RestApi
     protected $controllerPropertyPathConverters = [];
 
     /**
+     * @var PropertyPathConverterInterface
+     */
+    private $propertyPathConverter;
+
+    /**
      * Constructs object
      *
      * @param \Symfony\Component\DependencyInjection\ContainerInterface $serviceContainer
@@ -118,6 +123,10 @@ class RestApi
         $this->serviceContainer = $serviceContainer;
         $this->logger = $logger;
         $this->errorConfig = new ErrorConfig();
+
+        $this->propertyPathConverter = $serviceContainer
+            ->get('paysera_rest.service.property_path_converter.camel_case_to_snake_case')
+        ;
     }
 
     /**
@@ -364,6 +373,11 @@ class RestApi
         $this->securityStrategy = $securityStrategy;
     }
 
+    public function setPropertyPathConverter(PropertyPathConverterInterface $propertyPathConverter)
+    {
+        $this->propertyPathConverter = $propertyPathConverter;
+    }
+
     /**
      * Returns validation group array
      *
@@ -401,8 +415,8 @@ class RestApi
     {
         $this->logger->debug('Getting property path converters for ' . $controllerKey);
         $controllerKey = $this->normalizeControllerKey($controllerKey);
-    
-        $propertyPathConverters = [];
+
+        $propertyPathConverters = [$this->propertyPathConverter];
 
         if (isset($this->controllerPropertyPathConverters[$controllerKey])) {
             $propertyPathConverters[] = $this->controllerPropertyPathConverters[$controllerKey];
@@ -453,7 +467,7 @@ class RestApi
      * returns if controlers request body should be logged or not
      *
      * @param string $controllerKey
-     * 
+     *
      * @return array
      */
     public function getRequestLoggingParts($controllerKey)
@@ -535,7 +549,6 @@ class RestApi
         ;
     }
 
-
     /**
      * Returns formats that are available to format response
      *
@@ -592,7 +605,6 @@ class RestApi
         return $this->securityStrategy;
     }
 
-
     /**
      * Returns configuration for error code. Can return null to use default configuration or leave some information
      * empty
@@ -613,7 +625,7 @@ class RestApi
     {
         return $this->logger;
     }
-    
+
     /**
      * Returns controller key without namespace prefix. Ie ApiController::getPaymentAction
      *
