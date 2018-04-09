@@ -159,6 +159,9 @@
             <argument type="service" id="paysera_rest.api_manager"/>
         </service>
 
+        <service id="paysera_rest.service.property_path_converter.no_op_converter"
+                 class="Paysera\Component\Serializer\Converter\NoOpConverter" />
+
         <service id="paysera_rest.service.property_path_converter.camel_case_to_snake_case"
                  class="Paysera\Component\Serializer\Converter\CamelCaseToSnakeCaseConverter" />
 
