@@ -72,6 +72,8 @@
             <argument type="service" id="logger" />
         </service>
 
+        <service id="paysera_rest.service.exception_logger" class="Paysera\Bundle\RestBundle\Service\ExceptionLogger" />
+
         <service id="paysera_rest.rest_listener" class="Paysera\Bundle\RestBundle\Listener\RestListener">
             <tag name="monolog.logger" channel="paysera_rest.rest_listener" />
             <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" />
@@ -84,7 +86,7 @@
             <argument type="service" id="logger" />
             <argument type="service" id="paysera_rest.service.parameter_to_entity_map_builder"/>
             <argument type="service" id="paysera_rest.service.request_logger"/>
-            <argument type="service" id="paysera_rest.serializer.validation.properties_aware_validator"/>
+            <argument type="service" id="paysera_rest.service.exception_logger"/>
         </service>
 
         <!-- Encoding -->
