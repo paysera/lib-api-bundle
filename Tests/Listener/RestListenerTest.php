@@ -7,6 +7,7 @@ use Paysera\Bundle\RestBundle\Exception\ApiException;
 use Paysera\Bundle\RestBundle\Listener\RestListener;
 use Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface;
 use Paysera\Bundle\RestBundle\RestApi;
+use Paysera\Bundle\RestBundle\Service\ExceptionLogger;
 use Paysera\Bundle\RestBundle\Service\ParameterToEntityMapBuilder;
 use Paysera\Bundle\RestBundle\Service\RequestLogger;
 use Paysera\Component\Serializer\Exception\EncodingException;
@@ -50,6 +51,9 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
     /** @var \Mockery\MockInterface|FilterControllerEvent */
     private $filterControllerEvent;
 
+    /** @var  ExceptionLogger */
+    private $exceptionLogger;
+
     private $storedLoggerMessages = [];
 
     private $storedContext = [];
@@ -68,6 +72,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $this->requestLogger = \Mockery::mock(RequestLogger::class);
 
         $this->filterControllerEvent = \Mockery::mock(FilterControllerEvent::class);
+
+        $this->exceptionLogger = \Mockery::mock(ExceptionLogger::class);
     }
 
     public function testOnKernelControllerNoMappersOnlyParameterToEntityMap()
@@ -523,7 +529,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
             $this->normalizerFactory,
             $this->logger,
             $this->parameterToEntityMapBuilder,
-            $this->requestLogger
+            $this->requestLogger,
+            $this->exceptionLogger
         );
     }
 

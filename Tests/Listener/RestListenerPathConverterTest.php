@@ -8,6 +8,7 @@ use Paysera\Bundle\RestBundle\Listener\RestListener;
 use Paysera\Bundle\RestBundle\Normalizer\ErrorNormalizer;
 use Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface;
 use Paysera\Bundle\RestBundle\RestApi;
+use Paysera\Bundle\RestBundle\Service\ExceptionLogger;
 use Paysera\Bundle\RestBundle\Service\FormatDetector;
 use Paysera\Bundle\RestBundle\Service\ParameterToEntityMapBuilder;
 use Paysera\Bundle\RestBundle\Service\RequestLogger;
@@ -169,7 +170,8 @@ class RestListenerPathConverterTest extends \PHPUnit_Framework_TestCase
             \Mockery::mock(ContextAwareNormalizerFactory::class),
             new NullLogger(),
             $parameterToEntityMapBuilder,
-            new RequestLogger(new NullLogger())
+            new RequestLogger(new NullLogger()),
+            new ExceptionLogger()
         );
     }
 }
