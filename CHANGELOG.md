@@ -1,14 +1,14 @@
 # Change Log
 
-## 4.1
+## 4.1.1
 ### Added
 - Moved `Paysera\Bundle\RestBundle\Listener\RestListener::onKernelException` logging to service `Paysera\Bundle\RestBundle\Service\ExceptionLogger`
 
-## 4.0
+## 4.0.0
 ###  Changed
 - `Paysera\Bundle\RestBundle\RestApi` property `propertyPathConverter` now has default value set to `CamelCaseToSnakeCaseConverter`
 
-## 3.0
+## 3.0.0
 ### Changed 
 - `Paysera\Bundle\RestBundle\Entity\Error` all properties are now private instead of protected
 - `Paysera\Bundle\RestBundle\Exception\ApiException` all properties are private instead of protected
@@ -19,7 +19,7 @@
 - `Paysera\Bundle\RestBundle\Entity\Error` removed `toArray` method
 - `Paysera\Bundle\RestBundle\Exception\ApiException` removed property getter and setter of `codes` property
 
-## 2.1
+## 2.1.0
 ### Changed
 - `_format` route attribute is no longer used to detect Request or Response format. 
 `Content-Type` or `Accept` headers should be used accordingly. 
@@ -28,6 +28,6 @@
 ### Deprecated
 - Deprecated `_format` route attribute. In future releases request format will be always taken from `Content-Type` header.
 
-## 2.0
+## 2.0.0
 ### Changed
 - Update factory service syntax
