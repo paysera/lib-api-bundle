@@ -36,13 +36,16 @@ class RestListener
      */
     private $loggersCache;
 
+    private $locales;
+
     public function __construct(
         ApiManager $apiManager,
         ContextAwareNormalizerFactory $normalizerFactory,
         LoggerInterface $logger,
         ParameterToEntityMapBuilder $parameterToEntityMapBuilder,
         RequestLogger $requestLogger,
-        ExceptionLogger $exceptionLogger
+        ExceptionLogger $exceptionLogger,
+        array $locales
     ) {
         $this->apiManager = $apiManager;
         $this->normalizerFactory = $normalizerFactory;
@@ -50,6 +53,7 @@ class RestListener
         $this->parameterToEntityMapBuilder = $parameterToEntityMapBuilder;
         $this->requestLogger = $requestLogger;
         $this->exceptionLogger = $exceptionLogger;
+        $this->locales = $locales;
 
         $this->loggersCache = array();
     }
@@ -63,7 +67,18 @@ class RestListener
 
             if ($locale !== null) {
                 $request->setLocale($locale);
+            } else {
+                $preferredLanguage = $request->getPreferredLanguage($this->locales);
+
+                if (
+                    $preferredLanguage !== null
+                    && count($this->locales) > 0
+                    && in_array($preferredLanguage, $request->getLanguages(), true)
+                ) {
+                    $request->setLocale($preferredLanguage);
+                }
             }
+
             $request->query->remove('locale');
         }
     }
@@ -334,9 +349,9 @@ class RestListener
 
     /**
      * Throws given InvalidDataException as ApiException
-     * 
+     *
      * @param InvalidDataException $exception
-     * 
+     *
      * @throws ApiException
      */
     protected function handleException(InvalidDataException $exception)

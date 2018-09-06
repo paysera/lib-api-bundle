@@ -87,6 +87,7 @@
             <argument type="service" id="paysera_rest.service.parameter_to_entity_map_builder"/>
             <argument type="service" id="paysera_rest.service.request_logger"/>
             <argument type="service" id="paysera_rest.service.exception_logger"/>
+            <argument>%paysera_rest.locales%</argument>
         </service>
 
         <!-- Encoding -->

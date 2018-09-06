@@ -39,5 +39,7 @@ class PayseraRestExtension extends Extension
                 ]
             );
         }
+
+        $container->setParameter('paysera_rest.locales', $config['locales']);
     }
 }

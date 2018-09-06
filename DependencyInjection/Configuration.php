@@ -22,7 +22,13 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-            ->scalarNode('property_path_converter')->defaultNull()->end()
+                ->scalarNode('property_path_converter')
+                    ->defaultNull()
+                ->end()
+                ->arrayNode('locales')
+                    ->prototype('scalar')->end()
+                    ->defaultValue([])
+                ->end()
             ->end()
         ;
 

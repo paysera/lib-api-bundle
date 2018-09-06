@@ -2,6 +2,7 @@
 
 namespace Paysera\Bundle\RestBundle\Tests;
 
+use Mockery;
 use Paysera\Bundle\RestBundle\ApiManager;
 use Paysera\Bundle\RestBundle\Exception\ApiException;
 use Paysera\Bundle\RestBundle\Listener\RestListener;
@@ -15,6 +16,7 @@ use Paysera\Component\Serializer\Exception\InvalidDataException;
 use Paysera\Component\Serializer\Factory\ContextAwareNormalizerFactory;
 use Paysera\Component\Serializer\Validation\PropertiesAwareValidator;
 use Paysera\Component\Serializer\Validation\PropertyPathConverterInterface;
+use PHPUnit_Framework_TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +33,7 @@ use Paysera\Component\Serializer\Entity\Violation;
  * These tests use heavy object mocking, however it makes sure that as much code as possible is executed
  * These tests are used for refactoring RestListener
  */
-class RestListenerTest extends \PHPUnit_Framework_TestCase
+class RestListenerTest extends PHPUnit_Framework_TestCase
 {
     /** @var \Mockery\MockInterface|ApiManager */
     private $apiManager;
@@ -60,26 +62,26 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->apiManager = \Mockery::mock(ApiManager::class);
+        $this->apiManager = Mockery::mock(ApiManager::class);
 
-        $this->normalizerFactory = \Mockery::mock(ContextAwareNormalizerFactory::class);
+        $this->normalizerFactory = Mockery::mock(ContextAwareNormalizerFactory::class);
 
-        $this->logger = \Mockery::mock(LoggerInterface::class);
+        $this->logger = Mockery::mock(LoggerInterface::class);
         $this->logger->shouldReceive('debug')->andReturnUsing($this->storeLoggerMessage());
 
-        $this->parameterToEntityMapBuilder = \Mockery::mock(ParameterToEntityMapBuilder::class);
+        $this->parameterToEntityMapBuilder = Mockery::mock(ParameterToEntityMapBuilder::class);
 
-        $this->requestLogger = \Mockery::mock(RequestLogger::class);
+        $this->requestLogger = Mockery::mock(RequestLogger::class);
 
-        $this->filterControllerEvent = \Mockery::mock(FilterControllerEvent::class);
+        $this->filterControllerEvent = Mockery::mock(FilterControllerEvent::class);
 
-        $this->exceptionLogger = \Mockery::mock(ExceptionLogger::class);
+        $this->exceptionLogger = Mockery::mock(ExceptionLogger::class);
     }
 
     public function testOnKernelControllerNoMappersOnlyParameterToEntityMap()
     {
         $parameterToEntityMap = ['key' => 'entity'];
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
@@ -106,13 +108,13 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $entity = [1];
         $parameterToEntityMap = ['key' => $entity];
         $name = 'requestName';
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
         $request->attributes = $parameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andReturn($entity);
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
@@ -137,14 +139,14 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
     public function testOnKernelControllerWithRequestMapperWhenDecodingFails()
     {
         $this->setExpectedException(ApiException::class);
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent')->andReturn('a=b&c=d');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
         $request->attributes = $parameterBag;
 
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity');
         $requestMapper->shouldReceive('getName')->andReturn('name');
 
@@ -168,13 +170,13 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(ApiException::class);
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
         $request->attributes = $parameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andThrow(InvalidDataException::class);
         $requestMapper->shouldReceive('getName')->andReturn('name');
 
@@ -198,13 +200,13 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $name = 'requestName';
         $entity = [1];
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
         $request->attributes = $parameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andReturn($entity);
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
@@ -229,13 +231,13 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $name = 'requestName';
         $entity = [1];
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
         $request->attributes = $parameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andReturn($entity);
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
@@ -267,13 +269,13 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $name = 'requestName';
         $entity = [1];
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
         $request->attributes = $parameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andReturn($entity);
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
@@ -302,7 +304,7 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(ApiException::class);
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
@@ -310,7 +312,7 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $queryParameterBag = new ParameterBag();
         $request->query = $queryParameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andThrow(InvalidDataException::class);
         $requestMapper->shouldReceive('getName')->andReturn('name');
 
@@ -335,7 +337,7 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $name = 'requestName';
         $entity = [1];
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
@@ -343,7 +345,7 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $queryParameterBag = new ParameterBag();
         $request->query = $queryParameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andReturn($entity);
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
@@ -373,7 +375,7 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $name = 'requestName';
         $entity = [1];
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
@@ -381,7 +383,7 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $queryParameterBag = new ParameterBag();
         $request->query = $queryParameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andReturn($entity);
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
@@ -415,7 +417,7 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
             'last_name' => 2,
         ];
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
         $parameterBag = new ParameterBag();
         $parameterBag->set('_controller', 'controller');
@@ -423,7 +425,7 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $queryParameterBag = new ParameterBag();
         $request->query = $queryParameterBag;
 
-        $requestMapper = \Mockery::mock(NameAwareDenormalizerInterface::class);
+        $requestMapper = Mockery::mock(NameAwareDenormalizerInterface::class);
         $requestMapper->shouldReceive('mapToEntity')->andReturn($entity);
         $requestMapper->shouldReceive('getName')->andReturn($name);
 
@@ -437,16 +439,16 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $this->apiManager->shouldReceive('getValidationGroups')->andReturn([RestApi::DEFAULT_VALIDATION_GROUP]);
 
         if (interface_exists('Symfony\Component\Validator\Validator\ValidatorInterface')) {
-            $validator = \Mockery::mock(ValidatorInterface::class);
+            $validator = Mockery::mock(ValidatorInterface::class);
         } else {
-            $validator = \Mockery::mock(LegacyValidatorInterface::class);
+            $validator = Mockery::mock(LegacyValidatorInterface::class);
         }
         $violationList = new ConstraintViolationList([
             new ConstraintViolation('firstName message', '', [], '', 'firstName', '1'),
             new ConstraintViolation('lastName message', '', [], '', 'last_name', '2'),
         ]);
         $validator->shouldReceive('validate')->andReturn($violationList);
-        $propertyPathConverter = \Mockery::mock(PropertyPathConverterInterface::class);
+        $propertyPathConverter = Mockery::mock(PropertyPathConverterInterface::class);
         $propertyPathConverter->shouldReceive('convert')->andReturnUsing(function ($path) {
             return strtoupper($path);
         });
@@ -492,8 +494,8 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
         $this->apiManager->shouldReceive('isRestRequest')->andReturn(true);
         $this->apiManager->shouldReceive('getCacheStrategy');
 
-        $httpKernelMock = \Mockery::mock(HttpKernelInterface::class);
-        $requestMock = \Mockery::mock(Request::class);
+        $httpKernelMock = Mockery::mock(HttpKernelInterface::class);
+        $requestMock = Mockery::mock(Request::class);
 
         $event = new GetResponseForControllerResultEvent(
             $httpKernelMock,
@@ -530,12 +532,13 @@ class RestListenerTest extends \PHPUnit_Framework_TestCase
             $this->logger,
             $this->parameterToEntityMapBuilder,
             $this->requestLogger,
-            $this->exceptionLogger
+            $this->exceptionLogger,
+            []
         );
     }
 
     private function createPropertiesAwareValidator()
     {
-        return \Mockery::mock(PropertiesAwareValidator::class);
+        return Mockery::mock(PropertiesAwareValidator::class);
     }
 }

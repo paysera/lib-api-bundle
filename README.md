@@ -23,6 +23,16 @@ class AppKernel extends Kernel
 }
 ```
 
+Configuration
+-----------
+- Example of the full bundle configuration
+
+```yaml
+paysera_rest:
+    property_path_converter: 'my_custom_path_converter' # Overrides the default path converter
+    locales: ['en', 'ru', 'lt'] # Optional list of accepted locales
+```
+
 Basic Usage
 -----------
 - Create and configure your controller:

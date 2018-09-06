@@ -1,5 +1,12 @@
 # Change Log
 
+## 4.2.0
+### Added
+- New optional bundle configuration parameter `locales`
+
+### Changed
+- `\Symfony\Component\HttpFoundation\Request::getLocale` now can return preferred locale from the `Accept-Language` header, which resolves from the `locales` parameter in the bundle configuration
+
 ## 4.1.1
 ### Added
 - Moved `Paysera\Bundle\RestBundle\Listener\RestListener::onKernelException` logging to service `Paysera\Bundle\RestBundle\Service\ExceptionLogger`
