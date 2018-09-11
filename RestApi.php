@@ -177,10 +177,10 @@ class RestApi
 
     /**
      * Returns denormalizer closure
-     * 
+     *
      * @param string $mapperKey    Denormalizer mapper key
      * @param string $argumentName Denormalizer name
-     * 
+     *
      * @return \Closure
      */
     protected function getDenormalizerClosure($mapperKey, $argumentName)
@@ -391,8 +391,7 @@ class RestApi
         $controllerKey = $this->normalizeControllerKey($controllerKey);
 
         if (
-            count($this->globalValidationGroups) === 0
-            || !array_key_exists($controllerKey, $this->validationGroups)
+            !array_key_exists($controllerKey, $this->validationGroups)
             || count($this->validationGroups[$controllerKey]) === 0
         ) {
             return null;

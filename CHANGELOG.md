@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.2.1
+### Changed
+- `\Paysera\Bundle\RestBundle\RestApi::getValidationGroups()` no longer returns `null` if `\Paysera\Bundle\RestBundle\RestApi::$globalValidationGroups` is empty.
+
 ## 4.2.0
 ### Added
 - New optional bundle configuration parameter `locales`
