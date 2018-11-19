@@ -76,7 +76,7 @@
 
         <service id="paysera_rest.rest_listener" class="Paysera\Bundle\RestBundle\Listener\RestListener">
             <tag name="monolog.logger" channel="paysera_rest.rest_listener" />
-            <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" />
+            <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" priority="10" />
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="20" />
             <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" priority="1" />
             <tag name="kernel.event_listener" event="kernel.view" method="onKernelView" />
