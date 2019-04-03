@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.3.0
+### Added
+- `Paysera\Bundle\RestBundle\ApiManager::createErrorFromException()` - checks if exception contains status code *400* and creates `ApiException::InvalidRequest` error
+
 ## 4.2.2
 ### Fixed
 - `Paysera\Bundle\RestBundle\Listener\RestListener::onKernelException()` increased listener priority to `10`. Since Symfony 3.3 the priority of `ExceptionListener::onKernelException` was changed to `1`.

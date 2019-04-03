@@ -493,6 +493,8 @@ class ApiManager
                 return Error::create()->setCode(ApiException::UNAUTHORIZED);
             } elseif ($exception->getStatusCode() === 403) {
                 return Error::create()->setCode(ApiException::FORBIDDEN);
+            } elseif ($exception->getStatusCode() === 400) {
+                return Error::create()->setCode(ApiException::INVALID_REQUEST);
             }
         }
 
