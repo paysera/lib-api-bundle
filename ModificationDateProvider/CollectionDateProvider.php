@@ -2,7 +2,6 @@
 
 namespace Paysera\Bundle\RestBundle\ModificationDateProvider;
 
-use DateTime;
 use Paysera\Bundle\RestBundle\Cache\ModificationDateProviderInterface;
 
 class CollectionDateProvider implements ModificationDateProviderInterface
@@ -17,7 +16,7 @@ class CollectionDateProvider implements ModificationDateProviderInterface
     /**
      * @param array $items
      *
-     * @return DateTime|null
+     * @return \DateTime|null
      */
     public function getModifiedAt($items)
     {

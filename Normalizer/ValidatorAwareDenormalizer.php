@@ -3,22 +3,22 @@
 namespace Paysera\Bundle\RestBundle\Normalizer;
 
 use Paysera\Component\Serializer\Normalizer\BaseDenormalizer;
-use RuntimeException;
 use Symfony\Component\Validator\ConstraintViolation;
 use Paysera\Component\Serializer\Exception\InvalidDataException;
+use Symfony\Component\Validator\ValidatorInterface as LegacyValidatorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class ValidatorAwareDenormalizer extends BaseDenormalizer
 {
     /**
-     * @var ValidatorInterface
+     * @var ValidatorInterface|LegacyValidatorInterface
      */
     protected $validator;
 
     /**
      * Called from configuration
      *
-     * @param ValidatorInterface $validator
+     * @param ValidatorInterface|LegacyValidatorInterface $validator
      */
     public function setValidator($validator)
     {
@@ -36,7 +36,7 @@ abstract class ValidatorAwareDenormalizer extends BaseDenormalizer
     protected function validate($entity, array $groups = null)
     {
         if ($this->validator === null) {
-            throw new RuntimeException('No validator was set to mapper');
+            throw new \RuntimeException('No validator was set to mapper');
         }
         $violationList = $this->validator->validate($entity, $groups);
         if ($violationList->count() > 0) {

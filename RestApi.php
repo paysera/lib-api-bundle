@@ -2,20 +2,15 @@
 
 namespace Paysera\Bundle\RestBundle;
 
-use Closure;
 use Paysera\Bundle\RestBundle\Cache\CacheStrategyInterface;
-use Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface;
 use Paysera\Bundle\RestBundle\Resolver\EntityResolverInterface;
 use Paysera\Bundle\RestBundle\Resolver\ServiceAwareAttributeResolver;
-use Paysera\Component\Serializer\Encoding\DecoderInterface;
-use Paysera\Component\Serializer\Encoding\EncoderInterface;
 use Paysera\Component\Serializer\Factory\EncoderFactoryInterface;
 use Paysera\Component\Serializer\Factory\ResponseMapperFactoryInterface;
 use Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizer;
 use Paysera\Component\Serializer\Normalizer\DenormalizerInterface;
 use Paysera\Component\Serializer\Validation\PropertyPathConverterInterface;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Paysera\Bundle\RestBundle\Entity\ErrorConfig;
 use Paysera\Bundle\RestBundle\Security\SecurityStrategyInterface;
@@ -26,17 +21,17 @@ class RestApi
     const DEFAULT_VALIDATION_GROUP = 'Default';
 
     /**
-     * @var Closure[]
+     * @var \Closure[]
      */
     protected $requestMappers;
 
     /**
-     * @var Closure[]
+     * @var \Closure[]
      */
     protected $requestQueryMappers;
 
     /**
-     * @var Closure[]
+     * @var \Closure[]
      */
     protected $requestAttributeResolvers;
 
@@ -51,7 +46,7 @@ class RestApi
     protected $responseMappers;
 
     /**
-     * @var ResponseMapperFactoryInterface[]
+     * @var \Paysera\Component\Serializer\Factory\ResponseMapperFactoryInterface[]
      */
     protected $responseMapperFactories;
 
@@ -86,7 +81,7 @@ class RestApi
     protected $securityStrategy;
 
     /**
-     * @var ContainerInterface
+     * @var \Symfony\Component\DependencyInjection\ContainerInterface
      */
     protected $serviceContainer;
 
@@ -118,7 +113,7 @@ class RestApi
     /**
      * Constructs object
      *
-     * @param ContainerInterface $serviceContainer
+     * @param \Symfony\Component\DependencyInjection\ContainerInterface $serviceContainer
      * @param LoggerInterface                                           $logger
      */
     public function __construct(
@@ -186,7 +181,7 @@ class RestApi
      * @param string $mapperKey    Denormalizer mapper key
      * @param string $argumentName Denormalizer name
      *
-     * @return Closure
+     * @return \Closure
      */
     protected function getDenormalizerClosure($mapperKey, $argumentName)
     {
@@ -195,7 +190,7 @@ class RestApi
         return function() use ($mapperKey, $serviceContainer, $argumentName) {
             $denormalizer = $serviceContainer->get($mapperKey);
             if (!$denormalizer instanceof DenormalizerInterface) {
-                throw new RuntimeException(
+                throw new \RuntimeException(
                     'Configured service does not implement DenormalizerInterface ' . $mapperKey
                 );
             }
@@ -278,7 +273,7 @@ class RestApi
             /** @var EntityResolverInterface $entityResolverService */
             $implementsResolverInterface = $entityResolverService instanceof EntityResolverInterface;
             if (!$implementsResolverInterface) {
-                throw new RuntimeException(
+                throw new \RuntimeException(
                     'The entity resolver service needs to implement EntityResolverInterface'
                 );
             }
@@ -302,7 +297,7 @@ class RestApi
     /**
      * Adds response mapper for some controller
      *
-     * @param ResponseMapperFactoryInterface $mapperFactory
+     * @param \Paysera\Component\Serializer\Factory\ResponseMapperFactoryInterface $mapperFactory
      * @param string                                                           $controllerKey
      */
     public function addResponseMapperFactory(ResponseMapperFactoryInterface $mapperFactory, $controllerKey)
@@ -332,7 +327,7 @@ class RestApi
      * Adds supported response format
      *
      * @param string                                                    $format
-     * @param EncoderFactoryInterface $encoderFactory
+     * @param \Paysera\Component\Serializer\Factory\EncoderFactoryInterface $encoderFactory
      */
     public function addResponseEncoderFactory($format, EncoderFactoryInterface $encoderFactory)
     {
@@ -361,7 +356,7 @@ class RestApi
     /**
      * Sets errorConfig
      *
-     * @param ErrorConfig $errorConfig
+     * @param \Paysera\Bundle\RestBundle\Entity\ErrorConfig $errorConfig
      */
     public function setErrorConfig($errorConfig)
     {
@@ -371,7 +366,7 @@ class RestApi
     /**
      * Sets securityStrategy
      *
-     * @param SecurityStrategyInterface|null $securityStrategy
+     * @param \Paysera\Bundle\RestBundle\Security\SecurityStrategyInterface|null $securityStrategy
      */
     public function setSecurityStrategy($securityStrategy)
     {
@@ -434,7 +429,7 @@ class RestApi
      *
      * @param string $controllerKey
      *
-     * @return NameAwareDenormalizerInterface|null
+     * @return \Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface|null
      */
     public function getRequestMapper($controllerKey)
     {
@@ -453,7 +448,7 @@ class RestApi
      *
      * @param string $controllerKey
      *
-     * @return NameAwareDenormalizerInterface|null
+     * @return \Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface|null
      */
     public function getRequestQueryMapper($controllerKey)
     {
@@ -493,14 +488,13 @@ class RestApi
      *
      * @param string $controllerKey
      *
-     * @return NameAwareDenormalizerInterface|null|array
+     * @return \Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface|null|array
      */
     public function getRequestAttributeResolvers($controllerKey)
     {
         $this->logger->debug('Getting request attribute mapper for ' . $controllerKey);
         $controllerKey = $this->normalizeControllerKey($controllerKey);
         if (isset($this->requestAttributeResolvers[$controllerKey])) {
-            /** @var Closure[] $closures */
             $closures = $this->requestAttributeResolvers[$controllerKey];
             return array_map(
                 function ($closure) {
@@ -539,7 +533,7 @@ class RestApi
      * @param string $controllerKey
      * @param array  $options
      *
-     * @return CacheStrategyInterface|null
+     * @return \Paysera\Bundle\RestBundle\Cache\CacheStrategyInterface|null
      */
     public function getCacheStrategy($controllerKey, array $options = array())
     {
@@ -579,7 +573,7 @@ class RestApi
      *
      * @param string $format
      *
-     * @return DecoderInterface
+     * @return \Paysera\Component\Serializer\Encoding\DecoderInterface
      */
     public function getDecoder($format)
     {
@@ -592,7 +586,7 @@ class RestApi
      * @param string $format
      * @param array  $options
      *
-     * @return EncoderInterface
+     * @return \Paysera\Component\Serializer\Encoding\EncoderInterface
      */
     public function getEncoder($format, array $options = array())
     {

@@ -2,19 +2,11 @@
 
 namespace Tests;
 
-use Mockery;
-use Mockery\MockInterface;
 use Paysera\Bundle\RestBundle\RestApi;
 use Paysera\Component\Serializer\Converter\CamelCaseToSnakeCaseConverter;
-use PHPUnit\Framework\TestCase;
-use RuntimeException;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class RestApiTest extends TestCase
+class RestApiTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var MockInterface|ContainerInterface
-     */
     private $serviceContainer;
     private $logger;
     private $messageStorage = [];
@@ -22,7 +14,7 @@ class RestApiTest extends TestCase
     
     public function setUp()
     {
-        $this->serviceContainer = Mockery::mock('Symfony\Component\DependencyInjection\ContainerInterface');
+        $this->serviceContainer = \Mockery::mock('Symfony\Component\DependencyInjection\ContainerInterface');
 
         $this->serviceContainer
             ->shouldReceive('get')
@@ -30,7 +22,7 @@ class RestApiTest extends TestCase
             ->andReturn(new CamelCaseToSnakeCaseConverter())
         ;
 
-        $this->logger = Mockery::mock('Psr\Log\LoggerInterface');
+        $this->logger = \Mockery::mock('Psr\Log\LoggerInterface');
         $this->logger->shouldReceive('debug')->andReturnUsing($this->storeMessage());
     }
     
@@ -51,8 +43,6 @@ class RestApiTest extends TestCase
 
     /**
      * @dataProvider controllerKeyProvider
-     *
-     * @param string $controllerKey
      */
     public function testNormalizeControllerKeyUsingGetValidationGroups($controllerKey)
     {
@@ -83,7 +73,7 @@ class RestApiTest extends TestCase
     {
         $mapperKey = 'key';
         $argument = 'argument';
-        $mockedDenormalizer = Mockery::mock('Paysera\Component\Serializer\Normalizer\DenormalizerInterface');
+        $mockedDenormalizer = \Mockery::mock('Paysera\Component\Serializer\Normalizer\DenormalizerInterface');
         $this->serviceContainer->shouldReceive('get')->with($mapperKey)->andReturn($mockedDenormalizer);
 
         $restApi = new RestApi($this->serviceContainer, $this->logger);
@@ -102,9 +92,9 @@ class RestApiTest extends TestCase
 
     public function testSetRequestMapperThrowsExceptionWhenDenormalizerIsIncorrect()
     {
-        $this->expectException(RuntimeException::class);
+        $this->setExpectedException('\RuntimeException');
         $mapperKey = 'key';
-        $mockedDenormalizer = Mockery::mock('RandomalizerInterface');
+        $mockedDenormalizer = \Mockery::mock('RandomalizerInterface');
         $this->serviceContainer->shouldReceive('get')->with($mapperKey)->andReturn($mockedDenormalizer);
         $restApi = new RestApi($this->serviceContainer, $this->logger);
         $restApi->addRequestMapper($mapperKey, $this->controllerKey, 'argument');
@@ -113,9 +103,9 @@ class RestApiTest extends TestCase
 
     public function testSetRequestQueryMapperThrowsExceptionWhenDenormalizerIsIncorrect()
     {
-        $this->expectException(RuntimeException::class);
+        $this->setExpectedException('\RuntimeException');
         $mapperKey = 'key';
-        $mockedDenormalizer = Mockery::mock('RandomalizerInterface');
+        $mockedDenormalizer = \Mockery::mock('RandomalizerInterface');
         $this->serviceContainer->shouldReceive('get')->with($mapperKey)->andReturn($mockedDenormalizer);
         $restApi = new RestApi($this->serviceContainer, $this->logger);
         $restApi->addRequestQueryMapper($mapperKey, $this->controllerKey, 'argument');

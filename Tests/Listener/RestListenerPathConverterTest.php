@@ -22,7 +22,7 @@ use Paysera\Component\Serializer\Factory\ContextAwareNormalizerFactory;
 use Paysera\Component\Serializer\Normalizer\ArrayNormalizer;
 use Paysera\Component\Serializer\Normalizer\ViolationNormalizer;
 use Paysera\Component\Serializer\Validation\PropertyPathConverterInterface;
-use PHPUnit\Framework\TestCase;
+use PHPUnit_Framework_TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -32,7 +32,7 @@ use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class RestListenerPathConverterTest extends TestCase
+class RestListenerPathConverterTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @var MockInterface|FilterControllerEvent
@@ -79,7 +79,7 @@ class RestListenerPathConverterTest extends TestCase
         $exceptionThrown = false;
         try {
             $this->createRestListener(new NoOpConverter())->onKernelController($this->filterControllerEvent);
-            $this->expectException(ApiException::class);
+            $this->setExpectedException(ApiException::class);
         } catch (ApiException $apiException) {
             $exceptionThrown = true;
             $this->assertEquals(
@@ -129,7 +129,11 @@ class RestListenerPathConverterTest extends TestCase
 
         $this->filterControllerEvent->shouldReceive('getRequest')->andReturn($request);
 
-        $validator = Mockery::mock(ValidatorInterface::class);
+        if (interface_exists('Symfony\Component\Validator\Validator\ValidatorInterface')) {
+            $validator = Mockery::mock(ValidatorInterface::class);
+        } else {
+            $validator = Mockery::mock(LegacyValidatorInterface::class);
+        }
 
         $violationList = new ConstraintViolationList([
             new ConstraintViolation('firstName message', '', [], '', 'firstName', '1'),

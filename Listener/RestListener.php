@@ -2,7 +2,6 @@
 
 namespace Paysera\Bundle\RestBundle\Listener;
 
-use Exception;
 use Paysera\Bundle\RestBundle\Cache\ResponseAwareCacheStrategy;
 use Paysera\Bundle\RestBundle\Service\ExceptionLogger;
 use Paysera\Bundle\RestBundle\Service\ParameterToEntityMapBuilder;
@@ -91,7 +90,7 @@ class RestListener
      *
      * @throws ApiException
      * @throws InvalidDataException
-     * @throws Exception
+     * @throws \Exception
      */
     public function onKernelController(FilterControllerEvent $event)
     {
@@ -311,16 +310,12 @@ class RestListener
                     );
                 }
             }
-            $entity = null;
             try {
                 $entity = $requestMapper->mapToEntity($data);
             } catch (InvalidDataException $exception) {
                 $this->handleException($exception);
             }
-            $this->getLogger($request)->debug(
-                'Mapped data to entity',
-                ['entity' => $entity]
-            );
+            $this->getLogger($request)->debug('Mapped data to entity', array($entity));
 
             $this->validateEntity($request, $entity);
 
@@ -339,15 +334,12 @@ class RestListener
     {
         $requestQueryMapper = $this->apiManager->getRequestQueryMapper($request);
         if ($requestQueryMapper !== null) {
-            $entity = null;
             try {
                 $entity = $requestQueryMapper->mapToEntity($request->query->all());
             } catch (InvalidDataException $exception) {
                 $this->handleException($exception);
             }
-            $this->getLogger($request)->debug('Mapped query data to entity', [
-                'entity' => $entity,
-            ]);
+            $this->getLogger($request)->debug('Mapped query data to entity', array($entity));
 
             $this->validateEntity($request, $entity);
 
