@@ -1,10 +1,6 @@
 # Change Log
 
-## 4.3.0
-### Added
-- `Paysera\Bundle\RestBundle\ApiManager::createErrorFromException()` - checks if exception contains status code *400* and creates `ApiException::InvalidRequest` error
-
-## 4.3.0
+## 4.4.0
 
 ### Changed
 - Dropped support for PHP 5
@@ -14,6 +10,10 @@
 
 ### Fixed
 - Code style fixes
+
+## 4.3.0
+### Added
+- `Paysera\Bundle\RestBundle\ApiManager::createErrorFromException()` - checks if exception contains status code *400* and creates `ApiException::InvalidRequest` error
 
 ## 4.2.2
 ### Fixed
