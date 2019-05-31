@@ -2,16 +2,16 @@
 
 namespace Paysera\Bundle\RestBundle\Tests\Security;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Paysera\Bundle\RestBundle\Security\RoleAndIpStrategy;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\HttpFoundation\Request;
 use PHPUnit_Framework_MockObject_MockObject;
-use PHPUnit_Framework_TestCase;
 use Psr\Log\NullLogger;
 
-class RoleAndIpStrategyTest extends PHPUnit_Framework_TestCase
+class RoleAndIpStrategyTest extends TestCase
 {
     private $roleHierarchy = [
         'ROLE_SUPER_ADMIN' => [

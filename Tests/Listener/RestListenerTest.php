@@ -3,6 +3,7 @@
 namespace Paysera\Bundle\RestBundle\Tests;
 
 use Mockery;
+use Mockery\MockInterface;
 use Paysera\Bundle\RestBundle\ApiManager;
 use Paysera\Bundle\RestBundle\Exception\ApiException;
 use Paysera\Bundle\RestBundle\Listener\RestListener;
@@ -16,7 +17,7 @@ use Paysera\Component\Serializer\Exception\InvalidDataException;
 use Paysera\Component\Serializer\Factory\ContextAwareNormalizerFactory;
 use Paysera\Component\Serializer\Validation\PropertiesAwareValidator;
 use Paysera\Component\Serializer\Validation\PropertyPathConverterInterface;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +26,6 @@ use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
-use Symfony\Component\Validator\ValidatorInterface as LegacyValidatorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Paysera\Component\Serializer\Entity\Violation;
 
@@ -33,24 +33,24 @@ use Paysera\Component\Serializer\Entity\Violation;
  * These tests use heavy object mocking, however it makes sure that as much code as possible is executed
  * These tests are used for refactoring RestListener
  */
-class RestListenerTest extends PHPUnit_Framework_TestCase
+class RestListenerTest extends TestCase
 {
-    /** @var \Mockery\MockInterface|ApiManager */
+    /** @var MockInterface|ApiManager */
     private $apiManager;
 
-    /** @var \Mockery\MockInterface|ContextAwareNormalizerFactory */
+    /** @var MockInterface|ContextAwareNormalizerFactory */
     private $normalizerFactory;
 
-    /** @var \Mockery\MockInterface|LoggerInterface */
+    /** @var MockInterface|LoggerInterface */
     private $logger;
 
-    /** @var \Mockery\MockInterface|ParameterToEntityMapBuilder */
+    /** @var MockInterface|ParameterToEntityMapBuilder */
     private $parameterToEntityMapBuilder;
 
-    /** @var \Mockery\MockInterface|RequestLogger */
+    /** @var MockInterface|RequestLogger */
     private $requestLogger;
 
-    /** @var \Mockery\MockInterface|FilterControllerEvent */
+    /** @var MockInterface|FilterControllerEvent */
     private $filterControllerEvent;
 
     /** @var  ExceptionLogger */
@@ -138,7 +138,7 @@ class RestListenerTest extends PHPUnit_Framework_TestCase
 
     public function testOnKernelControllerWithRequestMapperWhenDecodingFails()
     {
-        $this->setExpectedException(ApiException::class);
+        $this->expectException(ApiException::class);
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent')->andReturn('a=b&c=d');
         $parameterBag = new ParameterBag();
@@ -168,7 +168,7 @@ class RestListenerTest extends PHPUnit_Framework_TestCase
 
     public function testOnKernelControllerWithRequestMapperWhenMappingFails()
     {
-        $this->setExpectedException(ApiException::class);
+        $this->expectException(ApiException::class);
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
@@ -265,7 +265,7 @@ class RestListenerTest extends PHPUnit_Framework_TestCase
 
     public function testOnKernelControllerWithRequestMapperValidationThrowsException()
     {
-        $this->setExpectedException(ApiException::class);
+        $this->expectException(ApiException::class);
         $name = 'requestName';
         $entity = [1];
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
@@ -302,7 +302,7 @@ class RestListenerTest extends PHPUnit_Framework_TestCase
 
     public function testOnKernelControllerWithRequestQueryMapperWhenMappingFails()
     {
-        $this->setExpectedException(ApiException::class);
+        $this->expectException(ApiException::class);
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('getContent');
@@ -333,7 +333,7 @@ class RestListenerTest extends PHPUnit_Framework_TestCase
 
     public function testOnKernelControllerWithRequestQueryMapperValidationThrowsException()
     {
-        $this->setExpectedException(ApiException::class);
+        $this->expectException(ApiException::class);
         $name = 'requestName';
         $entity = [1];
         $this->logger->shouldReceive('notice')->andReturnUsing($this->storeLoggerMessage());
@@ -438,11 +438,7 @@ class RestListenerTest extends PHPUnit_Framework_TestCase
         $this->apiManager->shouldReceive('getRequestMapper')->andReturnNull();
         $this->apiManager->shouldReceive('getValidationGroups')->andReturn([RestApi::DEFAULT_VALIDATION_GROUP]);
 
-        if (interface_exists('Symfony\Component\Validator\Validator\ValidatorInterface')) {
-            $validator = Mockery::mock(ValidatorInterface::class);
-        } else {
-            $validator = Mockery::mock(LegacyValidatorInterface::class);
-        }
+        $validator = Mockery::mock(ValidatorInterface::class);
         $violationList = new ConstraintViolationList([
             new ConstraintViolation('firstName message', '', [], '', 'firstName', '1'),
             new ConstraintViolation('lastName message', '', [], '', 'last_name', '2'),
@@ -500,7 +496,7 @@ class RestListenerTest extends PHPUnit_Framework_TestCase
         $event = new GetResponseForControllerResultEvent(
             $httpKernelMock,
             $requestMock,
-            null,
+            HttpKernelInterface::MASTER_REQUEST,
             null
         );
 

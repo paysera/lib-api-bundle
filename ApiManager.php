@@ -2,12 +2,17 @@
 
 namespace Paysera\Bundle\RestBundle;
 
+use Exception;
+use Paysera\Bundle\RestBundle\Cache\CacheStrategyInterface;
+use Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface;
 use Paysera\Bundle\RestBundle\Resolver\AttributeResolverInterface;
+use Paysera\Bundle\RestBundle\Security\SecurityStrategyInterface;
 use Paysera\Bundle\RestBundle\Service\PropertyPathConverter\PathConverter;
 use Paysera\Component\Serializer\Exception\InvalidDataException;
 use Paysera\Component\Serializer\Normalizer\NormalizerInterface;
 use Paysera\Component\Serializer\Validation\PropertiesAwareValidator;
 use Paysera\Component\Serializer\Validation\PropertyPathConverterInterface;
+use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
@@ -147,7 +152,7 @@ class ApiManager
     /**
      * Sets errorConfig
      *
-     * @param \Paysera\Bundle\RestBundle\Entity\ErrorConfig $errorConfig
+     * @param ErrorConfig $errorConfig
      */
     public function setErrorConfig($errorConfig)
     {
@@ -159,17 +164,17 @@ class ApiManager
      * If not, null is returned
      *
      * @param Request    $request
-     * @param \Exception $exception
+     * @param Exception $exception
      *
-     * @throws Exception\ApiException
-     * @throws \Exception
-     * @return \Symfony\Component\HttpFoundation\Response|null
+     * @throws Exception|ApiException
+     * @throws Exception
+     * @return Response|null
      */
-    public function getResponseForException(Request $request, \Exception $exception)
+    public function getResponseForException(Request $request, Exception $exception)
     {
         try {
             $api = $this->getApiForRequest($request);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return new Response('', 500);
         }
 
@@ -198,7 +203,7 @@ class ApiManager
      *
      * @param Request $request
      *
-     * @return \Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface|null
+     * @return NameAwareDenormalizerInterface|null
      */
     public function getRequestMapper(Request $request)
     {
@@ -214,7 +219,7 @@ class ApiManager
      *
      * @param Request $request
      *
-     * @return \Paysera\Bundle\RestBundle\Normalizer\NameAwareDenormalizerInterface|null
+     * @return NameAwareDenormalizerInterface|null
      */
     public function getRequestQueryMapper(Request $request)
     {
@@ -323,7 +328,7 @@ class ApiManager
      * @param Request $request
      * @param array   $options
      *
-     * @return \Paysera\Bundle\RestBundle\Cache\CacheStrategyInterface|null
+     * @return CacheStrategyInterface|null
      */
     public function getCacheStrategy(Request $request, array $options = array())
     {
@@ -340,7 +345,7 @@ class ApiManager
      * @param Request $request
      * @param array   $options
      *
-     * @return \Paysera\Component\Serializer\Encoding\EncoderInterface|null
+     * @return EncoderInterface|null
      */
     public function getEncoder(Request $request, array $options = array())
     {
@@ -356,7 +361,7 @@ class ApiManager
      *
      * @param Request $request
      *
-     * @return \Paysera\Component\Serializer\Encoding\DecoderInterface|null
+     * @return DecoderInterface|null
      */
     public function getDecoder(Request $request)
     {
@@ -372,7 +377,7 @@ class ApiManager
      *
      * @param Request $request
      *
-     * @return \Paysera\Bundle\RestBundle\Security\SecurityStrategyInterface|null
+     * @return SecurityStrategyInterface|null
      */
     public function getSecurityStrategy(Request $request)
     {
@@ -414,7 +419,7 @@ class ApiManager
      *
      * @param Request $request
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      * @return RestApi|null
      */
     protected function getApiForRequest(Request $request)
@@ -422,7 +427,7 @@ class ApiManager
         $apiKey = $this->getApiKeyForRequest($request);
         if ($apiKey !== null) {
             if (!isset($this->apiByKey[$apiKey])) {
-                throw new \RuntimeException('Api not registered with such key: ' . $apiKey);
+                throw new RuntimeException('Api not registered with such key: ' . $apiKey);
             }
             return $this->apiByKey[$apiKey];
         }
@@ -439,11 +444,11 @@ class ApiManager
     /**
      * Creates Error entity from given exception
      *
-     * @param \Exception $exception
+     * @param Exception $exception
      *
      * @return Error
      */
-    protected function createErrorFromException(\Exception $exception)
+    protected function createErrorFromException(Exception $exception)
     {
         if ($exception instanceof ApiException) {
             return Error::create()
@@ -532,8 +537,8 @@ class ApiManager
      * @param RestApi $api
      * @param array   $options
      *
-     * @throws Exception\ConfigurationException
-     * @return \Paysera\Component\Serializer\Encoding\EncoderInterface
+     * @return EncoderInterface
+     * @throws Exception|ConfigurationException
      */
     protected function getEncoderForApi(Request $request, RestApi $api, array $options = array())
     {
@@ -554,8 +559,8 @@ class ApiManager
      * @param Request $request
      * @param RestApi $api
      *
-     * @throws Exception\ConfigurationException
-     * @return \Paysera\Component\Serializer\Encoding\DecoderInterface
+     * @return DecoderInterface
+     * @throws Exception|ConfigurationException
      */
     protected function getDecoderForApi(Request $request, RestApi $api)
     {

@@ -3,9 +3,9 @@
 namespace Paysera\Bundle\RestBundle\Tests;
 
 use Mockery;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Mockery\MockInterface;
-use PHPUnit_Framework_TestCase;
 use Paysera\Bundle\RestBundle\ApiManager;
 use Symfony\Component\HttpFoundation\Request;
 use Paysera\Bundle\RestBundle\Service\RequestLogger;
@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Paysera\Bundle\RestBundle\Service\ParameterToEntityMapBuilder;
 use Paysera\Component\Serializer\Factory\ContextAwareNormalizerFactory;
 
-class RestListenerLocaleTest extends PHPUnit_Framework_TestCase
+class RestListenerLocaleTest extends TestCase
 {
     /**
      * @var MockInterface|GetResponseEvent
@@ -57,7 +57,7 @@ class RestListenerLocaleTest extends PHPUnit_Framework_TestCase
     public function dataProviderForTestLocaleIsBeingSet()
     {
         return [
-            'select requested locale from the provided configuration' => [
+            'choose requested locale from the provided configuration' => [
                 ['lt', 'ru'],
                 'lt',
                 'lt',
@@ -67,7 +67,7 @@ class RestListenerLocaleTest extends PHPUnit_Framework_TestCase
                 'en',
                 'fr-CH, fr;q=0.9, lt;q=0.8, de;q=0.7',
             ],
-            'select locale from the defined locale configuration despite it having lowest weight' => [
+            'choose locale from the defined locale configuration despite it having lowest weight' => [
                 ['de'],
                 'de',
                 'fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7',

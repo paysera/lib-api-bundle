@@ -2,7 +2,9 @@
 
 namespace Paysera\Bundle\RestBundle\Exception;
 
-class ConfigurationException extends \Exception
+use Exception;
+
+class ConfigurationException extends Exception
 {
 
 }
