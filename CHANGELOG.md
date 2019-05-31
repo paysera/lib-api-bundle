@@ -4,6 +4,17 @@
 ### Added
 - `Paysera\Bundle\RestBundle\ApiManager::createErrorFromException()` - checks if exception contains status code *400* and creates `ApiException::InvalidRequest` error
 
+## 4.3.0
+
+### Changed
+- Dropped support for PHP 5
+- Now requiring Symfony components individually, rather than requiring package `symfony/symfony`
+- Updated PHPUnit and mockery/mockery
+- Removed usage of use deprecated `Symfony\Component\Security\Core\Role\RoleHierarchyInterface`, now using `Symfony\Component\Security\Core\Role\RoleHierarchy`. 
+
+### Fixed
+- Code style fixes
+
 ## 4.2.2
 ### Fixed
 - `Paysera\Bundle\RestBundle\Listener\RestListener::onKernelException()` increased listener priority to `10`. Since Symfony 3.3 the priority of `ExceptionListener::onKernelException` was changed to `1`.
