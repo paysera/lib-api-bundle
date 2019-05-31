@@ -3,7 +3,7 @@
 ## 4.4.0
 
 ### Changed
-- Dropped support for PHP 5
+- Dropped support for PHP 5, Symfony 2
 - Now requiring Symfony components individually, rather than requiring package `symfony/symfony`
 - Updated PHPUnit and mockery/mockery
 - Removed usage of use deprecated `Symfony\Component\Security\Core\Role\RoleHierarchyInterface`, now using `Symfony\Component\Security\Core\Role\RoleHierarchy`. 
