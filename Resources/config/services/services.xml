@@ -166,8 +166,7 @@
                  class="Paysera\Component\Serializer\Converter\NoOpConverter" />
 
         <service id="paysera_rest.service.property_path_converter.camel_case_to_snake_case"
-                 class="Paysera\Component\Serializer\Converter\CamelCaseToSnakeCaseConverter"
-                 public="true"/>
+                 class="Paysera\Component\Serializer\Converter\CamelCaseToSnakeCaseConverter" />
 
         <service id="paysera_rest.security_strategy.role_and_ip" abstract="true"
                  class="Paysera\Bundle\RestBundle\Security\RoleAndIpStrategy">

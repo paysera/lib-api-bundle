@@ -1,9 +1,5 @@
 # Change Log
 
-## 4.4.1
-### Fixed
-Made service `paysera_rest.service.property_path_converter.camel_case_to_snake_case` public as it is being retrieved directly from the container.
-
 ## 4.4.0
 
 ### Changed

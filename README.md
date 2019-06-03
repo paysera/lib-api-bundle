@@ -49,7 +49,7 @@ class ApiController
 ```
 
 ```xml
-<service id="app_bundle.controller.api_controller" class="AppBundle\Controller\ApiController" public="true">
+<service id="app_bundle.controller.api_controller" class="AppBundle\Controller\ApiController">
     ...
 </service>
 ```
@@ -90,5 +90,3 @@ class ApiController
     </call>
 </service>
 ```
-
-Here `app_bundle.normalizer.data` is a service implementing `\Paysera\Component\Serializer\Normalizer\DenormalizerInterface`, `app_bundle.normalizer.custom_response` is a service implementing `\Paysera\Component\Serializer\Normalizer\NormalizerInterface`. Both of these services must be configured as public in their service definitions.
