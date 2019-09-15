@@ -47,7 +47,8 @@ class ReflectionMethodWrapper
             ));
         }
 
-        return $type->getName();
+        // `$type->getName()` should be used when 7.0 support is dropped
+        return (string)$type;
     }
 
     public function getFriendlyName()

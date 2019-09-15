@@ -6,7 +6,6 @@ namespace Paysera\Bundle\RestBundle\Annotation;
 use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\RestBundle\Exception\ConfigurationException;
 use Paysera\Bundle\RestBundle\Service\Annotation\ReflectionMethodWrapper;
-use ReflectionParameter;
 
 /**
  * @Annotation
@@ -74,36 +73,35 @@ class Body implements RestAnnotationInterface
     public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         $options->setBodyParameterName($this->parameterName);
-        $parameter = $reflectionMethod->getParameterByName($this->parameterName);
-        $options->setBodyDenormalizationType($this->resolveDenormalizationType($parameter));
-        $options->setBodyOptional($this->resolveIfBodyIsOptional($parameter));
+        $options->setBodyDenormalizationType($this->resolveDenormalizationType($reflectionMethod));
+        $options->setBodyOptional($this->resolveIfBodyIsOptional($reflectionMethod));
     }
 
-    private function resolveDenormalizationType(ReflectionParameter $parameter): string
+    private function resolveDenormalizationType(ReflectionMethodWrapper $reflectionMethod): string
     {
         if ($this->denormalizationType !== null) {
             return $this->denormalizationType;
         }
 
-        $type = $parameter->getType();
-        if ($type === null || $type->isBuiltin()) {
+        try {
+            $typeName = $reflectionMethod->getNonBuiltInTypeForParameter($this->parameterName);
+        } catch (ConfigurationException $exception) {
             throw new ConfigurationException(sprintf(
-                'Denormalization type could not be guessed for %s in %s::%s',
-                '$' . $parameter->getName(),
-                $parameter->getDeclaringClass()->getName(),
-                $parameter->getDeclaringFunction()->getName()
+                'Denormalization type could not be guessed for %s in %s',
+                '$' . $this->parameterName,
+                $reflectionMethod->getFriendlyName()
             ));
         }
 
-        return $type->getName();
+        return $typeName;
     }
 
-    private function resolveIfBodyIsOptional(ReflectionParameter $parameter): bool
+    private function resolveIfBodyIsOptional(ReflectionMethodWrapper $reflectionMethod): bool
     {
         if ($this->optional !== null) {
             return $this->optional;
         }
 
-        return $parameter->isDefaultValueAvailable();
+        return $reflectionMethod->getParameterByName($this->parameterName)->isDefaultValueAvailable();
     }
 }
