@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+
+        <service decorates="routing.loader.annotation"
+                 parent="routing.loader.annotation"
+                 id="paysera_rest.annotations.loader"
+                 class="Paysera\Bundle\RestBundle\Service\Annotation\RoutingAnnotationLoader">
+            <call method="setRequestHelper">
+                <argument type="service" id="paysera_rest.rest_request_helper"/>
+            </call>
+            <call method="setRestRequestOptionsBuilder">
+                <argument type="service" id="paysera_rest.annotations.options_builder"/>
+            </call>
+        </service>
+
+        <service id="paysera_rest.annotations.options_builder"
+                class="Paysera\Bundle\RestBundle\Service\Annotation\RestRequestOptionsBuilder">
+            <argument type="service" id="paysera_rest.rest_request_options_validator"/>
+        </service>
+    </services>
+</container>

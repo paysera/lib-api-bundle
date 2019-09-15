@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<routes xmlns="http://symfony.com/schema/routing"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+
+    <import resource="../../Controller/" type="annotation"/>
+
+    <route id="paysera_fixture_test_1" path="/config/by-full-controller">
+        <default key="_controller">PayseraFixtureTestBundle:Default:action1</default>
+    </route>
+    <route id="paysera_fixture_test_1b" path="/config/by-full-controller-and-class-name">
+        <default key="_controller">PayseraFixtureTestBundle:Default:action1b</default>
+    </route>
+    <route id="paysera_fixture_test_2" path="/config/by-class-name">
+        <default key="_controller">Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action2</default>
+    </route>
+    <route id="paysera_fixture_test_3" path="/config/by-service-name">
+        <default key="_controller">paysera_fixture_test.controller.default_controller::action3</default>
+    </route>
+    <route id="paysera_fixture_test_4" path="/config/routing-by-service-name-config-by-class-name">
+        <default key="_controller">paysera_fixture_test.controller.default_controller::action4</default>
+    </route>
+    <route id="paysera_fixture_test_5" path="/config/routing-by-class-name-config-by-service-name">
+        <default key="_controller">Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action5</default>
+    </route>
+
+    <route id="paysera_fixture_test" path="/">
+        <default key="_controller">paysera_fixture_test.controller.default_controller::action</default>
+    </route>
+    <route id="paysera_fixture_test_with_return" path="/with-return">
+        <default key="_controller">paysera_fixture_test.controller.default_controller::actionWithReturn</default>
+    </route>
+    <route id="paysera_fixture_test_with_url_parameter" path="/with-url-parameter/{urlParameter}">
+        <default key="_controller">paysera_fixture_test.controller.default_controller::action</default>
+    </route>
+    <route id="paysera_fixture_test_with_several_url_parameters" path="/with-url-parameters/{urlParameter1}/{urlParameter2}">
+        <default key="_controller">paysera_fixture_test.controller.default_controller::actionWithMultipleParameters</default>
+    </route>
+    <route id="paysera_fixture_test_with_several_parameters" path="/with-parameters">
+        <default key="_controller">paysera_fixture_test.controller.default_controller::actionWithMultipleParameters</default>
+    </route>
+</routes>
