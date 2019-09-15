@@ -19,7 +19,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class EntityValidatorTest extends MockeryTestCase
 {
-
     public function testValidateDoesNotFailWithNonObject()
     {
         $validator = Mockery::mock(ValidatorInterface::class);
@@ -80,19 +79,19 @@ class EntityValidatorTest extends MockeryTestCase
                 null,
                 new ValidationOptions(),
                 [],
-                ['Default']
+                ['Default'],
             ],
             [
                 null,
                 (new ValidationOptions())->setValidationGroups(['blah', 'something']),
                 [],
-                ['blah', 'something']
+                ['blah', 'something'],
             ],
             [
                 null,
                 (new ValidationOptions())->setValidationGroups([]),
                 [],
-                []
+                [],
             ],
             [
                 (new ApiException(ApiException::INVALID_PARAMETERS))->setViolations([
@@ -107,7 +106,7 @@ class EntityValidatorTest extends MockeryTestCase
                     'path',
                     'value'
                 )],
-                ['Default']
+                ['Default'],
             ],
             [
                 (new ApiException(ApiException::INVALID_PARAMETERS))->setViolations([
@@ -122,7 +121,7 @@ class EntityValidatorTest extends MockeryTestCase
                     'path',
                     'value'
                 )],
-                ['Default']
+                ['Default'],
             ],
             [
                 (new ApiException(ApiException::INVALID_PARAMETERS))->setViolations([
@@ -137,7 +136,7 @@ class EntityValidatorTest extends MockeryTestCase
                     'pathToConvert',
                     'value'
                 )],
-                ['Default']
+                ['Default'],
             ],
             [
                 (new ApiException(ApiException::INVALID_PARAMETERS))->setViolations([
@@ -152,7 +151,7 @@ class EntityValidatorTest extends MockeryTestCase
                     'originalPath',
                     'value'
                 )],
-                ['Default']
+                ['Default'],
             ],
             [
                 (new ApiException(ApiException::INVALID_PARAMETERS))->setViolations([
@@ -178,7 +177,7 @@ class EntityValidatorTest extends MockeryTestCase
                         'value'
                     ),
                 ],
-                ['Default']
+                ['Default'],
             ],
             [
                 (new ApiException(ApiException::INVALID_PARAMETERS))->setViolations([
@@ -198,7 +197,7 @@ class EntityValidatorTest extends MockeryTestCase
                         new Type('type')
                     ),
                 ],
-                ['Default']
+                ['Default'],
             ],
             [
                 (new ApiException(ApiException::INVALID_PARAMETERS))->setViolations([
@@ -218,7 +217,7 @@ class EntityValidatorTest extends MockeryTestCase
                         new Type('type')
                     ),
                 ],
-                ['Default']
+                ['Default'],
             ],
         ];
     }

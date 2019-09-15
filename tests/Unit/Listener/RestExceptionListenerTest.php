@@ -21,7 +21,6 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class RestExceptionListenerTest extends MockeryTestCase
 {
-
     /**
      * @dataProvider provider
      *

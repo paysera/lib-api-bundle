@@ -13,6 +13,7 @@ class RestRequestOptionsValidator
 
     /**
      * @internal
+     * @param NormalizerRegistryInterface $registry
      */
     public function __construct(NormalizerRegistryInterface $registry)
     {

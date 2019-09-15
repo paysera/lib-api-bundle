@@ -5,12 +5,16 @@ namespace Paysera\Bundle\RestBundle\Tests\Unit\Normalizer;
 
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
+use Mockery\MockInterface;
 use Paysera\Component\Normalization\DenormalizationContext;
 use Paysera\Component\Normalization\ObjectDenormalizerInterface;
 use Paysera\Component\ObjectWrapper\ObjectWrapper;
 
 class DenormalizerTestCase extends MockeryTestCase
 {
+    /**
+     * @var MockInterface|DenormalizationContext
+     */
     protected $context;
 
     protected function setUp()

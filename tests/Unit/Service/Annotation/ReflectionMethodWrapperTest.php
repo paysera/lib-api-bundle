@@ -11,7 +11,6 @@ use ReflectionMethod;
 
 class ReflectionMethodWrapperTest extends TestCase
 {
-
     public function testGetParameterByName()
     {
         $wrapper = new ReflectionMethodWrapper(new ReflectionMethod(self::class, 'fixtureMethod'));

@@ -13,7 +13,6 @@ use Symfony\Component\Routing\Route;
 
 class RestRequestHelperTest extends MockeryTestCase
 {
-
     public function testSetOptionsForRoute()
     {
         $registry = Mockery::mock(RestRequestOptionsRegistry::class);
@@ -38,9 +37,9 @@ class RestRequestHelperTest extends MockeryTestCase
 
         $request = new Request();
         $helper->setOptionsForRequest($request, new RestRequestOptions());
-        $this->assertSame(true, $helper->isRestRequest($request));
+        $this->assertTrue($helper->isRestRequest($request));
 
-        $this->assertSame(false, $helper->isRestRequest(new Request()));
+        $this->assertFalse($helper->isRestRequest(new Request()));
     }
 
     public function testGetOptionsFromRequest()

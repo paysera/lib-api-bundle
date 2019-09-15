@@ -272,9 +272,9 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 $this->createRequest('POST', '/with-url-parameter/url-parameter'),
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                    ->setParameterName('parameter')
-                    ->setDenormalizationType('prefixed')
-                    ->setPathPartName('urlParameter')
+                        ->setParameterName('parameter')
+                        ->setDenormalizationType('prefixed')
+                        ->setPathPartName('urlParameter')
                 ),
             ],
 
@@ -287,11 +287,11 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                     ->setDenormalizationType('prefixed')
                     ->setPathPartName('urlParameter1')
                 )
-                    ->addPathAttributeResolverOptions(
+                ->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                    ->setParameterName('parameter2')
-                    ->setDenormalizationType('prefixed')
-                    ->setPathPartName('urlParameter2')
+                        ->setParameterName('parameter2')
+                        ->setDenormalizationType('prefixed')
+                        ->setPathPartName('urlParameter2')
                 ),
             ],
             'path attribute resolvers can be optional' => [
@@ -299,26 +299,26 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 $this->createRequest('POST', '/with-url-parameter/111'),
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                    ->setParameterName('parameter')
-                    ->setDenormalizationType('prefixed')
-                    ->setPathPartName('urlParameter')
+                        ->setParameterName('parameter')
+                        ->setDenormalizationType('prefixed')
+                        ->setPathPartName('urlParameter')
                 )
-                    ->addPathAttributeResolverOptions(
+                ->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                    ->setParameterName('unusedArgumentName')
-                    ->setDenormalizationType('prefixed')
-                    ->setPathPartName('unusedParameter')
-                    ->setResolutionMandatory(false)
+                        ->setParameterName('unusedArgumentName')
+                        ->setDenormalizationType('prefixed')
+                        ->setPathPartName('unusedParameter')
+                        ->setResolutionMandatory(false)
                 ),
             ],
-            'unresolved path attributes rgives 404 error' => [
+            'unresolved path attributes gives 404 error' => [
                 new Response('{"error":"not_found","error_description":"Resource was not found"}', 404),
                 $this->createRequest('POST', '/with-url-parameter/111'),
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                    ->setParameterName('parameter')
-                    ->setDenormalizationType('prefixed')
-                    ->setPathPartName('nonExistentUrlParameter')
+                        ->setParameterName('parameter')
+                        ->setDenormalizationType('prefixed')
+                        ->setPathPartName('nonExistentUrlParameter')
                 ),
             ],
             'path attribute resolvers work with objects' => [
@@ -337,13 +337,13 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 $this->createRequest('POST', '/with-parameters?field1=a&field1_custom=b'),
                 (new RestRequestOptions())->addQueryResolverOptions(
                     (new QueryResolverOptions())
-                    ->setParameterName('parameter1')
-                    ->setDenormalizationType(MyObject::class)
+                        ->setParameterName('parameter1')
+                        ->setDenormalizationType(MyObject::class)
                 )
-                    ->addQueryResolverOptions(
+                ->addQueryResolverOptions(
                     (new QueryResolverOptions())
-                    ->setParameterName('parameter2')
-                    ->setDenormalizationType('my_object_custom')
+                        ->setParameterName('parameter2')
+                        ->setDenormalizationType('my_object_custom')
                 ),
             ],
             'query attribute resolver with multiple level objects work' => [
@@ -351,8 +351,8 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 $this->createRequest('POST', '/?field1=a.&internal[field1]=b'),
                 (new RestRequestOptions())->addQueryResolverOptions(
                     (new QueryResolverOptions())
-                    ->setParameterName('parameter')
-                    ->setDenormalizationType(MyObject::class)
+                        ->setParameterName('parameter')
+                        ->setDenormalizationType(MyObject::class)
                 ),
             ],
 
@@ -364,13 +364,13 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 $this->createRequest('POST', '/with-parameters?field1=a&field1_custom='),
                 (new RestRequestOptions())->addQueryResolverOptions(
                     (new QueryResolverOptions())
-                    ->setParameterName('parameter1')
-                    ->setDenormalizationType(MyObject::class)
+                        ->setParameterName('parameter1')
+                        ->setDenormalizationType(MyObject::class)
                 )
-                    ->addQueryResolverOptions(
+                ->addQueryResolverOptions(
                     (new QueryResolverOptions())
-                    ->setParameterName('parameter2')
-                    ->setDenormalizationType('my_object_custom')
+                        ->setParameterName('parameter2')
+                        ->setDenormalizationType('my_object_custom')
                 ),
             ],
 
@@ -385,15 +385,15 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                     ->setParameterName('parameter1')
                     ->setDenormalizationType(MyObject::class)
                 )
-                    ->addQueryResolverOptions(
+                ->addQueryResolverOptions(
                     (new QueryResolverOptions())
-                    ->setParameterName('parameter2')
-                    ->setDenormalizationType('my_object_custom')
-                    ->setValidationOptions(
+                        ->setParameterName('parameter2')
+                        ->setDenormalizationType('my_object_custom')
+                        ->setValidationOptions(
                             (new ValidationOptions())
-                        ->setValidationGroups(['another'])
-                        ->setViolationPathMap(['field1' => 'field1_custom'])
-                    )
+                                ->setValidationGroups(['another'])
+                                ->setViolationPathMap(['field1' => 'field1_custom'])
+                        )
                 ),
             ],
 
@@ -417,7 +417,6 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 new Response('default'),
                 $this->createRequest('POST', '/', '', [], 'admin'),
                 (new RestRequestOptions())->setRequiredPermissions(['ROLE_ADMIN']),
-
             ],
         ];
     }

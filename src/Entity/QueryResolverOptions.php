@@ -43,7 +43,7 @@ class QueryResolverOptions
      * @param ValidationOptions|null $validationOptions
      * @return $this
      */
-    public function setValidationOptions($validationOptions): self
+    public function setValidationOptions(ValidationOptions $validationOptions = null): self
     {
         $this->validationOptions = $validationOptions;
         return $this;

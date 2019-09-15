@@ -14,7 +14,6 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class LocaleListenerTest extends MockeryTestCase
 {
-
     /**
      * @dataProvider provider
      *
@@ -52,49 +51,49 @@ class LocaleListenerTest extends MockeryTestCase
                 'unchanged',
                 ['en'],
                 'en',
-                false
+                false,
             ],
             [
                 'en',
                 ['en'],
                 'en',
-                true
+                true,
             ],
             [
                 'unchanged',
                 ['de'],
                 'en',
-                true
+                true,
             ],
             [
                 'de',
                 ['de'],
                 'en, lt;q=0.8, de;q=0.9',
-                true
+                true,
             ],
             [
                 'de',
                 ['de'],
                 'de-CH',
-                true
+                true,
             ],
             [
                 'de',
                 ['de'],
                 'en, de-CH',
-                true
+                true,
             ],
             [
                 'en',
                 ['de', 'en'],
                 'en, de-CH',
-                true
+                true,
             ],
             'higher priority wins' => [
                 'de',
                 ['de', 'en'],
                 'en-US,en;q=0.8, de-CH;q=0.9',
-                true
+                true,
             ],
         ];
     }

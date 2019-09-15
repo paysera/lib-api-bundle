@@ -13,7 +13,6 @@ use Paysera\Pagination\Entity\Pager;
 
 class PagerDenormalizerTest extends DenormalizerTestCase
 {
-
     /**
      * @dataProvider provideDataForTestDenormalize
      *

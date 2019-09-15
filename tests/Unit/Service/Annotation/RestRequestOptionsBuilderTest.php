@@ -11,12 +11,10 @@ use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\RestBundle\Exception\ConfigurationException;
 use Paysera\Bundle\RestBundle\Service\Annotation\RestRequestOptionsBuilder;
 use Paysera\Bundle\RestBundle\Service\RestRequestOptionsValidator;
-use ReflectionClass;
 use ReflectionMethod;
 
 class RestRequestOptionsBuilderTest extends MockeryTestCase
 {
-
     public function testBuildOptions()
     {
         $optionsValidator = Mockery::mock(RestRequestOptionsValidator::class);

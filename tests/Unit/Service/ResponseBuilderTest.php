@@ -12,13 +12,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ResponseBuilderTest extends TestCase
 {
-
     public function testBuildResponse()
     {
         $builder = new ResponseBuilder();
-        $response = $builder->buildResponse(['with unicode: ąčiū' => '</script>'], 403);
+        $response = $builder->buildResponse(['with unicode: ačiū' => '</script'], 403);
 
-        $this->assertEquals(new Response('{"with unicode: ąčiū":"</script>"}', 403, [
+        $this->assertEquals(new Response('{"with unicode: ačiū":"</script"}', 403, [
             'Content-Type' => 'application/json',
             'X-Frame-Options' => 'DENY',
             'Cache-Control' => 'must-revalidate, no-cache, no-store, private',
@@ -44,8 +43,7 @@ class ResponseBuilderTest extends TestCase
         $builder = new ResponseBuilder();
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('expected');
-        $builder->buildResponse(new class implements JsonSerializable
-        {
+        $builder->buildResponse(new class() implements JsonSerializable {
             public function jsonSerialize()
             {
                 throw new RuntimeException('expected');

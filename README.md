@@ -1,7 +1,7 @@
 # PayseraRestBundle
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
-[![Software License][ico-license]](LICENSE.md)
+[![Software License][ico-license]](LICENSE)
 [![Build Status][ico-travis]][link-travis]
 [![Coverage Status][ico-scrutinizer]][link-scrutinizer]
 [![Quality Score][ico-code-quality]][link-code-quality]
@@ -115,9 +115,6 @@ declare(strict_types=1);
 
 use Symfony\Component\Routing\Annotation\Route;
 use Paysera\Bundle\RestBundle\Annotation\Body;
-use Paysera\Bundle\RestBundle\Annotation\PathAttribute;
-use Paysera\Bundle\RestBundle\Annotation\Query;
-use Paysera\Pagination\Entity\Pager;
 
 class ApiController
 {

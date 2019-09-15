@@ -26,7 +26,7 @@ to still use older version of configuration. For new endpoints, use new configur
 should now receive and operate `Paysera\Bundle\RestBundle\Entity\Violation` instead of 
 `Paysera\Component\Serializer\Entity\Violation`.
 
-- `Paysera\Bundle\RestBundle\Entity\Error::create` method removed, contructor also does not take
+- `Paysera\Bundle\RestBundle\Entity\Error::create` method removed, constructor also does not take
 any arguments anymore.
 
 - `Paysera\Bundle\RestBundle\Normalizer\ErrorNormalizer` class changed to implement interfaces from

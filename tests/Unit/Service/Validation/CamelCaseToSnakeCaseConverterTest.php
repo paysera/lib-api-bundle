@@ -8,7 +8,6 @@ use PHPUnit\Framework\TestCase;
 
 class CamelCaseToSnakeCaseConverterTest extends TestCase
 {
-
     /**
      * @dataProvider provideDataForConvert
      *
