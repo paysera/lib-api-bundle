@@ -55,7 +55,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     '/annotated/testBodyNormalizationWithExtractedKeyValue'
                 ),
             ],
-            'test dafault content types validation' => [
+            'test default content types validation' => [
                 new Response(
                     '{"error":"invalid_request","error_description":"This Content-Type (text/plain) is not supported"}',
                     400

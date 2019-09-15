@@ -25,7 +25,7 @@ class LocaleListener
     }
 
     /**
-     * Both events are typecasted as one is deprecated from 4.3, but another not available before this version
+     * Both events are type-casted as one is deprecated from 4.3, but another not available before this version
      * @param GetResponseEvent|RequestEvent $event
      */
     public function onKernelRequest($event)

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Paysera\Bundle\RestBundle\Listener;
 
 use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
-use Paysera\Bundle\RestBundle\Entity\ValidationOptions;
 use Paysera\Bundle\RestBundle\Exception\ForbiddenApiException;
 use Paysera\Bundle\RestBundle\Exception\NotFoundApiException;
 use Paysera\Bundle\RestBundle\Service\ContentTypeMatcher;
@@ -174,7 +173,7 @@ class RestRequestListener
 
         $data = $this->decodeBody($request, $options);
         if ($data === null) {
-            $this->handleEmptyRequestBody($request, $options);
+            $this->handleEmptyRequestBody($options);
             return;
         }
 
@@ -229,7 +228,7 @@ class RestRequestListener
         return $data;
     }
 
-    private function handleEmptyRequestBody(Request $request, RestRequestOptions $options)
+    private function handleEmptyRequestBody(RestRequestOptions $options)
     {
         if (!$options->isBodyOptional()) {
             throw new ApiException(ApiException::INVALID_REQUEST, 'Expected non-empty request body');
