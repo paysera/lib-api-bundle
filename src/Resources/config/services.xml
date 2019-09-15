@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <imports>
+        <import resource="services/annotations.xml"/>
+        <import resource="services/listeners.xml"/>
+        <import resource="services/normalizers.xml"/>
+    </imports>
+
+    <services>
+        <service id="paysera_rest.rest_request_options_registry"
+                 class="Paysera\Bundle\RestBundle\Service\RestRequestOptionsRegistry"/>
+
+        <service class="Paysera\Bundle\RestBundle\Service\RestRequestHelper" id="paysera_rest.rest_request_helper">
+            <argument id="paysera_rest.rest_request_options_registry" type="service"/>
+        </service>
+
+        <service class="Paysera\Bundle\RestBundle\Service\ResponseBuilder" id="paysera_rest.response_builder"/>
+        <service class="\Paysera\Bundle\RestBundle\Service\ErrorBuilder" id="paysera_rest.error_builder">
+            <call method="configureError">
+                <argument>invalid_request</argument>
+                <argument>400</argument>
+                <argument>Request content is invalid</argument>
+            </call>
+            <call method="configureError">
+                <argument>invalid_parameters</argument>
+                <argument>400</argument>
+                <argument>Some required parameter is missing or it's format is invalid</argument>
+            </call>
+            <call method="configureError">
+                <argument>invalid_state</argument>
+                <argument>409</argument>
+                <argument>Requested action cannot be made to the current state of resource</argument>
+            </call>
+            <call method="configureError">
+                <argument>unauthorized</argument>
+                <argument>401</argument>
+                <argument>You have not provided any credentials or they are invalid</argument>
+            </call>
+            <call method="configureError">
+                <argument>forbidden</argument>
+                <argument>403</argument>
+                <argument>You have no rights to access requested resource or make requested action</argument>
+            </call>
+            <call method="configureError">
+                <argument>not_found</argument>
+                <argument>404</argument>
+                <argument>Resource was not found</argument>
+            </call>
+            <call method="configureError">
+                <argument>internal_server_error</argument>
+                <argument>500</argument>
+                <argument>Unexpected internal system error</argument>
+            </call>
+            <call method="configureError">
+                <argument>not_acceptable</argument>
+                <argument>406</argument>
+                <argument>Unknown request or response format</argument>
+            </call>
+        </service>
+
+        <service class="Paysera\Bundle\RestBundle\Service\ContentTypeMatcher" id="paysera_rest.content_type_matcher"/>
+        <service class="Paysera\Bundle\RestBundle\Service\Validation\CamelCaseToSnakeCaseConverter"
+                 id="paysera_rest.camel_case_to_snake_case_converter"/>
+
+        <!-- Could be overwritten from Extension -->
+        <service id="paysera_rest.validation.property_path_converter"
+                 alias="paysera_rest.camel_case_to_snake_case_converter"
+                 public="false"/>
+
+        <service class="Paysera\Bundle\RestBundle\Service\Validation\EntityValidator"
+                 id="paysera_rest.entity_validator">
+            <argument id="validator" type="service" on-invalid="null"/>
+            <argument id="paysera_rest.validation.property_path_converter" type="service"/>
+        </service>
+
+        <service class="Paysera\Bundle\RestBundle\Service\RestRequestOptionsValidator"
+                 id="paysera_rest.rest_request_options_validator">
+            <argument type="service" id="paysera_normalization.normalizer_registry"/>
+        </service>
+    </services>
+</container>

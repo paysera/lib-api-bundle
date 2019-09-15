@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service class="Paysera\Bundle\RestBundle\Normalizer\ViolationNormalizer"
+                 id="paysera_rest.normalizer.violation">
+            <tag name="paysera_normalization.autoconfigured_normalizer"/>
+        </service>
+
+        <service class="Paysera\Bundle\RestBundle\Normalizer\ErrorNormalizer" id="paysera_rest.normalizer.error">
+            <tag name="paysera_normalization.autoconfigured_normalizer"/>
+        </service>
+
+        <service class="Paysera\Bundle\RestBundle\Normalizer\Pagination\ResultNormalizer"
+                 id="paysera_rest.normalizer.result">
+            <tag name="paysera_normalization.autoconfigured_normalizer"/>
+        </service>
+
+        <service class="Paysera\Bundle\RestBundle\Normalizer\Pagination\PagerDenormalizer"
+                 id="paysera_rest.normalizer.pager_denormalizer">
+            <tag name="paysera_normalization.autoconfigured_normalizer"/>
+        </service>
+    </services>
+</container>

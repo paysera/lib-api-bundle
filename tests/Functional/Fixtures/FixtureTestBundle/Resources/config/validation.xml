@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping
+        https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+
+    <class name="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject">
+        <property name="field1">
+            <constraint name="NotBlank"/>
+        </property>
+        <property name="field1">
+            <constraint name="NotBlank">
+                <option name="groups">
+                    <value>another</value>
+                </option>
+                <option name="message">Custom message from another group</option>
+            </constraint>
+        </property>
+        <property name="field1">
+            <constraint name="Email">
+                <option name="groups">
+                    <value>field1_email</value>
+                </option>
+            </constraint>
+        </property>
+        <property name="internalField1">
+            <constraint name="Email">
+                <option name="groups">
+                    <value>internal_field1_email</value>
+                </option>
+                <option name="message">Custom message</option>
+            </constraint>
+        </property>
+    </class>
+</constraint-mapping>

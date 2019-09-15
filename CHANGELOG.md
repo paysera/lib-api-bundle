@@ -1,27 +1,44 @@
 # Change Log
+All notable changes to this project will be documented in this file.
 
-## 4.4.1
-### Fixed
-Made service `paysera_rest.service.property_path_converter.camel_case_to_snake_case` public as it is being retrieved directly from the container.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 4.4.0
-
+## Unreleased
 ### Changed
-- Dropped support for PHP 5, Symfony 2
-- Now requiring Symfony components individually, rather than requiring package `symfony/symfony`
-- Updated PHPUnit and mockery/mockery
-- Removed usage of use deprecated `Symfony\Component\Security\Core\Role\RoleHierarchyInterface`, now using `Symfony\Component\Security\Core\Role\RoleHierarchy`. 
+- Totally refactored the internals and configuration of this bundle. Please use paysera/lib-rest-migration-bundle
+to still use older version of configuration. For new endpoints, use new configuration format from README.
 
-### Fixed
-- Code style fixes
+  - Configuration is moved from service level (XML) to routing level (Annotations). This also requires
+  to configure routing using annotations, too.
+  - Normalization and denormalization has changed – lib-normalization-bundle is used instead of lib-serializer.
+  This also allows guessing of de/normalizers based on object classes or controller type-hints.
+  - Query string can be denormalized into multiple separate objects.
+  - `Filter` and `Result` from `lib-serializer` should not be used anymore (as anything else from that library).
+  `Pager` and `Result` from `lib-pagination` should be used instead, but there's no need in extending them
+  or additionally configuring in any way. `YourCustomFilter` and `Pager` objects are passed separately to Controller.
+  It's also best to use cursor-based pagination and avoid providing total count. This is far more easier now.
+  See README.md for examples.
+  
+- `property_path_converter` configuration option was moved to `validation` group
 
-## 4.3.0
-### Added
-- `Paysera\Bundle\RestBundle\ApiManager::createErrorFromException()` - checks if exception contains status code *400* and creates `ApiException::InvalidRequest` error
+- `Paysera\Bundle\RestBundle\Entity\Error` and `Paysera\Bundle\RestBundle\Exception\ApiException`
+should now receive and operate `Paysera\Bundle\RestBundle\Entity\Violation` instead of 
+`Paysera\Component\Serializer\Entity\Violation`.
 
-## 4.2.2
-### Fixed
-- `Paysera\Bundle\RestBundle\Listener\RestListener::onKernelException()` increased listener priority to `10`. Since Symfony 3.3 the priority of `ExceptionListener::onKernelException` was changed to `1`.
+- `Paysera\Bundle\RestBundle\Entity\Error::create` method removed, contructor also does not take
+any arguments anymore.
+
+- `Paysera\Bundle\RestBundle\Normalizer\ErrorNormalizer` class changed to implement interfaces from
+`lib-normalization` instead of `lib-serializer`. If you still need it, change usages from
+`paysera_rest.normalizer.error` to `paysera_rest_migration.normalizer.error` when upgrading.
+
+### Removed
+- Support for encoders – if you return non-JSON content, just return plain symfony Response object.
+- Support for caching configuration. This usually does not work in any case when authentication is needed
+and response cannot be cached inside the browser for security reasons.
+- Resolving locale from query was removed – it's resolved only from Accept-Language headers.
+- Security strategy support was removed – configure required permissions instead and use voters.
 
 ## 4.2.1
 ### Changed
