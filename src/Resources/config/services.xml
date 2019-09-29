@@ -80,6 +80,16 @@
         <service class="Paysera\Bundle\RestBundle\Service\RestRequestOptionsValidator"
                  id="paysera_rest.rest_request_options_validator">
             <argument type="service" id="paysera_normalization.normalizer_registry"/>
+            <argument type="service" id="paysera_rest.path_attribute_resolver_registry"/>
+        </service>
+
+        <service class="Paysera\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolverRegistry"
+                 id="paysera_rest.path_attribute_resolver_registry">
+            <!-- registerPathAttributeResolver is called for each service tagged with paysera_rest.path_attribute_resolver -->
+        </service>
+        <service class="Paysera\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolutionManager"
+                 id="paysera_rest.path_attribute_resolution_manager">
+            <argument type="service" id="paysera_rest.path_attribute_resolver_registry"/>
         </service>
     </services>
 </container>

@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Paysera\Bundle\RestBundle\DependencyInjection;
 
 use Doctrine\Common\Persistence\ObjectRepository;
-use Paysera\Bundle\RestBundle\Service\Doctrine\FindEntityDenormalizer;
+use Paysera\Bundle\RestBundle\Service\PathAttributeResolver\DoctrinePathAttributeResolver;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
@@ -55,9 +55,9 @@ class PayseraRestExtension extends Extension
             ->setFactory([new Reference('doctrine.orm.entity_manager'), 'getRepository'])
         ;
 
-        return (new Definition(FindEntityDenormalizer::class, [
+        return (new Definition(DoctrinePathAttributeResolver::class, [
             $repositoryDefinition,
             $field,
-        ]))->addTag('paysera_normalization.mixed_type_denormalizer');
+        ]))->addTag('paysera_rest.path_attribute_resolver', ['type' => $className]);
     }
 }

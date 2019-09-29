@@ -31,6 +31,19 @@ class AnnotatedController
     }
 
     /**
+     * @Route(path="/annotated/testBodyNormalizationWithDenormalizationGroup", methods={"POST"})
+     *
+     * @Body(parameterName="keyValueInBody", denormalizationType="extract:key", denormalizationGroup="custom")
+     *
+     * @param string $keyValueInBody
+     * @return Response
+     */
+    public function testBodyNormalizationWithDenormalizationGroup(string $keyValueInBody = 'default')
+    {
+        return new Response($keyValueInBody);
+    }
+
+    /**
      * @Route(path="/annotated/testBodyNormalizationWithRequiredBody", methods={"POST"})
      *
      * @Body(parameterName="body", denormalizationType="extract:key")
@@ -161,7 +174,7 @@ class AnnotatedController
      * @Route(path="/annotated/testPathAttribute/{id}", methods={"GET"})
      * @Route(path="/annotated/testPathAttribute", methods={"GET"})
      *
-     * @PathAttribute(parameterName="parameter", pathPartName="id", denormalizationType="prefixed")
+     * @PathAttribute(parameterName="parameter", pathPartName="id", resolverType="prefixed")
      *
      * @param string $parameter
      * @return Response
@@ -187,7 +200,7 @@ class AnnotatedController
     /**
      * @Route(path="/annotated/testPathAttributeWithFailedResolution/{id}", methods={"GET"})
      *
-     * @PathAttribute(parameterName="myObject", pathPartName="id", denormalizationType="always_null")
+     * @PathAttribute(parameterName="myObject", pathPartName="id", resolverType="always_null")
      *
      * @param MyObject $myObject
      * @return Response
@@ -207,6 +220,19 @@ class AnnotatedController
      * @return Response
      */
     public function testQueryResolver(string $parameter)
+    {
+        return new Response($parameter);
+    }
+
+    /**
+     * @Route(path="/annotated/testQueryResolverWithDenormalizationGroup", methods={"GET"})
+     *
+     * @Query(parameterName="parameter", denormalizationType="extract:parameter", denormalizationGroup="custom")
+     *
+     * @param string $parameter
+     * @return Response
+     */
+    public function testQueryResolverWithDenormalizationGroup(string $parameter)
     {
         return new Response($parameter);
     }
@@ -301,6 +327,18 @@ class AnnotatedController
      * @return string
      */
     public function testResponseNormalization()
+    {
+        return (new MyObject())->setField1('hi');
+    }
+
+    /**
+     * @Route(path="/annotated/testResponseNormalizationWithNormalizationGroup", methods={"GET"})
+     *
+     * @ResponseNormalization(normalizationGroup="custom")
+     *
+     * @return string
+     */
+    public function testResponseNormalizationWithNormalizationGroup()
     {
         return (new MyObject())->setField1('hi');
     }

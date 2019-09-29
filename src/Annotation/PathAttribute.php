@@ -14,8 +14,6 @@ use Paysera\Bundle\RestBundle\Service\Annotation\ReflectionMethodWrapper;
  */
 class PathAttribute implements RestAnnotationInterface
 {
-    const DENORMALIZATION_TYPE_POSTFIX = ':find';
-
     /**
      * @var string
      */
@@ -29,7 +27,7 @@ class PathAttribute implements RestAnnotationInterface
     /**
      * @var string|null
      */
-    private $denormalizationType;
+    private $resolverType;
 
     /**
      * @var bool|null
@@ -40,7 +38,7 @@ class PathAttribute implements RestAnnotationInterface
     {
         $this->setParameterName($options['parameterName']);
         $this->setPathPartName($options['pathPartName']);
-        $this->setDenormalizationType($options['denormalizationType'] ?? null);
+        $this->setResolverType($options['resolverType'] ?? null);
         $this->setResolutionMandatory($options['resolutionMandatory'] ?? null);
     }
 
@@ -65,12 +63,12 @@ class PathAttribute implements RestAnnotationInterface
     }
 
     /**
-     * @param string|null $denormalizationType
+     * @param string|null $resolverType
      * @return $this
      */
-    private function setDenormalizationType($denormalizationType): self
+    private function setResolverType($resolverType): self
     {
-        $this->denormalizationType = $denormalizationType;
+        $this->resolverType = $resolverType;
         return $this;
     }
 
@@ -95,19 +93,19 @@ class PathAttribute implements RestAnnotationInterface
             (new PathAttributeResolverOptions())
                 ->setParameterName($this->parameterName)
                 ->setPathPartName($this->pathPartName)
-                ->setDenormalizationType($this->resolveDenormalizationType($reflectionMethod))
+                ->setPathAttributeResolverType($this->resolvePathAttributeResolverType($reflectionMethod))
                 ->setResolutionMandatory($this->resolveIfResolutionIsMandatory($reflectionMethod))
         );
     }
 
-    private function resolveDenormalizationType(ReflectionMethodWrapper $reflectionMethod): string
+    private function resolvePathAttributeResolverType(ReflectionMethodWrapper $reflectionMethod): string
     {
-        if ($this->denormalizationType !== null) {
-            return $this->denormalizationType;
+        if ($this->resolverType !== null) {
+            return $this->resolverType;
         }
 
         try {
-            $typeName = $reflectionMethod->getNonBuiltInTypeForParameter($this->parameterName);
+            return $reflectionMethod->getNonBuiltInTypeForParameter($this->parameterName);
         } catch (ConfigurationException $exception) {
             throw new ConfigurationException(sprintf(
                 'Denormalization type could not be guessed for %s in %s',
@@ -115,8 +113,6 @@ class PathAttribute implements RestAnnotationInterface
                 $reflectionMethod->getFriendlyName()
             ));
         }
-
-        return sprintf('%s%s', $typeName, self::DENORMALIZATION_TYPE_POSTFIX);
     }
 
     private function resolveIfResolutionIsMandatory(ReflectionMethodWrapper $reflectionMethod): bool

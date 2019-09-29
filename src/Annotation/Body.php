@@ -24,6 +24,11 @@ class Body implements RestAnnotationInterface
     private $denormalizationType;
 
     /**
+     * @var string|null
+     */
+    private $denormalizationGroup;
+
+    /**
      * @var bool|null
      */
     private $optional;
@@ -32,6 +37,7 @@ class Body implements RestAnnotationInterface
     {
         $this->setParameterName($options['parameterName']);
         $this->setDenormalizationType($options['denormalizationType'] ?? null);
+        $this->setDenormalizationGroup($options['denormalizationGroup'] ?? null);
         $this->setOptional($options['optional'] ?? null);
     }
 
@@ -42,6 +48,16 @@ class Body implements RestAnnotationInterface
     private function setDenormalizationType($denormalizationType): self
     {
         $this->denormalizationType = $denormalizationType;
+        return $this;
+    }
+
+    /**
+     * @param string|null $denormalizationGroup
+     * @return $this
+     */
+    public function setDenormalizationGroup($denormalizationGroup): self
+    {
+        $this->denormalizationGroup = $denormalizationGroup;
         return $this;
     }
 
@@ -74,6 +90,7 @@ class Body implements RestAnnotationInterface
     {
         $options->setBodyParameterName($this->parameterName);
         $options->setBodyDenormalizationType($this->resolveDenormalizationType($reflectionMethod));
+        $options->setBodyDenormalizationGroup($this->denormalizationGroup);
         $options->setBodyOptional($this->resolveIfBodyIsOptional($reflectionMethod));
     }
 

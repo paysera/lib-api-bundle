@@ -70,7 +70,8 @@ class RestResponseListener
         }
 
         $responseNormalizationType = $options->getResponseNormalizationType();
-        $context = new NormalizationContext($this->coreNormalizer, $includedFields);
+        $responseNormalizationGroup = $options->getResponseNormalizationGroup();
+        $context = new NormalizationContext($this->coreNormalizer, $includedFields, $responseNormalizationGroup);
         return $this->coreNormalizer->normalize($result, $responseNormalizationType, $context);
     }
 }

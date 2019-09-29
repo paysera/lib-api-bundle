@@ -7,9 +7,11 @@ use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\RestBundle\Exception\ForbiddenApiException;
 use Paysera\Bundle\RestBundle\Exception\NotFoundApiException;
 use Paysera\Bundle\RestBundle\Service\ContentTypeMatcher;
+use Paysera\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolutionManager;
 use Paysera\Bundle\RestBundle\Service\RestRequestHelper;
 use Paysera\Bundle\RestBundle\Service\Validation\EntityValidator;
 use Paysera\Component\Normalization\CoreDenormalizer;
+use Paysera\Component\Normalization\DenormalizationContext;
 use Paysera\Component\ObjectWrapper\Exception\InvalidItemException;
 use Symfony\Component\HttpFoundation\Request;
 use Paysera\Component\Normalization\Exception\InvalidDataException;
@@ -33,6 +35,7 @@ class RestRequestListener
     private $requestHelper;
     private $entityValidator;
     private $contentTypeMatcher;
+    private $pathAttributeResolutionManager;
 
     public function __construct(
         CoreDenormalizer $coreDenormalizer,
@@ -40,7 +43,8 @@ class RestRequestListener
         TokenStorageInterface $tokenStorage,
         RestRequestHelper $requestHelper,
         EntityValidator $entityValidator,
-        ContentTypeMatcher $contentTypeMatcher
+        ContentTypeMatcher $contentTypeMatcher,
+        PathAttributeResolutionManager $pathAttributeResolutionManager
     ) {
         $this->coreDenormalizer = $coreDenormalizer;
         $this->authorizationChecker = $authorizationChecker;
@@ -48,6 +52,7 @@ class RestRequestListener
         $this->requestHelper = $requestHelper;
         $this->entityValidator = $entityValidator;
         $this->contentTypeMatcher = $contentTypeMatcher;
+        $this->pathAttributeResolutionManager = $pathAttributeResolutionManager;
     }
 
     /**
@@ -106,11 +111,12 @@ class RestRequestListener
     private function addAttributesFromURL(Request $request, RestRequestOptions $options)
     {
         foreach ($options->getPathAttributeResolverOptionsList() as $pathResolverOptions) {
-            $attribute = $request->attributes->get($pathResolverOptions->getPathPartName());
-            $value = $this->coreDenormalizer->denormalize(
-                $attribute,
-                $pathResolverOptions->getDenormalizationType()
-            );
+            $attributeValue = $request->attributes->get($pathResolverOptions->getPathPartName());
+
+            $value = $attributeValue !== null ? $this->pathAttributeResolutionManager->resolvePathAttribute(
+                $attributeValue,
+                $pathResolverOptions->getPathAttributeResolverType()
+            ) : null;
 
             if ($value !== null) {
                 $request->attributes->set($pathResolverOptions->getParameterName(), $value);
@@ -135,9 +141,14 @@ class RestRequestListener
     private function addAttributesFromQuery(Request $request, RestRequestOptions $options)
     {
         foreach ($options->getQueryResolverOptionsList() as $queryResolverOptions) {
+            $context = new DenormalizationContext(
+                $this->coreDenormalizer,
+                $queryResolverOptions->getDenormalizationGroup()
+            );
             $value = $this->coreDenormalizer->denormalize(
                 $this->convertToObject($request->query->all()),
-                $queryResolverOptions->getDenormalizationType()
+                $queryResolverOptions->getDenormalizationType(),
+                $context
             );
 
             if ($queryResolverOptions->isValidationNeeded()) {
@@ -177,9 +188,11 @@ class RestRequestListener
             return;
         }
 
+        $context = new DenormalizationContext($this->coreDenormalizer, $options->getBodyDenormalizationGroup());
         $entity = $this->coreDenormalizer->denormalize(
             $data,
-            $options->getBodyDenormalizationType()
+            $options->getBodyDenormalizationType(),
+            $context
         );
 
         if ($options->isBodyValidationNeeded()) {

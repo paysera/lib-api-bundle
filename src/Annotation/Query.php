@@ -25,6 +25,11 @@ class Query implements RestAnnotationInterface
     private $denormalizationType;
 
     /**
+     * @var string|null
+     */
+    private $denormalizationGroup;
+
+    /**
      * @var Validation|null
      */
     private $validation;
@@ -33,6 +38,7 @@ class Query implements RestAnnotationInterface
     {
         $this->setParameterName($options['parameterName']);
         $this->setDenormalizationType($options['denormalizationType'] ?? null);
+        $this->setDenormalizationGroup($options['denormalizationGroup'] ?? null);
         $this->setValidation($options['validation'] ?? null);
     }
 
@@ -57,6 +63,16 @@ class Query implements RestAnnotationInterface
     }
 
     /**
+     * @param string|null $denormalizationGroup
+     * @return $this
+     */
+    public function setDenormalizationGroup($denormalizationGroup): self
+    {
+        $this->denormalizationGroup = $denormalizationGroup;
+        return $this;
+    }
+
+    /**
      * @param Validation|null $validation
      * @return $this
      */
@@ -76,6 +92,7 @@ class Query implements RestAnnotationInterface
         $resolverOptions = (new QueryResolverOptions())
             ->setParameterName($this->parameterName)
             ->setDenormalizationType($this->resolveDenormalizationType($reflectionMethod))
+            ->setDenormalizationGroup($this->denormalizationGroup)
         ;
 
         $this->setValidationOptions($reflectionMethod, $resolverOptions);
