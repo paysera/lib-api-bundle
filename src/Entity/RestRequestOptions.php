@@ -15,6 +15,11 @@ class RestRequestOptions
     /**
      * @var string|null
      */
+    private $bodyDenormalizationGroup;
+
+    /**
+     * @var string|null
+     */
     private $bodyParameterName;
 
     /**
@@ -36,6 +41,11 @@ class RestRequestOptions
      * @var string|null
      */
     private $responseNormalizationType;
+
+    /**
+     * @var string|null
+     */
+    private $responseNormalizationGroup;
 
     /**
      * @var array
@@ -74,6 +84,16 @@ class RestRequestOptions
         return $this;
     }
 
+    /**
+     * @param string|null $bodyDenormalizationGroup
+     * @return $this
+     */
+    public function setBodyDenormalizationGroup($bodyDenormalizationGroup): self
+    {
+        $this->bodyDenormalizationGroup = $bodyDenormalizationGroup;
+        return $this;
+    }
+
     public function setBodyParameterName(string $bodyParameterName): self
     {
         $this->bodyParameterName = $bodyParameterName;
@@ -100,6 +120,16 @@ class RestRequestOptions
     public function setResponseNormalizationType($responseNormalizationType): self
     {
         $this->responseNormalizationType = $responseNormalizationType;
+        return $this;
+    }
+
+    /**
+     * @param string|null $responseNormalizationGroup
+     * @return $this
+     */
+    public function setResponseNormalizationGroup($responseNormalizationGroup): self
+    {
+        $this->responseNormalizationGroup = $responseNormalizationGroup;
         return $this;
     }
 
@@ -146,6 +176,14 @@ class RestRequestOptions
         return $this->bodyDenormalizationType;
     }
 
+    /**
+     * @return string|null
+     */
+    public function getBodyDenormalizationGroup()
+    {
+        return $this->bodyDenormalizationGroup;
+    }
+
     public function getBodyParameterName(): string
     {
         if ($this->bodyParameterName === null) {
@@ -177,6 +215,14 @@ class RestRequestOptions
     public function getResponseNormalizationType()
     {
         return $this->responseNormalizationType;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getResponseNormalizationGroup()
+    {
+        return $this->responseNormalizationGroup;
     }
 
     public function getRequiredPermissions(): array

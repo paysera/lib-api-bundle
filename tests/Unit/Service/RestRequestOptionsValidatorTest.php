@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\RestBundle\Tests\Unit\Service;
 
+use InvalidArgumentException;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Mockery\MockInterface;
@@ -11,6 +12,8 @@ use Paysera\Bundle\RestBundle\Entity\PathAttributeResolverOptions;
 use Paysera\Bundle\RestBundle\Entity\QueryResolverOptions;
 use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\RestBundle\Exception\ConfigurationException;
+use Paysera\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolverInterface;
+use Paysera\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolverRegistry;
 use Paysera\Bundle\RestBundle\Service\RestRequestOptionsValidator;
 use Paysera\Component\Normalization\NormalizerRegistryInterface;
 
@@ -25,36 +28,50 @@ class RestRequestOptionsValidatorTest extends MockeryTestCase
      */
     public function testValidateRestRequestOptions(bool $expectException, RestRequestOptions $options)
     {
-        /** @var MockInterface|NormalizerRegistryInterface $registryMock */
-        $registryMock = Mockery::mock(NormalizerRegistryInterface::class);
+        /** @var MockInterface|NormalizerRegistryInterface $normalizerRegistryMock */
+        $normalizerRegistryMock = Mockery::mock(NormalizerRegistryInterface::class);
+        /** @var MockInterface|PathAttributeResolverRegistry $pathAttributeRegistryMock */
+        $pathAttributeRegistryMock = Mockery::mock(PathAttributeResolverRegistry::class);
         $validator = new RestRequestOptionsValidator(
-            $registryMock
+            $normalizerRegistryMock,
+            $pathAttributeRegistryMock
         );
 
-        $registryMock
+        $normalizerRegistryMock
             ->shouldReceive('hasNormalizer')
             ->with('non_existing_normalizer')
             ->andReturn(false)
         ;
-        $registryMock
+        $normalizerRegistryMock
             ->shouldReceive('hasNormalizer')
             ->with('existing_normalizer')
             ->andReturn(true)
         ;
-        $registryMock
+        $normalizerRegistryMock
             ->shouldReceive('getDenormalizerType')
             ->with('non_existing_denormalizer')
             ->andReturn(NormalizerRegistryInterface::DENORMALIZER_TYPE_NONE)
         ;
-        $registryMock
+        $normalizerRegistryMock
             ->shouldReceive('getDenormalizerType')
             ->with('object_denormalizer')
             ->andReturn(NormalizerRegistryInterface::DENORMALIZER_TYPE_OBJECT)
         ;
-        $registryMock
+        $normalizerRegistryMock
             ->shouldReceive('getDenormalizerType')
             ->with('mixed_type_denormalizer')
             ->andReturn(NormalizerRegistryInterface::DENORMALIZER_TYPE_MIXED)
+        ;
+
+        $pathAttributeRegistryMock
+            ->shouldReceive('getResolverByType')
+            ->with('non_existing_path_attribute_resolver')
+            ->andThrow(new InvalidArgumentException())
+        ;
+        $pathAttributeRegistryMock
+            ->shouldReceive('getResolverByType')
+            ->with('existing_path_attribute_resolver')
+            ->andReturn(Mockery::mock(PathAttributeResolverInterface::class))
         ;
 
         if ($expectException) {
@@ -147,31 +164,24 @@ class RestRequestOptionsValidatorTest extends MockeryTestCase
                 false,
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                        ->setDenormalizationType('mixed_type_denormalizer')
+                        ->setPathAttributeResolverType('existing_path_attribute_resolver')
                 ),
             ],
             [
                 true,
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                        ->setDenormalizationType('object_denormalizer')
+                        ->setPathAttributeResolverType('non_existing_path_attribute_resolver')
                 ),
             ],
             [
                 true,
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                        ->setDenormalizationType('non_existing_denormalizer')
-                ),
-            ],
-            [
-                true,
-                (new RestRequestOptions())->addPathAttributeResolverOptions(
-                    (new PathAttributeResolverOptions())
-                        ->setDenormalizationType('mixed_type_denormalizer')
+                        ->setPathAttributeResolverType('existing_path_attribute_resolver')
                 )->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
-                        ->setDenormalizationType('non_existing_denormalizer')
+                        ->setPathAttributeResolverType('non_existing_path_attribute_resolver')
                 ),
             ],
         ];

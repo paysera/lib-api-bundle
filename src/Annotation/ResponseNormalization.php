@@ -17,9 +17,15 @@ class ResponseNormalization implements RestAnnotationInterface
      */
     private $normalizationType;
 
+    /**
+     * @var string|null
+     */
+    private $normalizationGroup;
+
     public function __construct(array $options)
     {
         $this->setNormalizationType($options['normalizationType'] ?? null);
+        $this->setNormalizationGroup($options['normalizationGroup'] ?? null);
     }
 
     /**
@@ -32,6 +38,16 @@ class ResponseNormalization implements RestAnnotationInterface
         return $this;
     }
 
+    /**
+     * @param string|null $normalizationGroup
+     * @return $this
+     */
+    public function setNormalizationGroup($normalizationGroup): self
+    {
+        $this->normalizationGroup = $normalizationGroup;
+        return $this;
+    }
+
     public function isSeveralSupported(): bool
     {
         return false;
@@ -40,5 +56,6 @@ class ResponseNormalization implements RestAnnotationInterface
     public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         $options->setResponseNormalizationType($this->normalizationType);
+        $options->setResponseNormalizationGroup($this->normalizationGroup);
     }
 }

@@ -3,27 +3,34 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\RestBundle\Service;
 
+use InvalidArgumentException;
 use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\RestBundle\Exception\ConfigurationException;
+use Paysera\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolverRegistry;
 use Paysera\Component\Normalization\NormalizerRegistryInterface;
 
 class RestRequestOptionsValidator
 {
-    private $registry;
+    private $normalizerRegistry;
+    private $pathAttributeResolverRegistry;
 
     /**
+     * @param NormalizerRegistryInterface $normalizerRegistry
+     * @param PathAttributeResolverRegistry $pathAttributeResolverRegistry
      * @internal
-     * @param NormalizerRegistryInterface $registry
      */
-    public function __construct(NormalizerRegistryInterface $registry)
-    {
-        $this->registry = $registry;
+    public function __construct(
+        NormalizerRegistryInterface $normalizerRegistry,
+        PathAttributeResolverRegistry $pathAttributeResolverRegistry
+    ) {
+        $this->normalizerRegistry = $normalizerRegistry;
+        $this->pathAttributeResolverRegistry = $pathAttributeResolverRegistry;
     }
 
     public function validateRestRequestOptions(RestRequestOptions $options, string $methodName)
     {
         $normalizer = $options->getResponseNormalizationType();
-        if ($normalizer !== null && !$this->registry->hasNormalizer($normalizer)) {
+        if ($normalizer !== null && !$this->normalizerRegistry->hasNormalizer($normalizer)) {
             throw new ConfigurationException(sprintf(
                 'Normalizer %s does not exist (configured for %s)',
                 $normalizer,
@@ -40,31 +47,34 @@ class RestRequestOptionsValidator
         }
 
         foreach ($options->getPathAttributeResolverOptionsList() as $pathAttributeResolverOptions) {
-            $this->validateDenormalizer($pathAttributeResolverOptions->getDenormalizationType(), $methodName, true);
+            $this->validatePathAttributeResolver(
+                $pathAttributeResolverOptions->getPathAttributeResolverType(),
+                $methodName
+            );
         }
     }
 
-    private function validateDenormalizer(string $name, string $methodName, bool $requireMixed = false)
+    private function validateDenormalizer(string $type, string $methodName)
     {
-        $type = $this->registry->getDenormalizerType($name);
-        if ($type === NormalizerRegistryInterface::DENORMALIZER_TYPE_NONE) {
+        $denormalizerType = $this->normalizerRegistry->getDenormalizerType($type);
+        if ($denormalizerType === NormalizerRegistryInterface::DENORMALIZER_TYPE_NONE) {
             throw new ConfigurationException(sprintf(
-                'Denormalizer %s does not exist (configured for %s)',
-                $name,
+                'Denormalizer "%s" does not exist (configured for "%s")',
+                $type,
                 $methodName
             ));
         }
+    }
 
-        if (!$requireMixed) {
-            return;
-        }
-
-        if ($type !== NormalizerRegistryInterface::DENORMALIZER_TYPE_MIXED) {
+    private function validatePathAttributeResolver(string $type, string $methodName)
+    {
+        try {
+            $this->pathAttributeResolverRegistry->getResolverByType($type);
+        } catch (InvalidArgumentException $exception) {
             throw new ConfigurationException(sprintf(
-                'Denormalizer %s (configured for %s) type must be mixed, current type is %s',
-                $name,
-                $methodName,
-                $type
+                'Path attribute resolver "%s" does not exist (configured for "%s")',
+                $type,
+                $methodName
             ));
         }
     }

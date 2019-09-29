@@ -55,6 +55,17 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     '/annotated/testBodyNormalizationWithExtractedKeyValue'
                 ),
             ],
+            'testBodyNormalizationWithDenormalizationGroup' => [
+                new Response('custom'),
+                $this->createJsonRequest(
+                    'POST',
+                    '/annotated/testBodyNormalizationWithDenormalizationGroup',
+                    [
+                        'key_custom' => 'custom',
+                        'key' => 'wrong_key',
+                    ]
+                ),
+            ],
             'test default content types validation' => [
                 new Response(
                     '{"error":"invalid_request","error_description":"This Content-Type (text/plain) is not supported"}',
@@ -247,17 +258,24 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('my_param'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolver?query_parameter=my_param'
+                    '/annotated/testQueryResolver?parameter=my_param'
                 ),
             ],
             'testQueryResolver is always mandatory' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Missing required key \"query_parameter\""}',
+                    '{"error":"invalid_parameters","error_description":"Missing required key \"parameter\""}',
                     400
                 ),
                 $this->createRequest(
                     'GET',
                     '/annotated/testQueryResolver?other_parameter=my_param'
+                ),
+            ],
+            'testQueryResolverWithDenormalizationGroup' => [
+                new Response('custom'),
+                $this->createRequest(
+                    'GET',
+                    '/annotated/testQueryResolverWithDenormalizationGroup?parameter=wrong_key&parameter_custom=custom'
                 ),
             ],
             'testQueryResolverPagerLimitIs42' => [
@@ -460,6 +478,13 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 $this->createRequest(
                     'GET',
                     '/annotated/testResponseNormalization'
+                ),
+            ],
+            'testResponseNormalizationWithNormalizationGroup' => [
+                new Response('{"field1_custom":"hi"}'),
+                $this->createRequest(
+                    'GET',
+                    '/annotated/testResponseNormalizationWithNormalizationGroup'
                 ),
             ],
             'testResponseNormalizationWithGuessedNormalizer' => [

@@ -19,5 +19,12 @@ class PayseraRestBundle extends Bundle
             'registerRestRequestOptions',
             ['controller']
         ));
+
+        $container->addCompilerPass(new AddTaggedCompilerPass(
+            'paysera_rest.path_attribute_resolver_registry',
+            'paysera_rest.path_attribute_resolver',
+            'registerPathAttributeResolver',
+            ['type']
+        ));
     }
 }

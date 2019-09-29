@@ -9,15 +9,25 @@
                  id="paysera_fixture_test.controller.default_controller"
                  public="true"/>
 
-        <service id="paysera_fixture_test.normalizer.item_denormalizer.query_parameter"
+        <service id="paysera_fixture_test.normalizer.item_denormalizer.parameter"
                  class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
             <tag name="paysera_normalization.object_denormalizer" type="extract:parameter"/>
-            <argument>query_parameter</argument>
+            <argument>parameter</argument>
+        </service>
+        <service id="paysera_fixture_test.normalizer.item_denormalizer.parameter.custom"
+                 class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
+            <tag name="paysera_normalization.object_denormalizer" type="extract:parameter" group="custom"/>
+            <argument>parameter_custom</argument>
         </service>
         <service id="paysera_fixture_test.normalizer.item_denormalizer.key"
                  class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
             <tag name="paysera_normalization.object_denormalizer" type="extract:key"/>
             <argument>key</argument>
+        </service>
+        <service id="paysera_fixture_test.normalizer.item_denormalizer.key.custom"
+                 class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
+            <tag name="paysera_normalization.object_denormalizer" type="extract:key" group="custom"/>
+            <argument>key_custom</argument>
         </service>
         <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PrefixedDenormalizer">
             <tag name="paysera_normalization.mixed_type_denormalizer"/>
@@ -29,14 +39,9 @@
         <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\MyObjectCustomNormalizer">
             <tag name="paysera_normalization.object_denormalizer" type="my_object_custom"/>
             <tag name="paysera_normalization.normalizer" type="my_object_custom"/>
-        </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\MyObjectResolver">
-            <tag name="paysera_normalization.mixed_type_denormalizer" type="my_object_resolver"/>
-            <tag name="paysera_normalization.mixed_type_denormalizer"
-                 type="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject:find"/>
-        </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\NullResolver">
-            <tag name="paysera_normalization.mixed_type_denormalizer" type="always_null"/>
+            <tag name="paysera_normalization.normalizer"
+                 type="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject"
+                 group="custom"/>
         </service>
 
         <service id="paysera_fixture_test.rest_request_options.1"
@@ -71,5 +76,17 @@
                  public="true"/>
         <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedClassValidationController"
                  public="true"/>
+
+        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\PrefixedPathAttributeResolver">
+            <tag name="paysera_rest.path_attribute_resolver" type="prefixed"/>
+        </service>
+        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\MyObjectResolver">
+            <tag name="paysera_rest.path_attribute_resolver" type="my_object_resolver"/>
+            <tag name="paysera_rest.path_attribute_resolver"
+                 type="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject"/>
+        </service>
+        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\NullResolver">
+            <tag name="paysera_rest.path_attribute_resolver" type="always_null"/>
+        </service>
     </services>
 </container>

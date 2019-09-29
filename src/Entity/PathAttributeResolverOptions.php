@@ -20,7 +20,7 @@ class PathAttributeResolverOptions
     /**
      * @var string|null
      */
-    private $denormalizationType;
+    private $pathAttributeResolverType;
 
     /**
      * @var bool
@@ -44,9 +44,9 @@ class PathAttributeResolverOptions
         return $this;
     }
 
-    public function setDenormalizationType(string $denormalizationType): self
+    public function setPathAttributeResolverType(string $pathAttributeResolverType): self
     {
-        $this->denormalizationType = $denormalizationType;
+        $this->pathAttributeResolverType = $pathAttributeResolverType;
         return $this;
     }
 
@@ -66,12 +66,12 @@ class PathAttributeResolverOptions
         return $this->pathPartName;
     }
 
-    public function getDenormalizationType(): string
+    public function getPathAttributeResolverType(): string
     {
-        if ($this->denormalizationType === null) {
-            throw new RuntimeException('denormalizationType was not set');
+        if ($this->pathAttributeResolverType === null) {
+            throw new RuntimeException('pathAttributeResolverType was not set');
         }
-        return $this->denormalizationType;
+        return $this->pathAttributeResolverType;
     }
 
     /**

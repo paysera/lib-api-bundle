@@ -45,32 +45,32 @@ class FunctionalRestBundleTest extends FunctionalTestCase
         return [
             'config does NOT work by full controller name (Bundle:Controller:action)' => [
                 new Response('default'),
-                $this->createRequest('GET', '/config/by-full-controller?query_parameter=works'),
+                $this->createRequest('GET', '/config/by-full-controller?parameter=works'),
             ],
             'config works by full class name when using bundle notation routing (Bundle:Controller:action)' => [
                 new Response('works'),
-                $this->createRequest('GET', '/config/by-full-controller-and-class-name?query_parameter=works'),
+                $this->createRequest('GET', '/config/by-full-controller-and-class-name?parameter=works'),
             ],
             'config works by class name' => [
                 new Response('works'),
-                $this->createRequest('GET', '/config/by-class-name?query_parameter=works'),
+                $this->createRequest('GET', '/config/by-class-name?parameter=works'),
             ],
             'config works by service name' => [
                 new Response('works'),
-                $this->createRequest('GET', '/config/by-service-name?query_parameter=works'),
+                $this->createRequest('GET', '/config/by-service-name?parameter=works'),
             ],
             'config works by service name and class name' => [
                 new Response('works'),
                 $this->createRequest(
                     'GET',
-                    '/config/routing-by-service-name-config-by-class-name?query_parameter=works'
+                    '/config/routing-by-service-name-config-by-class-name?parameter=works'
                 ),
             ],
             'config does NOT work by class name and service name' => [
                 new Response('default'),
                 $this->createRequest(
                     'GET',
-                    '/config/routing-by-class-name-config-by-service-name?query_parameter=works'
+                    '/config/routing-by-class-name-config-by-service-name?parameter=works'
                 ),
             ],
         ];
@@ -273,7 +273,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
                         ->setParameterName('parameter')
-                        ->setDenormalizationType('prefixed')
+                        ->setPathAttributeResolverType('prefixed')
                         ->setPathPartName('urlParameter')
                 ),
             ],
@@ -284,13 +284,13 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
                     ->setParameterName('parameter1')
-                    ->setDenormalizationType('prefixed')
+                    ->setPathAttributeResolverType('prefixed')
                     ->setPathPartName('urlParameter1')
                 )
                 ->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
                         ->setParameterName('parameter2')
-                        ->setDenormalizationType('prefixed')
+                        ->setPathAttributeResolverType('prefixed')
                         ->setPathPartName('urlParameter2')
                 ),
             ],
@@ -300,13 +300,13 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
                         ->setParameterName('parameter')
-                        ->setDenormalizationType('prefixed')
+                        ->setPathAttributeResolverType('prefixed')
                         ->setPathPartName('urlParameter')
                 )
                 ->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
                         ->setParameterName('unusedArgumentName')
-                        ->setDenormalizationType('prefixed')
+                        ->setPathAttributeResolverType('prefixed')
                         ->setPathPartName('unusedParameter')
                         ->setResolutionMandatory(false)
                 ),
@@ -317,7 +317,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
                         ->setParameterName('parameter')
-                        ->setDenormalizationType('prefixed')
+                        ->setPathAttributeResolverType('prefixed')
                         ->setPathPartName('nonExistentUrlParameter')
                 ),
             ],
@@ -327,7 +327,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
                     ->setParameterName('parameter')
-                    ->setDenormalizationType('my_object_resolver')
+                    ->setPathAttributeResolverType('my_object_resolver')
                     ->setPathPartName('urlParameter')
                 ),
             ],

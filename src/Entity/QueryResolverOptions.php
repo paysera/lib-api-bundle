@@ -18,6 +18,11 @@ class QueryResolverOptions
     private $denormalizationType;
 
     /**
+     * @var string|null
+     */
+    private $denormalizationGroup;
+
+    /**
      * @var ValidationOptions|null
      */
     private $validationOptions;
@@ -36,6 +41,16 @@ class QueryResolverOptions
     public function setDenormalizationType(string $denormalizationType): self
     {
         $this->denormalizationType = $denormalizationType;
+        return $this;
+    }
+
+    /**
+     * @param string|null $denormalizationGroup
+     * @return QueryResolverOptions
+     */
+    public function setDenormalizationGroup($denormalizationGroup): self
+    {
+        $this->denormalizationGroup = $denormalizationGroup;
         return $this;
     }
 
@@ -69,6 +84,14 @@ class QueryResolverOptions
             throw new RuntimeException('denormalizationType was not set');
         }
         return $this->denormalizationType;
+    }
+
+    /**
+     * return string|null
+     */
+    public function getDenormalizationGroup()
+    {
+        return $this->denormalizationGroup;
     }
 
     public function isValidationNeeded(): bool
