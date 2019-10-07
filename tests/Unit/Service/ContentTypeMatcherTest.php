@@ -70,6 +70,31 @@ class ContentTypeMatcherTest extends TestCase
                 'text/plain',
                 ['application/plain', 'text/something', 'text/plain*'],
             ],
+            [
+                true,
+                'application/json;charset=UTF-8',
+                ['application/json'],
+            ],
+            [
+                true,
+                'application/json; charset=UTF-8',
+                ['application/json'],
+            ],
+            [
+                true,
+                'application/json; blah=bloh',
+                ['application/json'],
+            ],
+            [
+                true,
+                'application/json; blah=bloh',
+                ['plain/text', 'application/*'],
+            ],
+            [
+                false,
+                'application/json; blah=bloh',
+                ['plain/text', 'blah/*'],
+            ],
         ];
     }
 }
