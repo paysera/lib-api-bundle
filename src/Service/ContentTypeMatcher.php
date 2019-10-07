@@ -9,12 +9,13 @@ namespace Paysera\Bundle\RestBundle\Service;
 class ContentTypeMatcher
 {
     /**
-     * @param string $contentType
+     * @param string $fullContentType
      * @param array $supportedContentTypes Can be `something/something`, `something/*` or `*` to allow all
      * @return bool
      */
-    public function isContentTypeSupported(string $contentType, array $supportedContentTypes): bool
+    public function isContentTypeSupported(string $fullContentType, array $supportedContentTypes): bool
     {
+        $contentType = $this->removeDirectives($fullContentType);
         foreach ($supportedContentTypes as $availableContentType) {
             if ($contentType === $availableContentType) {
                 return true;
@@ -37,5 +38,10 @@ class ContentTypeMatcher
         }
 
         return false;
+    }
+
+    private function removeDirectives(string $fullContentType): string
+    {
+        return explode(';', $fullContentType, 2)[0];
     }
 }

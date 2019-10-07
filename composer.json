@@ -16,6 +16,7 @@
     },
     "require": {
         "php": ">=7.0",
+        "ext-json": "*",
         "symfony/framework-bundle": "^3.4|^4.3",
         "symfony/security-bundle": "^3.4|^4.3",
         "symfony/validator": "^3.4|^4.3",

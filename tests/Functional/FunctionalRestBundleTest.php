@@ -171,6 +171,18 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                     ->setBodyDenormalizationType('extract:key')
                     ->setBodyParameterName('parameter'),
             ],
+            'accepts JSON with charset in Content-Type by default' => [
+                new Response('value'),
+                $this->createRequest(
+                    'POST',
+                    '/',
+                    json_encode(['key' => 'value']),
+                    ['Content-Type' => 'application/json;charset=UTF-8']
+                ),
+                (new RestRequestOptions())
+                    ->setBodyDenormalizationType('extract:key')
+                    ->setBodyParameterName('parameter'),
+            ],
 
             'body denormalization works with optional body and leaves default argument values' => [
                 new Response('default'),
