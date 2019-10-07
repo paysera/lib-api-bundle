@@ -35,21 +35,21 @@ class PayseraRestExtension extends Extension
             );
         }
 
-        if (count($config['find_denormalizers']) > 0 && !class_exists('Doctrine\ORM\EntityManager')) {
+        if (count($config['path_attribute_resolvers']) > 0 && !class_exists('Doctrine\ORM\EntityManager')) {
             throw new RuntimeException(
-                'Please install doctrine/orm before configuring paysera_rest.find_denormalizers'
+                'Please install doctrine/orm before configuring paysera_rest.path_attribute_resolvers'
             );
         }
 
-        foreach ($config['find_denormalizers'] as $className => $denormalizerConfig) {
+        foreach ($config['path_attribute_resolvers'] as $className => $resolverConfig) {
             $container->setDefinition(
-                'paysera_rest.auto_registered.find_denormalizer.' . $className,
-                $this->buildFindDenormalizerDefinition($className, $denormalizerConfig['field'])
+                'paysera_rest.auto_registered.path_attribute_resolver.' . $className,
+                $this->buildPathAttributeResolverDefinition($className, $resolverConfig['field'])
             );
         }
     }
 
-    private function buildFindDenormalizerDefinition(string $className, string $field): Definition
+    private function buildPathAttributeResolverDefinition(string $className, string $field): Definition
     {
         $repositoryDefinition = (new Definition(ObjectRepository::class, [$className]))
             ->setFactory([new Reference('doctrine.orm.entity_manager'), 'getRepository'])

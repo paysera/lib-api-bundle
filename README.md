@@ -169,47 +169,41 @@ class ApiController
 }
 ```
 
-For path attributes `MixedTypeDenormalizerInterface` should be implemented, as in this
+For path attributes `PathAttributeResolverInterface` should be implemented, as in this
 case we receive just a scalar type (ID), not an object.
 
-By default, bundle tries to find denormalizer with type `$className . ':find'`.
+By default, bundle tries to find resolver with type registered as fully qualified class name of that parameter in the
+type-hint.
 
 You have at least few options to make this work.
 
-1. Making your own denormalizer. For example:
+1. Making your own path attribute resolver. For example:
 
 ```php
 <?php
 declare(strict_types=1);
 
-use Paysera\Component\Normalization\MixedTypeDenormalizerInterface;
-use Paysera\Component\Normalization\DenormalizationContext;
-use Paysera\Component\Normalization\TypeAwareInterface;
+use Maba\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolverInterface;
 
-class FindUserDenormalizer implements MixedTypeDenormalizerInterface, TypeAwareInterface
+class FindUserPathAttributeResolver implements PathAttributeResolverInterface
 {
     // ...
 
-    public function denormalize($input, DenormalizationContext $context)
+    public function resolveFromAttribute($attributeValue)
     {
-        return $this->repository->find($input);
-    }
-
-    public function getType(): string
-    {
-        return User::class . ':find';
+        return $this->repository->find($attributeValue);
     }
 }
 ```
 
-Use autoconfiguration or tag service with `paysera_normalization.mixed_type_denormalizer`.
+Tag service with `paysera_rest.path_attribute_resolver`, provide FQCN as `type` attribute.
 
-2. Reusing `RepositoryAwareEntityDenormalizer` class to configure the needed service. For example:
+2. Reusing `DoctrinePathAttributeResolver` class to configure the needed service. For example:
 
 ```xml
-<service class="Paysera\Bundle\RestBundle\Service\Doctrine\FindEntityDenormalizer"
+<service class="Paysera\Bundle\RestBundle\Service\PathAttributeResolver\DoctrinePathAttributeResolver"
          id="find_user_denormalizer">
-    <tag name="paysera_normalization.mixed_type_denormalizer"/>
+    <tag name="paysera_rest.path_attribute_resolver" type="App\Entity\User"/>
 
     <argument type="service">
         <service class="App\Repository\UserRepository">
@@ -225,7 +219,7 @@ Use autoconfiguration or tag service with `paysera_normalization.mixed_type_deno
 
 ```yaml
 paysera_rest:
-    find_denormalizers:
+    path_attribute_resolvers:
         App\Entity\User: ~  # defaults to searching by "id"
         App\Entity\PersistedEntity:
             field: identifierField
