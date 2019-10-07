@@ -40,7 +40,7 @@ services:
         public: true
 
 paysera_rest:
-    find_denormalizers:
+    path_attribute_resolvers:
         Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\PersistedEntity:
             field: someField
         Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\SimplePersistedEntity: ~

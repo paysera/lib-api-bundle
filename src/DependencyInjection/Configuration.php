@@ -19,7 +19,7 @@ class Configuration implements ConfigurationInterface
 
         /** @var ArrayNodeDefinition $findDenormalizersNode */
         $findDenormalizersNode = $children
-            ->arrayNode('find_denormalizers')
+            ->arrayNode('path_attribute_resolvers')
             ->defaultValue([])
             ->useAttributeAsKey('class')
             ->prototype('array')
