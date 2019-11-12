@@ -34,7 +34,7 @@
         "paysera/lib-php-cs-fixer-config": "^2.2.2",
         "symfony/yaml": "^3.4.34|^4.3",
         "doctrine/doctrine-bundle": "^1.4",
-        "doctrine/orm": "^2.6.4"
+        "doctrine/orm": "^2.5.14"
     },
     "config": {
         "bin-dir": "bin"
