@@ -183,7 +183,7 @@ You have at least few options to make this work.
 <?php
 declare(strict_types=1);
 
-use Maba\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolverInterface;
+use Paysera\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolverInterface;
 
 class FindUserPathAttributeResolver implements PathAttributeResolverInterface
 {
