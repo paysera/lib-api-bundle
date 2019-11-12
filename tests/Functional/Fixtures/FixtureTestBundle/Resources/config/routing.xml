@@ -16,28 +16,28 @@
         <default key="_controller">Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action2</default>
     </route>
     <route id="paysera_fixture_test_3" path="/config/by-service-name">
-        <default key="_controller">paysera_fixture_test.controller.default_controller::action3</default>
+        <default key="_controller">paysera_fixture_test.controller.default_controller:action3</default>
     </route>
     <route id="paysera_fixture_test_4" path="/config/routing-by-service-name-config-by-class-name">
-        <default key="_controller">paysera_fixture_test.controller.default_controller::action4</default>
+        <default key="_controller">paysera_fixture_test.controller.default_controller:action4</default>
     </route>
     <route id="paysera_fixture_test_5" path="/config/routing-by-class-name-config-by-service-name">
         <default key="_controller">Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action5</default>
     </route>
 
     <route id="paysera_fixture_test" path="/">
-        <default key="_controller">paysera_fixture_test.controller.default_controller::action</default>
+        <default key="_controller">paysera_fixture_test.controller.default_controller:action</default>
     </route>
     <route id="paysera_fixture_test_with_return" path="/with-return">
-        <default key="_controller">paysera_fixture_test.controller.default_controller::actionWithReturn</default>
+        <default key="_controller">paysera_fixture_test.controller.default_controller:actionWithReturn</default>
     </route>
     <route id="paysera_fixture_test_with_url_parameter" path="/with-url-parameter/{urlParameter}">
-        <default key="_controller">paysera_fixture_test.controller.default_controller::action</default>
+        <default key="_controller">paysera_fixture_test.controller.default_controller:action</default>
     </route>
     <route id="paysera_fixture_test_with_several_url_parameters" path="/with-url-parameters/{urlParameter1}/{urlParameter2}">
-        <default key="_controller">paysera_fixture_test.controller.default_controller::actionWithMultipleParameters</default>
+        <default key="_controller">paysera_fixture_test.controller.default_controller:actionWithMultipleParameters</default>
     </route>
     <route id="paysera_fixture_test_with_several_parameters" path="/with-parameters">
-        <default key="_controller">paysera_fixture_test.controller.default_controller::actionWithMultipleParameters</default>
+        <default key="_controller">paysera_fixture_test.controller.default_controller:actionWithMultipleParameters</default>
     </route>
 </routes>

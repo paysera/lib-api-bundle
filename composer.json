@@ -17,9 +17,9 @@
     "require": {
         "php": ">=7.0",
         "ext-json": "*",
-        "symfony/framework-bundle": "^3.4|^4.3",
-        "symfony/security-bundle": "^3.4|^4.3",
-        "symfony/validator": "^3.4|^4.3",
+        "symfony/framework-bundle": "^3.4.34|^4.3",
+        "symfony/security-bundle": "^3.4.34|^4.3",
+        "symfony/validator": "^3.4.34|^4.3",
         "doctrine/common": ">=2.1 <2.9",
         "paysera/lib-normalization-bundle": "dev-master",
         "paysera/lib-normalization": "dev-master",
@@ -30,10 +30,11 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^6.5",
-        "mockery/mockery": "^1.2",
+        "mockery/mockery": "^1.2.4",
         "paysera/lib-php-cs-fixer-config": "^2.2.2",
-        "symfony/yaml": "^3.4|^4.3",
-        "doctrine/doctrine-bundle": "^1.4"
+        "symfony/yaml": "^3.4.34|^4.3",
+        "doctrine/doctrine-bundle": "^1.4",
+        "doctrine/orm": "^2.6.4"
     },
     "config": {
         "bin-dir": "bin"

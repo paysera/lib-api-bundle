@@ -51,10 +51,10 @@
                  controller="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action1bAction"/>
             <tag name="paysera_rest.request_options"
                  controller="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action2"/>
-            <tag name="paysera_rest.request_options" controller="paysera_fixture_test.controller.default_controller::action3"/>
+            <tag name="paysera_rest.request_options" controller="paysera_fixture_test.controller.default_controller:action3"/>
             <tag name="paysera_rest.request_options"
                  controller="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action4"/>
-            <tag name="paysera_rest.request_options" controller="paysera_fixture_test.controller.default_controller::action5"/>
+            <tag name="paysera_rest.request_options" controller="paysera_fixture_test.controller.default_controller:action5"/>
 
             <call method="addQueryResolverOptions">
                 <argument type="service">
