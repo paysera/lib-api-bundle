@@ -18,9 +18,10 @@ class PagerDenormalizerTest extends DenormalizerTestCase
      *
      * @param Pager|Exception $expected
      * @param string $queryString
-     * @param int $defaultMaxLimit
+     * @param int $defaultLimit
+     * @param int $maxLimit
      */
-    public function testDenormalize($expected, string $queryString, int $defaultMaxLimit = 200)
+    public function testDenormalize($expected, string $queryString, int $defaultLimit = 100, int $maxLimit = 200)
     {
         parse_str($queryString, $data);
 
@@ -29,7 +30,7 @@ class PagerDenormalizerTest extends DenormalizerTestCase
         }
 
         $this->assertEquals($expected, $this->callDenormalize(
-            new PagerDenormalizer($defaultMaxLimit),
+            new PagerDenormalizer($defaultLimit, $maxLimit),
             $data
         ));
     }
@@ -38,14 +39,19 @@ class PagerDenormalizerTest extends DenormalizerTestCase
     {
         return [
             [
-                new Pager(),
+                (new Pager())->setLimit(100),
                 '',
             ],
             [
+                (new Pager())->setLimit(150),
+                '',
+                150,
+            ],
+            [
                 (new Pager())
-                    ->setLimit(100)
+                    ->setLimit(120)
                 ,
-                'limit=100',
+                'limit=120',
             ],
             [
                 new InvalidItemException('limit', 'limit cannot exceed 200'),
@@ -56,6 +62,7 @@ class PagerDenormalizerTest extends DenormalizerTestCase
                     ->setLimit(300)
                 ,
                 'limit=300',
+                100,
                 300,
             ],
             [
@@ -72,6 +79,7 @@ class PagerDenormalizerTest extends DenormalizerTestCase
             ],
             [
                 (new Pager())
+                    ->setLimit(100)
                     ->setOffset(100)
                 ,
                 'offset=100',
@@ -90,6 +98,7 @@ class PagerDenormalizerTest extends DenormalizerTestCase
             ],
             [
                 (new Pager())
+                    ->setLimit(100)
                     ->setAfter('abc')
                 ,
                 'after=abc',
@@ -100,6 +109,7 @@ class PagerDenormalizerTest extends DenormalizerTestCase
             ],
             [
                 (new Pager())
+                    ->setLimit(100)
                     ->setBefore('abc')
                 ,
                 'before=abc',
@@ -126,12 +136,14 @@ class PagerDenormalizerTest extends DenormalizerTestCase
             ],
             [
                 (new Pager())
+                    ->setLimit(100)
                     ->addOrderBy(new OrderingPair('a', true))
                 ,
                 'sort=a',
             ],
             [
                 (new Pager())
+                    ->setLimit(100)
                     ->addOrderBy(new OrderingPair('a', true))
                     ->addOrderBy(new OrderingPair('b', true))
                 ,
@@ -139,6 +151,7 @@ class PagerDenormalizerTest extends DenormalizerTestCase
             ],
             [
                 (new Pager())
+                    ->setLimit(100)
                     ->addOrderBy(new OrderingPair('a', false))
                     ->addOrderBy(new OrderingPair('b', true))
                     ->addOrderBy(new OrderingPair('c', false))
@@ -151,6 +164,7 @@ class PagerDenormalizerTest extends DenormalizerTestCase
             ],
             [
                 (new Pager())
+                    ->setLimit(100)
                     ->setAfter('1')
                     ->setLimit(100)
                     ->addOrderBy(new OrderingPair('a', true))

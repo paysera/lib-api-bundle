@@ -21,6 +21,8 @@
         <service class="Paysera\Bundle\RestBundle\Normalizer\Pagination\PagerDenormalizer"
                  id="paysera_rest.normalizer.pager_denormalizer">
             <tag name="paysera_normalization.autoconfigured_normalizer"/>
+            <argument>100</argument>
+            <argument>1000</argument>
         </service>
     </services>
 </container>

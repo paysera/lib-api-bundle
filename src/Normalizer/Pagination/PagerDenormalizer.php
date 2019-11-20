@@ -14,20 +14,22 @@ use Paysera\Component\ObjectWrapper\ObjectWrapper;
 
 class PagerDenormalizer implements ObjectDenormalizerInterface, TypeAwareInterface
 {
-    private $defaultMaxLimit;
+    private $defaultLimit;
+    private $maxLimit;
 
-    public function __construct($defaultMaxLimit = 200)
+    public function __construct(int $defaultLimit, int $maxLimit)
     {
-        $this->defaultMaxLimit = $defaultMaxLimit;
+        $this->defaultLimit = $defaultLimit;
+        $this->maxLimit = $maxLimit;
     }
 
     public function denormalize(ObjectWrapper $input, DenormalizationContext $context)
     {
-        $limit = isset($input['limit']) ? $this->getPositiveInt($input, 'limit') : null;
-        if ($limit !== null && $limit > $this->defaultMaxLimit) {
+        $limit = isset($input['limit']) ? $this->getPositiveInt($input, 'limit') : $this->defaultLimit;
+        if ($limit > $this->maxLimit) {
             throw new InvalidItemException(
                 'limit',
-                sprintf('limit cannot exceed %s', $this->defaultMaxLimit)
+                sprintf('limit cannot exceed %s', $this->maxLimit)
             );
         }
 
