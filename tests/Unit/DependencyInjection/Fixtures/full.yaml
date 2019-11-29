@@ -1,0 +1,13 @@
+paysera_rest:
+    locales: ['en', 'lt', 'lv']
+    validation:
+        property_path_converter: your_service_id
+    path_attribute_resolvers:
+        App\Entity\PersistedEntity:
+            field: identifierField
+        App\Entity\OtherEntity: ~
+    pagination:
+        total_count_strategy: always
+        maximum_offset: 999
+        maximum_limit: 888
+        default_limit: 777

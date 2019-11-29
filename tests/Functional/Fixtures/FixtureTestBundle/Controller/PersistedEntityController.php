@@ -21,7 +21,7 @@ class PersistedEntityController
      */
     public function findPersistedEntity(PersistedEntity $entity)
     {
-        return new Response($entity->getId());
+        return new Response((string)$entity->getId());
     }
 
     /**
@@ -34,6 +34,6 @@ class PersistedEntityController
      */
     public function findSimplePersistedEntity(SimplePersistedEntity $entity)
     {
-        return new Response($entity->getId());
+        return new Response((string)$entity->getId());
     }
 }

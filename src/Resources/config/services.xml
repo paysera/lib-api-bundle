@@ -8,6 +8,7 @@
         <import resource="services/annotations.xml"/>
         <import resource="services/listeners.xml"/>
         <import resource="services/normalizers.xml"/>
+        <import resource="services/pagination.xml"/>
     </imports>
 
     <services>

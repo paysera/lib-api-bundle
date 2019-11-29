@@ -18,11 +18,20 @@
             <tag name="paysera_normalization.autoconfigured_normalizer"/>
         </service>
 
+        <service class="Paysera\Bundle\RestBundle\Normalizer\Pagination\PagedQueryNormalizer"
+                 id="paysera_rest.normalizer.paged_query">
+            <tag name="paysera_normalization.autoconfigured_normalizer"/>
+
+            <argument type="service" id="paysera_rest.pagination.result_provider"/>
+            <argument>%paysera_rest.pagination.default_total_count_strategy%</argument>
+            <argument>%paysera_rest.pagination.maximum_offset%</argument>
+        </service>
+
         <service class="Paysera\Bundle\RestBundle\Normalizer\Pagination\PagerDenormalizer"
                  id="paysera_rest.normalizer.pager_denormalizer">
             <tag name="paysera_normalization.autoconfigured_normalizer"/>
-            <argument>100</argument>
-            <argument>1000</argument>
+            <argument>%paysera_rest.pagination.default_limit%</argument>
+            <argument>%paysera_rest.pagination.maximum_limit%</argument>
         </service>
     </services>
 </container>

@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service class="Paysera\Pagination\Service\Doctrine\ResultProvider"
+                 id="paysera_rest.pagination.result_provider">
+            <argument type="service">
+                <service class="Paysera\Pagination\Service\Doctrine\QueryAnalyser"/>
+            </argument>
+            <argument type="service">
+                <service class="Paysera\Pagination\Service\CursorBuilder">
+                    <argument type="service">
+                        <service class="Symfony\Component\PropertyAccess\PropertyAccessor">
+                            <factory class="Symfony\Component\PropertyAccess\PropertyAccess"
+                                     method="createPropertyAccessor"/>
+                        </service>
+                    </argument>
+                </service>
+            </argument>
+        </service>
+    </services>
+</container>

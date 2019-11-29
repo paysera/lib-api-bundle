@@ -1,0 +1,4 @@
+paysera_rest:
+    pagination:
+        maximum_limit: 2000
+        default_limit: 3000

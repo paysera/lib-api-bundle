@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\RestBundle\DependencyInjection;
 
+use Paysera\Bundle\RestBundle\Entity\PagedQuery;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -30,6 +31,48 @@ class Configuration implements ConfigurationInterface
         $validationNode = $children->arrayNode('validation')->addDefaultsIfNotSet()->children();
         $validationNode->scalarNode('property_path_converter')->defaultNull();
 
+        $this->configurePagination($children->arrayNode('pagination'));
+
         return $treeBuilder;
+    }
+
+    private function configurePagination(ArrayNodeDefinition $paginationArrayNode)
+    {
+        $paginationNode = $paginationArrayNode->addDefaultsIfNotSet()->children();
+        $availableStrategies = [
+            PagedQuery::TOTAL_COUNT_STRATEGY_ALWAYS,
+            PagedQuery::TOTAL_COUNT_STRATEGY_OPTIONAL,
+            PagedQuery::TOTAL_COUNT_STRATEGY_NEVER,
+        ];
+        $strategyNode = $paginationNode
+            ->scalarNode('total_count_strategy')
+            ->defaultValue(PagedQuery::TOTAL_COUNT_STRATEGY_OPTIONAL)
+        ;
+        $strategyNode->validate()
+            ->ifNotInArray($availableStrategies)
+            ->thenInvalid(sprintf(
+                'must be one of %s',
+                implode(', ', $availableStrategies)
+            ))
+        ;
+
+        $paginationNode->scalarNode('maximum_offset')->defaultValue(1000);
+        $paginationNode
+            ->scalarNode('maximum_limit')
+            ->defaultValue(1000)
+            ->validate()
+            ->ifTrue(function ($value) {
+                return !is_int($value) || $value <= 0;
+            })
+            ->thenInvalid('must be positive integer')
+        ;
+        $paginationNode->scalarNode('default_limit')->defaultValue(100);
+
+        $paginationArrayNode->validate()
+            ->ifTrue(function ($value) {
+                return $value['default_limit'] > $value['maximum_limit'];
+            })
+            ->thenInvalid('default_limit cannot be greater than maximum_limit')
+        ;
     }
 }

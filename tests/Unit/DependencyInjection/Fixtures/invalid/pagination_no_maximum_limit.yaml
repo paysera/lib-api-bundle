@@ -1,0 +1,3 @@
+paysera_rest:
+    pagination:
+        maximum_limit: ~

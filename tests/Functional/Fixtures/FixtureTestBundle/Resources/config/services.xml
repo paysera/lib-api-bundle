@@ -43,6 +43,12 @@
                  type="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject"
                  group="custom"/>
         </service>
+        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PersistedEntityFilterDenormalizer">
+            <tag name="paysera_normalization.object_denormalizer"/>
+        </service>
+        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PersistedEntityNormalizer">
+            <tag name="paysera_normalization.normalizer"/>
+        </service>
 
         <service id="paysera_fixture_test.rest_request_options.1"
                  class="Paysera\Bundle\RestBundle\Entity\RestRequestOptions">
@@ -76,6 +82,10 @@
                  public="true"/>
         <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedClassValidationController"
                  public="true"/>
+        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\PagedQueryController"
+                 public="true">
+            <argument type="service" id="doctrine.orm.entity_manager"/>
+        </service>
 
         <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\PrefixedPathAttributeResolver">
             <tag name="paysera_rest.path_attribute_resolver" type="prefixed"/>

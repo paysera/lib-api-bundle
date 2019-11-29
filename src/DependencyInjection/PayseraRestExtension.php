@@ -47,6 +47,8 @@ class PayseraRestExtension extends Extension
                 $this->buildPathAttributeResolverDefinition($className, $resolverConfig['field'])
             );
         }
+
+        $this->configurePagination($container, $config['pagination']);
     }
 
     private function buildPathAttributeResolverDefinition(string $className, string $field): Definition
@@ -59,5 +61,25 @@ class PayseraRestExtension extends Extension
             $repositoryDefinition,
             $field,
         ]))->addTag('paysera_rest.path_attribute_resolver', ['type' => $className]);
+    }
+
+    private function configurePagination(ContainerBuilder $container, array $paginationConfig)
+    {
+        $container->setParameter(
+            'paysera_rest.pagination.default_total_count_strategy',
+            $paginationConfig['total_count_strategy']
+        );
+        $container->setParameter(
+            'paysera_rest.pagination.maximum_offset',
+            $paginationConfig['maximum_offset']
+        );
+        $container->setParameter(
+            'paysera_rest.pagination.default_limit',
+            $paginationConfig['default_limit']
+        );
+        $container->setParameter(
+            'paysera_rest.pagination.maximum_limit',
+            $paginationConfig['maximum_limit']
+        );
     }
 }

@@ -5,6 +5,8 @@ namespace Paysera\Bundle\RestBundle\Service;
 
 use Paysera\Component\ObjectWrapper\Exception\InvalidItemException;
 use Paysera\Component\Normalization\Exception\InvalidDataException;
+use Paysera\Pagination\Exception\InvalidCursorException;
+use Paysera\Pagination\Exception\TooLargeOffsetException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -60,6 +62,16 @@ class ErrorBuilder implements ErrorBuilderInterface
             return (new Error())
                 ->setCode(ApiException::INVALID_PARAMETERS)
                 ->setMessage($exception->getMessage())
+            ;
+        } elseif ($exception instanceof TooLargeOffsetException) {
+            return (new Error())
+                ->setCode(ApiException::OFFSET_TOO_LARGE)
+                ->setMessage($exception->getMessage())
+            ;
+        } elseif ($exception instanceof InvalidCursorException) {
+            return (new Error())
+                ->setCode(ApiException::INVALID_CURSOR)
+                ->setMessage($exception->getMessage() ?: 'Provided cursor is invalid')
             ;
         } elseif ($exception instanceof AuthenticationCredentialsNotFoundException) {
             return (new Error())

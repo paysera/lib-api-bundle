@@ -6,7 +6,7 @@ namespace Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Repository\PersistedEntityRepository")
  */
 class PersistedEntity
 {

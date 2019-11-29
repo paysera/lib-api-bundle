@@ -40,7 +40,7 @@ class DefaultController
 
     public function action($parameter = 'default'): Response
     {
-        return new Response($parameter);
+        return new Response((string) $parameter);
     }
 
     public function actionWithMultipleParameters($parameter1, $parameter2): Response

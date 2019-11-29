@@ -1,0 +1,3 @@
+paysera_rest:
+    pagination:
+        total_count_strategy: blah

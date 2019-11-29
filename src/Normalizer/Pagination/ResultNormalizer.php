@@ -8,6 +8,9 @@ use Paysera\Component\Normalization\NormalizationContext;
 use Paysera\Component\Normalization\NormalizerInterface;
 use Paysera\Component\Normalization\TypeAwareInterface;
 
+/**
+ * @see PagedQueryNormalizer should be used to optimize queries depending on requested fields
+ */
 class ResultNormalizer implements NormalizerInterface, TypeAwareInterface
 {
     /**

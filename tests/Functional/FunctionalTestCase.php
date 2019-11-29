@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\RestBundle\Tests\Functional;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\SchemaTool;
 use Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\TestKernel;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -89,5 +91,18 @@ abstract class FunctionalTestCase extends TestCase
     protected function createJsonResponse(array $data, int $statusCode = 200): Response
     {
         return new Response(json_encode($data), $statusCode, ['Content-Type' => 'application/json']);
+    }
+
+    protected function setUpDatabase()
+    {
+        $entityManager = $this->getEntityManager();
+        $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
+        $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->updateSchema($metadata, true);
+    }
+
+    protected function getEntityManager(): EntityManagerInterface
+    {
+        return $this->kernel->getContainer()->get('doctrine.orm.entity_manager');
     }
 }

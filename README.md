@@ -51,21 +51,27 @@ new PayseraRestBundle(),
 
 ```yaml
 paysera_rest:
-    locales: ['en', 'lt', 'lv']     # Optional list of accepted locales
+    locales: ['en', 'lt', 'lv']        # Optional list of accepted locales
     validation:
         property_path_converter: your_service_id    # Optional service ID to use for property path converter
+    path_attribute_resolvers:          # Registered path attribute resolvers. See below for more information
+        App\Entity\PersistedEntity:
+            field: identifierField
+    pagination:
+        total_count_strategy: optional # If should we provide or allow total count of resources (by default)
+        maximum_offset: 1000           # If we should limit offset passed to pager for performance reasons
+        maximum_limit: 1000            # Maximum limit for one page of results
+        default_limit: 100             # Default limit for one page of results
 ```
 
 ## Usage
 
-### Basic examples
-
-#### Creating resource
+### Creating resource
 
 To normalize and denormalize data from requests and to responses,
 [PayseraNormalizationBundle](https://github.com/paysera/lib-normalization-bundle) is used.
 It works by writing a class for each of your resource. This makes it explicit and allows easy customization
-for mapping to/from your domain models (there usually are Doctrine entities).
+for mapping to/from your domain models (they usually are Doctrine entities).
 
 Normalizer example:
 ```php
@@ -93,6 +99,7 @@ class UserNormalizer implements ObjectDenormalizerInterface, NormalizerInterface
     public function normalize($user, NormalizationContext $normalizationContext)
     {
         return [
+            'id' => $user->getId(),
             'email' => $user->getEmail(),
             'address' => $user->getAddress(),   // will be mapped automatically if type is classname
         ];
@@ -104,6 +111,8 @@ class UserNormalizer implements ObjectDenormalizerInterface, NormalizerInterface
     }
 }
 ```
+
+In this case you'd also need to implement normalizer for `Address` class.
 
 It's easiest to configure REST endpoints using annotations. This requires your routing to be provided in 
 controller annotations, too.
@@ -139,7 +148,56 @@ class ApiController
 }
 ```
 
-#### Fetching resource
+Don't forget to also import your controller (or `Controller` directory) into routing configuration. For example:
+
+```xml
+<!-- Resources/config/routing.xml -->
+<import resource="../../Controller/" type="annotation" prefix="/rest/v1/"/>
+```
+
+```yaml
+acme_something:
+    resource: "@AcmeSomethingBundle/Controller/"
+    type: annotation
+    prefix: /rest/v1/
+```
+
+This also requires that your controller's service ID would be the same as its FQCN.
+
+#### HTTP example
+
+```
+POST /rest/v1/users HTTP/1.1
+Accept: */*
+Host: api.example.com
+
+{
+    "email": "user1@example.com",
+    "password": "that's my password",
+    "address": {
+        "country_code": "LT",
+        "city": "Vilnius"
+        "address_line": "Some street 1-2"
+    }
+}
+```
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "id": 123,
+    "email": "user1@example.com",
+    "address": {
+        "country_code": "LT",
+        "city": "Vilnius"
+        "address_line": "Some street 1-2"
+    }
+}
+```
+
+### Fetching resource
 
 Controller example:
 ```php
@@ -225,7 +283,30 @@ paysera_rest:
             field: identifierField
 ```
 
-#### Fetching list of resources
+#### HTTP example
+
+```
+GET /rest/v1/users/123 HTTP/1.1
+Accept: */*
+Host: api.example.com
+```
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "id": 123,
+    "email": "user1@example.com",
+    "address": {
+        "country_code": "LT",
+        "city": "Vilnius"
+        "address_line": "Some street 1-2"
+    }
+}
+```
+
+### Fetching list of resources
 
 Controller example:
 ```php
@@ -235,6 +316,7 @@ declare(strict_types=1);
 use Symfony\Component\Routing\Annotation\Route;
 use Paysera\Bundle\RestBundle\Annotation\Query;
 use Paysera\Pagination\Entity\Pager;
+use Paysera\Bundle\RestBundle\Entity\PagedQuery;
 
 class ApiController
 {
@@ -247,17 +329,15 @@ class ApiController
      * 
      * @param UserFilter $filter
      * @param Pager $pager
-     * @return User
+     * @return PagedQuery
      */
     public function getUsers(UserFilter $filter, Pager $pager)
     {
         $this->securityChecker->checkPermissions(Permissions::SEARCH_USERS, $filter);
         
-        $configuredQuery = $this->userRepository->buildConfiguredQuery($filter)
-            ->setTotalCountNeeded(true) // total count will be returned only if this is called
-            ->setMaximumOffset(100)     // you can optionally limit maximum offset
-        ;
-        return $this->resultProvider->getResultForQuery($configuredQuery, $pager);
+        $configuredQuery = $this->userRepository->buildConfiguredQuery($filter);
+
+        return new PagedQuery($configuredQuery, $pager);
     }
 }
 ```
@@ -325,16 +405,171 @@ class UserRepository extends Repository
 As seen in this example, bundle integrates support for
 [Paysera Pagination component](https://github.com/paysera/lib-pagination).
 
-It's best to split building `ConfiguredQuery` into two parts, like shown in the example:
-- Repository constructs the object with doctrine query builder and sets ordering configurations;
-- Controller configures maximum offset and total count calculation strategy – these are not 
-related with fetching data from database and should be separated from the code in Repository classes.
+In this case, actual database fetch is performed in the normalizer itself. This is done due to several reasons:
+- to allow configuring total count strategy and maximum offset for the whole application (see below);
+- to support optional total count and optional items. By default, if client does not explicitly ask for total
+count of resources, it's not calculated.
 
-Please see library documentation on further usage, if needed.
+Configuration example:
 
-### Annotations
+```yaml
+paysera_rest:
+    pagination:
+        total_count_strategy: optional
+        maximum_offset: 1000    # could be set to null for no limit 
+        maximum_limit: 500      # can be configured to any number but cannot be null
+        default_limit: 100      # used if no limit parameter was passed
+```
 
-#### `Body`
+Overriding options for specific actions:
+
+```php
+    // ... begining of controller action
+
+    $configuredQuery = $this->userRepository->buildConfiguredQuery($filter);
+    $configuredQuery->setMaximumOffset(1000); // optionally override maximum offset
+    
+    return (new PagedQuery($configuredQuery, $pager))
+        // optionally override total count strategy
+        ->setTotalCountStrategy(PagedQuery::TOTAL_COUNT_STRATEGY_OPTIONAL)
+    ;
+```
+
+Available strategies:
+- `always` – total count is calculated by default, unless explicitly excluded from returned fields;
+- `optional` – total count is not calculated by default, but could, if explicitly included in returned fields;
+- `never` – total count is never calculated;
+- `default` – available only for `PagedQuery`, falls back to globally configured strategy.
+
+When you explicitly set `always` strategy in `ConfiguredQuery` object, maximum offset will be ignored. If you
+still need it, configure it explicitly in `ConfiguredQuery`, just like the strategy itself.
+
+If you use some other strategy and configure maximum offset, there's currently no way to allow any offset for an
+endpoint explicitly.
+
+#### Request and response structures
+
+Pager is denormalized from the following query string fields:
+- `limit`. Limits count of resources in a page. Defaults to configured `default_limit` value;
+- `offset`. Skips some number of results. Should only be used to go to Nth page. Is restrained to `maximum_offset`
+value by default;
+- `after`. Accepts cursor from previous result to provide "next page" of results;
+- `before`. Accepts cursor from previous result to provide "previous page" or results;
+- `sort`. Accepts list of fields, configured by `ConfiguredQuery::addOrderingConfiguration`, separated by comma. To
+order descending, prefix specific item with `-`. For example, `?sort=-date_of_birth,registered_at` would result in 
+something like `ORDER BY date_of_birth DESC, registered_at ASC`.
+
+Only one of `ofset`/`after`/`before` can be provided.
+
+Response structure has the following fields:
+- `items`. Array of normalized resources;
+- `_metadata.total`. Integer, total count of resources. Missing by default, this depends on strategy and `fields`
+parameter in query string;
+- `_metadata.has_next`. Boolean, whether next page is currently available;
+- `_metadata.has_previous`. Boolean, whether previous page is currently available;
+- `_metadata.cursors.after`. String, pass as `after` parameter in query string to get next page;
+- `_metadata.cursors.before`. String, pass as `before` parameter in query string to get previous page.
+
+Keep in mind that cursors could be missing in some rare cases (for example, no results at all).
+On another hand, they are provided even if there currently is no next/previous page. This could be used to check
+if any new resources were created – quite handy when used for synchronizing with backend.
+
+Don't make any assumptions about internal structure of cursor value, as this could change with any release. 
+
+#### HTTP examples
+
+```
+GET /rest/v1/users?limit=2 HTTP/1.1
+Accept: */*
+Host: api.example.com
+```
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "items": [
+        {
+            "id": 1,
+            "email": "user1@example.com",
+            "address": {
+                "country_code": "LT",
+                "city": "Vilnius"
+                "address_line": "Some street 1-2"
+            }
+        },
+        {
+            "id": 2,
+            "email": "user2@example.com",
+            "address": {
+                "country_code": "LT",
+                "city": "Kaunas"
+                "address_line": "Some street 2-3"
+            }
+        }
+    ],
+    "_metadata": {
+        "has_next": true,
+        "has_previous": false,
+        "cursors": {
+            "after": "\"2-abc\"",
+            "before": "\"1-abc\""
+        }
+    }
+}
+```
+
+To get only total count:
+```
+GET /rest/v1/users?fields=_metadata.total HTTP/1.1
+Accept: */*
+Host: api.example.com
+```
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "_metadata": {
+        "total": 15
+    }
+}
+```
+
+This will actually make only the `SELECT` statement for the total count, no items will be selected.
+
+To get page of resources with the total count:
+```
+GET /rest/v1/users?fields=*,_metadata.total HTTP/1.1
+Accept: */*
+Host: api.example.com
+```
+
+To get the next page:
+```
+GET /rest/v1/users?after="2-abc" HTTP/1.1
+Accept: */*
+Host: api.example.com
+```
+
+`"2-abc"` is taken from `_metadata.cursors.after` in this case.
+
+Let's assume that resources are ordered by creation date in descending order.
+To get if any new resources were created:
+```
+GET /rest/v1/users?before="1-abc" HTTP/1.1
+Accept: */*
+Host: api.example.com
+```
+
+In this case, if there would be zero results, `_metadata.cursors.before` would still be the same. Saving last
+cursor and iterating this way until we have `"has_previous": false` is a reliable way to synchronize resources.
+
+## Annotations reference
+
+### `Body`
 
 Instructs to convert request body into an object and pass to the controller as an argument.
 
@@ -344,7 +579,7 @@ Instructs to convert request body into an object and pass to the controller as a
 | `denormalizationType` | Guessed from parameter's type-hint    | Denormalization type to use for body data denormalization                                             |
 | `optional`            | `true` if parameter has default value | Allows overwriting requirement for request body. Optional means that empty request body can be passed |
 
-#### `BodyContentType`
+### `BodyContentType`
 
 Configuration for allowed request content types and whether body should be JSON-decoded before passing
 to denormalizer.
@@ -359,7 +594,7 @@ If not configured, defaults to JSON-encoded body and 2 allowed Content-Type valu
 For this annotation to have any effect, `Body` annotation must be present. Provide `plain` as `denormalizationType`
 if you want denormalization process to be skipped.
 
-#### `Validation`
+### `Validation`
 
 Configures or switches off validation for object, denormalized from request body.
 By default, validation is always enabled.
@@ -374,7 +609,7 @@ If annotation is provided on both class and action, the one on action "wins" –
 | `groups`           | `['Default']` | Validation groups to be used when validating. Empty list of groups is the same as disabled validation                                                                        |
 | `violationPathMap` | `[]`          | Associative array to convert propertyPath into REST fields. By default, camelCase is already converted to underscore_case. Use this if you have naming or structure mismatch |
 
-#### `ResponseNormalization`
+### `ResponseNormalization`
 
 Configures normalization type to use for method's return value, if you'd need custom one.
 
@@ -386,7 +621,7 @@ If nothing is returned from the method (`void`), empty response with HTTP status
 |---------------------|---------------------------|-----------------------------------------------------------------|
 | `normalizationType` | Guessed from return value | Normalization type to use for normalizing method's return value |
 
-#### `PathAttribute`
+### `PathAttribute`
 
 Configures denormalization for some concrete part of the path. Usually used to find entities by their IDs.
 
@@ -399,7 +634,7 @@ Multiple such annotations can be used in a single controller's action.
 | `denormalizationType` | Guessed from type-hint + `:find` suffix  | Allows configuring custom denormalization type to use. Registered denormalizer must implement `MixedTypeDenormalizerInterface` |
 | `resolutionMandatory` | `true` if parameter has no default value | Specifies whether `404` error should be returned if parameter is not resolved                                                  |
 
-#### `Query`
+### `Query`
 
 Instructs to convert query string into an object and pass to the controller as an argument.
 
@@ -411,7 +646,7 @@ Multiple annotations can be used to map several different objects.
 | `denormalizationType` | Guessed from type-hint            | Allows configuring custom denormalization type to use. Registered denormalizer must implement `MixedTypeDenormalizerInterface` |
 | `validation`          | Enabled with `['Default']` groups | Use another `@Validation` annotation here, just like when configuring validation for request body                              |
 
-#### `RequiredPermissions`
+### `RequiredPermissions`
 
 Instructs to check for permissions in security context for that specific action.
 
@@ -422,7 +657,7 @@ Permissions from class and method level annotations are merged together.
 |---------------|---------------|--------------------------------------------------------------------------|
 | `permissions` | Required      | List of permissions to be checked before any denormalization takes place |
 
-### Configuration without using annotations
+## Configuration without using annotations
 
 It's also possible to configure options defining `RestRequestOptions` as a service
 and tagging it with `paysera_rest.request_options`.

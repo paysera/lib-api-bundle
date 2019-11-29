@@ -1,0 +1,6 @@
+paysera_rest:
+    pagination:
+        default_limit: 1
+        maximum_limit: 2
+        maximum_offset: 5
+        total_count_strategy: always
