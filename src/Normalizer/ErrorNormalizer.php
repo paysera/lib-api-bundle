@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Normalizer;
+namespace Paysera\Bundle\ApiBundle\Normalizer;
 
-use Paysera\Bundle\RestBundle\Entity\Error;
+use Paysera\Bundle\ApiBundle\Entity\Error;
 use Paysera\Component\Normalization\NormalizationContext;
 use Paysera\Component\Normalization\NormalizerInterface;
 use Paysera\Component\Normalization\TypeAwareInterface;

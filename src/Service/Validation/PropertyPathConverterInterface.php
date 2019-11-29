@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Service\Validation;
+namespace Paysera\Bundle\ApiBundle\Service\Validation;
 
 interface PropertyPathConverterInterface
 {

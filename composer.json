@@ -1,17 +1,17 @@
 {
-    "name": "paysera/lib-rest-bundle",
+    "name": "paysera/lib-api-bundle",
     "description": "Symfony bundle that allows easy configuration for your REST endpoints.",
     "keywords": ["REST", "RESTful", "API"],
     "type": "symfony-bundle",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Paysera\\Bundle\\RestBundle\\": "src"
+            "Paysera\\Bundle\\ApiBundle\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Paysera\\Bundle\\RestBundle\\Tests\\": "tests"
+            "Paysera\\Bundle\\ApiBundle\\Tests\\": "tests"
         }
     },
     "require": {

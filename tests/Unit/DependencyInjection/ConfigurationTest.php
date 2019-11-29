@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Unit\DependencyInjection;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\DependencyInjection;
 
-use Paysera\Bundle\RestBundle\DependencyInjection\Configuration;
+use Paysera\Bundle\ApiBundle\DependencyInjection\Configuration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -43,7 +43,7 @@ class ConfigurationTest extends TestCase
         $fullConfiguration = Yaml::parse(file_get_contents(__DIR__ . '/Fixtures/' . $configFilename));
         $configuration = new Configuration();
         $processor = new Processor();
-        return $processor->processConfiguration($configuration, [$fullConfiguration['paysera_rest']]);
+        return $processor->processConfiguration($configuration, [$fullConfiguration['paysera_api']]);
     }
 
     public function configurationTestCaseProvider()

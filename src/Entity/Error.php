@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Entity;
+namespace Paysera\Bundle\ApiBundle\Entity;
 
 class Error
 {

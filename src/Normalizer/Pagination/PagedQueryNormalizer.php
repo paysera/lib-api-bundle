@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Normalizer\Pagination;
+namespace Paysera\Bundle\ApiBundle\Normalizer\Pagination;
 
-use Paysera\Bundle\RestBundle\Entity\PagedQuery;
+use Paysera\Bundle\ApiBundle\Entity\PagedQuery;
 use Paysera\Component\Normalization\NormalizationContext;
 use Paysera\Component\Normalization\NormalizerInterface;
 use Paysera\Component\Normalization\TypeAwareInterface;

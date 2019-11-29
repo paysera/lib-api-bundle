@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer;
+namespace Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer;
 
 use Paysera\Component\Normalization\DenormalizationContext;
 use Paysera\Component\Normalization\ObjectDenormalizerInterface;

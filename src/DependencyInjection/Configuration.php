@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\DependencyInjection;
+namespace Paysera\Bundle\ApiBundle\DependencyInjection;
 
-use Paysera\Bundle\RestBundle\Entity\PagedQuery;
+use Paysera\Bundle\ApiBundle\Entity\PagedQuery;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -13,7 +13,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('paysera_rest');
+        $rootNode = $treeBuilder->root('paysera_api');
 
         $children = $rootNode->children();
         $children->arrayNode('locales')->defaultValue([])->prototype('scalar');

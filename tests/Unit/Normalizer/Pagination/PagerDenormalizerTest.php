@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Unit\Normalizer\Pagination;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\Normalizer\Pagination;
 
 use Exception;
-use Paysera\Bundle\RestBundle\Normalizer\Pagination\PagerDenormalizer;
-use Paysera\Bundle\RestBundle\Tests\Unit\Normalizer\DenormalizerTestCase;
+use Paysera\Bundle\ApiBundle\Normalizer\Pagination\PagerDenormalizer;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Normalizer\DenormalizerTestCase;
 use Paysera\Component\Normalization\Exception\InvalidDataException;
 use Paysera\Component\ObjectWrapper\Exception\InvalidItemException;
 use Paysera\Pagination\Entity\OrderingPair;

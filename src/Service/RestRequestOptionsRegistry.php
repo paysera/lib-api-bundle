@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Service;
+namespace Paysera\Bundle\ApiBundle\Service;
 
-use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
+use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 
 /**
  * @internal

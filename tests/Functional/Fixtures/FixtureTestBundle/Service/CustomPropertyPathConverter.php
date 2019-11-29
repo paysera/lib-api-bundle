@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service;
+namespace Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service;
 
-use Paysera\Bundle\RestBundle\Service\Validation\PropertyPathConverterInterface;
+use Paysera\Bundle\ApiBundle\Service\Validation\PropertyPathConverterInterface;
 
 class CustomPropertyPathConverter implements PropertyPathConverterInterface
 {

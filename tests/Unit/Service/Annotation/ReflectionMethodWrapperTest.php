@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Unit\Service\Annotation;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation;
 
 use DateTime;
-use Paysera\Bundle\RestBundle\Exception\ConfigurationException;
-use Paysera\Bundle\RestBundle\Service\Annotation\ReflectionMethodWrapper;
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
+use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
@@ -53,7 +53,7 @@ class ReflectionMethodWrapperTest extends TestCase
     {
         $wrapper = new ReflectionMethodWrapper(new ReflectionMethod(self::class, 'fixtureMethod'));
         $this->assertSame(
-            'Paysera\Bundle\RestBundle\Tests\Unit\Service\Annotation\ReflectionMethodWrapperTest::fixtureMethod',
+            'Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation\ReflectionMethodWrapperTest::fixtureMethod',
             $wrapper->getFriendlyName()
         );
     }

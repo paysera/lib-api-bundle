@@ -5,66 +5,66 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController"
+        <service class="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController"
                  id="paysera_fixture_test.controller.default_controller"
                  public="true"/>
 
         <service id="paysera_fixture_test.normalizer.item_denormalizer.parameter"
-                 class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
+                 class="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
             <tag name="paysera_normalization.object_denormalizer" type="extract:parameter"/>
             <argument>parameter</argument>
         </service>
         <service id="paysera_fixture_test.normalizer.item_denormalizer.parameter.custom"
-                 class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
+                 class="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
             <tag name="paysera_normalization.object_denormalizer" type="extract:parameter" group="custom"/>
             <argument>parameter_custom</argument>
         </service>
         <service id="paysera_fixture_test.normalizer.item_denormalizer.key"
-                 class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
+                 class="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
             <tag name="paysera_normalization.object_denormalizer" type="extract:key"/>
             <argument>key</argument>
         </service>
         <service id="paysera_fixture_test.normalizer.item_denormalizer.key.custom"
-                 class="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
+                 class="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\ItemDenormalizer">
             <tag name="paysera_normalization.object_denormalizer" type="extract:key" group="custom"/>
             <argument>key_custom</argument>
         </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PrefixedDenormalizer">
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PrefixedDenormalizer">
             <tag name="paysera_normalization.mixed_type_denormalizer"/>
         </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\MyObjectNormalizer">
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\MyObjectNormalizer">
             <tag name="paysera_normalization.object_denormalizer"/>
             <tag name="paysera_normalization.normalizer"/>
         </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\MyObjectCustomNormalizer">
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\MyObjectCustomNormalizer">
             <tag name="paysera_normalization.object_denormalizer" type="my_object_custom"/>
             <tag name="paysera_normalization.normalizer" type="my_object_custom"/>
             <tag name="paysera_normalization.normalizer"
-                 type="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject"
+                 type="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject"
                  group="custom"/>
         </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PersistedEntityFilterDenormalizer">
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PersistedEntityFilterDenormalizer">
             <tag name="paysera_normalization.object_denormalizer"/>
         </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PersistedEntityNormalizer">
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Normalizer\PersistedEntityNormalizer">
             <tag name="paysera_normalization.normalizer"/>
         </service>
 
         <service id="paysera_fixture_test.rest_request_options.1"
-                 class="Paysera\Bundle\RestBundle\Entity\RestRequestOptions">
-            <tag name="paysera_rest.request_options" controller="PayseraFixtureTestBundle:Default:action1"/>
-            <tag name="paysera_rest.request_options"
-                 controller="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action1bAction"/>
-            <tag name="paysera_rest.request_options"
-                 controller="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action2"/>
-            <tag name="paysera_rest.request_options" controller="paysera_fixture_test.controller.default_controller:action3"/>
-            <tag name="paysera_rest.request_options"
-                 controller="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action4"/>
-            <tag name="paysera_rest.request_options" controller="paysera_fixture_test.controller.default_controller:action5"/>
+                 class="Paysera\Bundle\ApiBundle\Entity\RestRequestOptions">
+            <tag name="paysera_api.request_options" controller="PayseraFixtureTestBundle:Default:action1"/>
+            <tag name="paysera_api.request_options"
+                 controller="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action1bAction"/>
+            <tag name="paysera_api.request_options"
+                 controller="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action2"/>
+            <tag name="paysera_api.request_options" controller="paysera_fixture_test.controller.default_controller:action3"/>
+            <tag name="paysera_api.request_options"
+                 controller="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action4"/>
+            <tag name="paysera_api.request_options" controller="paysera_fixture_test.controller.default_controller:action5"/>
 
             <call method="addQueryResolverOptions">
                 <argument type="service">
-                    <service class="Paysera\Bundle\RestBundle\Entity\QueryResolverOptions">
+                    <service class="Paysera\Bundle\ApiBundle\Entity\QueryResolverOptions">
                         <call method="setDenormalizationType">
                             <argument>extract:parameter</argument>
                         </call>
@@ -76,27 +76,27 @@
             </call>
         </service>
 
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedController"
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedController"
                  public="true"/>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedClassRequiredPermissionsController"
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedClassRequiredPermissionsController"
                  public="true"/>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedClassValidationController"
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedClassValidationController"
                  public="true"/>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\PagedQueryController"
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\PagedQueryController"
                  public="true">
             <argument type="service" id="doctrine.orm.entity_manager"/>
         </service>
 
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\PrefixedPathAttributeResolver">
-            <tag name="paysera_rest.path_attribute_resolver" type="prefixed"/>
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\PrefixedPathAttributeResolver">
+            <tag name="paysera_api.path_attribute_resolver" type="prefixed"/>
         </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\MyObjectResolver">
-            <tag name="paysera_rest.path_attribute_resolver" type="my_object_resolver"/>
-            <tag name="paysera_rest.path_attribute_resolver"
-                 type="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject"/>
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\MyObjectResolver">
+            <tag name="paysera_api.path_attribute_resolver" type="my_object_resolver"/>
+            <tag name="paysera_api.path_attribute_resolver"
+                 type="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject"/>
         </service>
-        <service id="Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\NullResolver">
-            <tag name="paysera_rest.path_attribute_resolver" type="always_null"/>
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\NullResolver">
+            <tag name="paysera_api.path_attribute_resolver" type="always_null"/>
         </service>
     </services>
 </container>

@@ -1,4 +1,4 @@
-paysera_rest:
+paysera_api:
     locales: ['en', 'lt', 'lv']
     validation:
         property_path_converter: your_service_id

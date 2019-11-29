@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Exception;
+namespace Paysera\Bundle\ApiBundle\Exception;
 
 class ForbiddenApiException extends ApiException
 {

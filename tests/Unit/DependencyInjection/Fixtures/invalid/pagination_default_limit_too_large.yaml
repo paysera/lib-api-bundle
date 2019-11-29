@@ -1,4 +1,4 @@
-paysera_rest:
+paysera_api:
     pagination:
         maximum_limit: 2000
         default_limit: 3000

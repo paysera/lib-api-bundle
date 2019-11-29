@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Unit\Normalizer;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\Normalizer;
 
 use Doctrine\ORM\QueryBuilder;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
-use Paysera\Bundle\RestBundle\Entity\PagedQuery;
-use Paysera\Bundle\RestBundle\Normalizer\Pagination\PagedQueryNormalizer;
+use Paysera\Bundle\ApiBundle\Entity\PagedQuery;
+use Paysera\Bundle\ApiBundle\Normalizer\Pagination\PagedQueryNormalizer;
 use Paysera\Component\Normalization\NormalizationContext;
 use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Entity\Pager;

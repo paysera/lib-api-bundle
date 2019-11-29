@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Unit\Listener;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\Listener;
 
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
-use Paysera\Bundle\RestBundle\Listener\LocaleListener;
-use Paysera\Bundle\RestBundle\Service\RestRequestHelper;
+use Paysera\Bundle\ApiBundle\Listener\LocaleListener;
+use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;

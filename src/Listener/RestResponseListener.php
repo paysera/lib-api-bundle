@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Listener;
+namespace Paysera\Bundle\ApiBundle\Listener;
 
-use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
-use Paysera\Bundle\RestBundle\Service\ResponseBuilder;
-use Paysera\Bundle\RestBundle\Service\RestRequestHelper;
+use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
+use Paysera\Bundle\ApiBundle\Service\ResponseBuilder;
+use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Component\Normalization\CoreNormalizer;
 use Paysera\Component\Normalization\NormalizationContext;
 use Symfony\Component\HttpFoundation\Request;

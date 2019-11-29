@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Unit\Normalizer;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\Normalizer;
 
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;

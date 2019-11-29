@@ -4,34 +4,34 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service class="Paysera\Bundle\RestBundle\Normalizer\ViolationNormalizer"
-                 id="paysera_rest.normalizer.violation">
+        <service class="Paysera\Bundle\ApiBundle\Normalizer\ViolationNormalizer"
+                 id="paysera_api.normalizer.violation">
             <tag name="paysera_normalization.autoconfigured_normalizer"/>
         </service>
 
-        <service class="Paysera\Bundle\RestBundle\Normalizer\ErrorNormalizer" id="paysera_rest.normalizer.error">
+        <service class="Paysera\Bundle\ApiBundle\Normalizer\ErrorNormalizer" id="paysera_api.normalizer.error">
             <tag name="paysera_normalization.autoconfigured_normalizer"/>
         </service>
 
-        <service class="Paysera\Bundle\RestBundle\Normalizer\Pagination\ResultNormalizer"
-                 id="paysera_rest.normalizer.result">
+        <service class="Paysera\Bundle\ApiBundle\Normalizer\Pagination\ResultNormalizer"
+                 id="paysera_api.normalizer.result">
             <tag name="paysera_normalization.autoconfigured_normalizer"/>
         </service>
 
-        <service class="Paysera\Bundle\RestBundle\Normalizer\Pagination\PagedQueryNormalizer"
-                 id="paysera_rest.normalizer.paged_query">
+        <service class="Paysera\Bundle\ApiBundle\Normalizer\Pagination\PagedQueryNormalizer"
+                 id="paysera_api.normalizer.paged_query">
             <tag name="paysera_normalization.autoconfigured_normalizer"/>
 
-            <argument type="service" id="paysera_rest.pagination.result_provider"/>
-            <argument>%paysera_rest.pagination.default_total_count_strategy%</argument>
-            <argument>%paysera_rest.pagination.maximum_offset%</argument>
+            <argument type="service" id="paysera_api.pagination.result_provider"/>
+            <argument>%paysera_api.pagination.default_total_count_strategy%</argument>
+            <argument>%paysera_api.pagination.maximum_offset%</argument>
         </service>
 
-        <service class="Paysera\Bundle\RestBundle\Normalizer\Pagination\PagerDenormalizer"
-                 id="paysera_rest.normalizer.pager_denormalizer">
+        <service class="Paysera\Bundle\ApiBundle\Normalizer\Pagination\PagerDenormalizer"
+                 id="paysera_api.normalizer.pager_denormalizer">
             <tag name="paysera_normalization.autoconfigured_normalizer"/>
-            <argument>%paysera_rest.pagination.default_limit%</argument>
-            <argument>%paysera_rest.pagination.maximum_limit%</argument>
+            <argument>%paysera_api.pagination.default_limit%</argument>
+            <argument>%paysera_api.pagination.maximum_limit%</argument>
         </service>
     </services>
 </container>

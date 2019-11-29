@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Service\Annotation;
+namespace Paysera\Bundle\ApiBundle\Service\Annotation;
 
-use Paysera\Bundle\RestBundle\Exception\ConfigurationException;
-use Paysera\Bundle\RestBundle\Service\RestRequestOptionsValidator;
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
+use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
 use ReflectionMethod;
-use Paysera\Bundle\RestBundle\Annotation\RestAnnotationInterface;
-use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
+use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
+use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 
 /**
  * @internal

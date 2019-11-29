@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Entity;
+namespace Paysera\Bundle\ApiBundle\Entity;
 
 use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Entity\Pager;

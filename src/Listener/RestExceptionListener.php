@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Listener;
+namespace Paysera\Bundle\ApiBundle\Listener;
 
-use Paysera\Bundle\RestBundle\Service\ResponseBuilder;
-use Paysera\Bundle\RestBundle\Service\RestRequestHelper;
+use Paysera\Bundle\ApiBundle\Service\ResponseBuilder;
+use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Component\Normalization\CoreNormalizer;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Psr\Log\LoggerInterface;
 use Exception;
-use Paysera\Bundle\RestBundle\Service\ErrorBuilderInterface;
+use Paysera\Bundle\ApiBundle\Service\ErrorBuilderInterface;
 
 /**
  * @internal

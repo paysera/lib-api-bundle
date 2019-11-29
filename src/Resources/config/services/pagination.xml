@@ -5,7 +5,7 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
         <service class="Paysera\Pagination\Service\Doctrine\ResultProvider"
-                 id="paysera_rest.pagination.result_provider">
+                 id="paysera_api.pagination.result_provider">
             <argument type="service">
                 <service class="Paysera\Pagination\Service\Doctrine\QueryAnalyser"/>
             </argument>

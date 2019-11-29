@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Service;
+namespace Paysera\Bundle\ApiBundle\Service;
 
 use Paysera\Component\ObjectWrapper\Exception\InvalidItemException;
 use Paysera\Component\Normalization\Exception\InvalidDataException;
@@ -14,8 +14,8 @@ use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Paysera\Bundle\RestBundle\Entity\Error;
-use Paysera\Bundle\RestBundle\Exception\ApiException;
+use Paysera\Bundle\ApiBundle\Entity\Error;
+use Paysera\Bundle\ApiBundle\Exception\ApiException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Exception;

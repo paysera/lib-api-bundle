@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Unit\Service\Annotation;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation;
 
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
-use Paysera\Bundle\RestBundle\Annotation\Body;
-use Paysera\Bundle\RestBundle\Annotation\RestAnnotationInterface;
-use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
-use Paysera\Bundle\RestBundle\Exception\ConfigurationException;
-use Paysera\Bundle\RestBundle\Service\Annotation\RestRequestOptionsBuilder;
-use Paysera\Bundle\RestBundle\Service\RestRequestOptionsValidator;
+use Paysera\Bundle\ApiBundle\Annotation\Body;
+use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
+use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
+use Paysera\Bundle\ApiBundle\Service\Annotation\RestRequestOptionsBuilder;
+use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
 use ReflectionMethod;
 
 class RestRequestOptionsBuilderTest extends MockeryTestCase
@@ -45,7 +45,7 @@ class RestRequestOptionsBuilderTest extends MockeryTestCase
             ->andReturnUsing(function (RestRequestOptions $options, string $fieldlyName) use ($expectedOptions) {
                 $this->assertEquals($expectedOptions, $options);
                 $this->assertEquals(
-                    'Paysera\Bundle\RestBundle\Tests\Unit\Service\Annotation\RestRequestOptionsBuilderTest::fixtureMethod',
+                    'Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation\RestRequestOptionsBuilderTest::fixtureMethod',
                     $fieldlyName
                 );
             })

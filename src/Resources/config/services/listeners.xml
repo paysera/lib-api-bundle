@@ -5,44 +5,44 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
 
-        <service class="Paysera\Bundle\RestBundle\Listener\LocaleListener" id="paysera_rest.listener.locale">
+        <service class="Paysera\Bundle\ApiBundle\Listener\LocaleListener" id="paysera_api.listener.locale">
             <tag name="kernel.event_listener" event="kernel.request"/>
 
-            <argument id="paysera_rest.rest_request_helper" type="service"/>
-            <argument>%paysera_rest.locales%</argument>
+            <argument id="paysera_api.rest_request_helper" type="service"/>
+            <argument>%paysera_api.locales%</argument>
         </service>
 
-        <service class="Paysera\Bundle\RestBundle\Listener\RestExceptionListener"
-                 id="paysera_rest.listener.rest_exception">
+        <service class="Paysera\Bundle\ApiBundle\Listener\RestExceptionListener"
+                 id="paysera_api.listener.rest_exception">
             <tag name="kernel.event_listener" event="kernel.exception" priority="1"/>
 
-            <argument id="paysera_rest.rest_request_helper" type="service"/>
-            <argument id="paysera_rest.error_builder" type="service"/>
+            <argument id="paysera_api.rest_request_helper" type="service"/>
+            <argument id="paysera_api.error_builder" type="service"/>
             <argument id="paysera_normalization.core_normalizer" type="service"/>
-            <argument id="paysera_rest.response_builder" type="service"/>
+            <argument id="paysera_api.response_builder" type="service"/>
             <argument id="logger" type="service" on-invalid="null"/>
         </service>
 
-        <service class="Paysera\Bundle\RestBundle\Listener\RestRequestListener"
-                 id="paysera_rest.listener.rest_request">
+        <service class="Paysera\Bundle\ApiBundle\Listener\RestRequestListener"
+                 id="paysera_api.listener.rest_request">
             <tag name="kernel.event_listener" event="kernel.controller"/>
 
             <argument id="paysera_normalization.core_denormalizer" type="service"/>
             <argument id="security.authorization_checker" type="service"/>
             <argument id="security.token_storage" type="service"/>
-            <argument id="paysera_rest.rest_request_helper" type="service"/>
-            <argument id="paysera_rest.entity_validator" type="service"/>
-            <argument id="paysera_rest.content_type_matcher" type="service"/>
-            <argument id="paysera_rest.path_attribute_resolution_manager" type="service"/>
+            <argument id="paysera_api.rest_request_helper" type="service"/>
+            <argument id="paysera_api.entity_validator" type="service"/>
+            <argument id="paysera_api.content_type_matcher" type="service"/>
+            <argument id="paysera_api.path_attribute_resolution_manager" type="service"/>
         </service>
 
-        <service class="Paysera\Bundle\RestBundle\Listener\RestResponseListener"
-                 id="paysera_rest.listener.rest_response">
+        <service class="Paysera\Bundle\ApiBundle\Listener\RestResponseListener"
+                 id="paysera_api.listener.rest_response">
             <tag name="kernel.event_listener" event="kernel.view"/>
 
             <argument id="paysera_normalization.core_normalizer" type="service"/>
-            <argument id="paysera_rest.rest_request_helper" type="service"/>
-            <argument id="paysera_rest.response_builder" type="service"/>
+            <argument id="paysera_api.rest_request_helper" type="service"/>
+            <argument id="paysera_api.response_builder" type="service"/>
         </service>
     </services>
 </container>

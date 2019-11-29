@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Annotation;
+namespace Paysera\Bundle\ApiBundle\Annotation;
 
-use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
-use Paysera\Bundle\RestBundle\Entity\ValidationOptions;
-use Paysera\Bundle\RestBundle\Service\Annotation\ReflectionMethodWrapper;
+use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
+use Paysera\Bundle\ApiBundle\Entity\ValidationOptions;
+use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper;
 use Symfony\Component\Validator\Constraint;
 
 /**

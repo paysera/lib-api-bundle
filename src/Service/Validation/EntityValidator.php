@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Service\Validation;
+namespace Paysera\Bundle\ApiBundle\Service\Validation;
 
-use Paysera\Bundle\RestBundle\Entity\ValidationOptions;
-use Paysera\Bundle\RestBundle\Entity\Violation;
-use Paysera\Bundle\RestBundle\Exception\ApiException;
+use Paysera\Bundle\ApiBundle\Entity\ValidationOptions;
+use Paysera\Bundle\ApiBundle\Entity\Violation;
+use Paysera\Bundle\ApiBundle\Exception\ApiException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use Symfony\Component\Validator\ConstraintViolation;

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Normalizer\Pagination;
+namespace Paysera\Bundle\ApiBundle\Normalizer\Pagination;
 
 use Paysera\Pagination\Entity\OrderingPair;
 use Paysera\Pagination\Entity\Pager;

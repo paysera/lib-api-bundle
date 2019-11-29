@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller;
+namespace Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Paysera\Bundle\RestBundle\Annotation\Query;
-use Paysera\Bundle\RestBundle\Entity\PagedQuery;
-use Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\PersistedEntity;
-use Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\PersistedEntityFilter;
-use Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Repository\PersistedEntityRepository;
+use Paysera\Bundle\ApiBundle\Annotation\Query;
+use Paysera\Bundle\ApiBundle\Entity\PagedQuery;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\PersistedEntity;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\PersistedEntityFilter;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Repository\PersistedEntityRepository;
 use Paysera\Pagination\Entity\Pager;
 use Symfony\Component\Routing\Annotation\Route;
 

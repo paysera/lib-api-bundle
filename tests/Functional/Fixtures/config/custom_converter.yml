@@ -1,6 +1,6 @@
-paysera_rest:
+paysera_api:
     validation:
-        property_path_converter: Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\CustomPropertyPathConverter
+        property_path_converter: Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\CustomPropertyPathConverter
 
 services:
-    Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\CustomPropertyPathConverter: ~
+    Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\CustomPropertyPathConverter: ~

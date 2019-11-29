@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Service;
+namespace Paysera\Bundle\ApiBundle\Service;
 
-use Paysera\Bundle\RestBundle\Entity\RestRequestOptions;
+use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 
 class RestRequestHelper
 {
-    const REST_OPTIONS_KEY = 'paysera_rest_options';
-    const SERIALIZED_REST_OPTIONS_KEY = 'paysera_rest_options.serialized';
+    const REST_OPTIONS_KEY = 'paysera_api_options';
+    const SERIALIZED_REST_OPTIONS_KEY = 'paysera_api_options.serialized';
 
     /**
      * @var RestRequestOptionsRegistry

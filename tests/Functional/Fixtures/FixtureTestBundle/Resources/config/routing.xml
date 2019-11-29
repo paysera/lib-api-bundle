@@ -13,7 +13,7 @@
         <default key="_controller">PayseraFixtureTestBundle:Default:action1b</default>
     </route>
     <route id="paysera_fixture_test_2" path="/config/by-class-name">
-        <default key="_controller">Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action2</default>
+        <default key="_controller">Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action2</default>
     </route>
     <route id="paysera_fixture_test_3" path="/config/by-service-name">
         <default key="_controller">paysera_fixture_test.controller.default_controller:action3</default>
@@ -22,7 +22,7 @@
         <default key="_controller">paysera_fixture_test.controller.default_controller:action4</default>
     </route>
     <route id="paysera_fixture_test_5" path="/config/routing-by-class-name-config-by-service-name">
-        <default key="_controller">Paysera\Bundle\RestBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action5</default>
+        <default key="_controller">Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action5</default>
     </route>
 
     <route id="paysera_fixture_test" path="/">

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\RestBundle\Service\PathAttributeResolver;
+namespace Paysera\Bundle\ApiBundle\Service\PathAttributeResolver;
 
 interface PathAttributeResolverInterface
 {

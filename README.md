@@ -1,4 +1,4 @@
-# PayseraRestBundle
+# PayseraApiBundle
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE)
@@ -38,19 +38,19 @@ It's a bit more boilerplate, but easily customisable when needed.
 ## Installation
 
 ```bash
-composer require paysera/lib-rest-bundle
+composer require paysera/lib-api-bundle
 ```
 
 If you're not using symfony flex, add the following bundles to your kernel:
 ```
 new PayseraNormalizationBundle(),
-new PayseraRestBundle(),
+new PayseraApiBundle(),
 ```
 
 ## Configuration
 
 ```yaml
-paysera_rest:
+paysera_api:
     locales: ['en', 'lt', 'lv']        # Optional list of accepted locales
     validation:
         property_path_converter: your_service_id    # Optional service ID to use for property path converter
@@ -123,7 +123,7 @@ Controller example:
 declare(strict_types=1);
 
 use Symfony\Component\Routing\Annotation\Route;
-use Paysera\Bundle\RestBundle\Annotation\Body;
+use Paysera\Bundle\ApiBundle\Annotation\Body;
 
 class ApiController
 {
@@ -205,7 +205,7 @@ Controller example:
 declare(strict_types=1);
 
 use Symfony\Component\Routing\Annotation\Route;
-use Paysera\Bundle\RestBundle\Annotation\PathAttribute;
+use Paysera\Bundle\ApiBundle\Annotation\PathAttribute;
 
 class ApiController
 {
@@ -241,7 +241,7 @@ You have at least few options to make this work.
 <?php
 declare(strict_types=1);
 
-use Paysera\Bundle\RestBundle\Service\PathAttributeResolver\PathAttributeResolverInterface;
+use Paysera\Bundle\ApiBundle\Service\PathAttributeResolver\PathAttributeResolverInterface;
 
 class FindUserPathAttributeResolver implements PathAttributeResolverInterface
 {
@@ -254,14 +254,14 @@ class FindUserPathAttributeResolver implements PathAttributeResolverInterface
 }
 ```
 
-Tag service with `paysera_rest.path_attribute_resolver`, provide FQCN as `type` attribute.
+Tag service with `paysera_api.path_attribute_resolver`, provide FQCN as `type` attribute.
 
 2. Reusing `DoctrinePathAttributeResolver` class to configure the needed service. For example:
 
 ```xml
-<service class="Paysera\Bundle\RestBundle\Service\PathAttributeResolver\DoctrinePathAttributeResolver"
+<service class="Paysera\Bundle\ApiBundle\Service\PathAttributeResolver\DoctrinePathAttributeResolver"
          id="find_user_denormalizer">
-    <tag name="paysera_rest.path_attribute_resolver" type="App\Entity\User"/>
+    <tag name="paysera_api.path_attribute_resolver" type="App\Entity\User"/>
 
     <argument type="service">
         <service class="App\Repository\UserRepository">
@@ -276,7 +276,7 @@ Tag service with `paysera_rest.path_attribute_resolver`, provide FQCN as `type` 
 3. Configuring supported classes and search fields in `config.yml`. This is practically the same as the previous option.
 
 ```yaml
-paysera_rest:
+paysera_api:
     path_attribute_resolvers:
         App\Entity\User: ~  # defaults to searching by "id"
         App\Entity\PersistedEntity:
@@ -314,9 +314,9 @@ Controller example:
 declare(strict_types=1);
 
 use Symfony\Component\Routing\Annotation\Route;
-use Paysera\Bundle\RestBundle\Annotation\Query;
+use Paysera\Bundle\ApiBundle\Annotation\Query;
 use Paysera\Pagination\Entity\Pager;
-use Paysera\Bundle\RestBundle\Entity\PagedQuery;
+use Paysera\Bundle\ApiBundle\Entity\PagedQuery;
 
 class ApiController
 {
@@ -413,7 +413,7 @@ count of resources, it's not calculated.
 Configuration example:
 
 ```yaml
-paysera_rest:
+paysera_api:
     pagination:
         total_count_strategy: optional
         maximum_offset: 1000    # could be set to null for no limit 
@@ -660,19 +660,19 @@ Permissions from class and method level annotations are merged together.
 ## Configuration without using annotations
 
 It's also possible to configure options defining `RestRequestOptions` as a service
-and tagging it with `paysera_rest.request_options`.
+and tagging it with `paysera_api.request_options`.
 
 Example:
 ```xml
 <service id="paysera_fixture_test.rest_request_options.1"
-         class="Paysera\Bundle\RestBundle\Entity\RestRequestOptions">
-    <tag name="paysera_rest.request_options" controller="service_id::action"/>
-    <tag name="paysera_rest.request_options" controller="App\Controller\DefaultController::action"/>
+         class="Paysera\Bundle\ApiBundle\Entity\RestRequestOptions">
+    <tag name="paysera_api.request_options" controller="service_id::action"/>
+    <tag name="paysera_api.request_options" controller="App\Controller\DefaultController::action"/>
 
     <!-- set any options similarly to this -->
     <call method="addQueryResolverOptions">
         <argument type="service">
-            <service class="Paysera\Bundle\RestBundle\Entity\QueryResolverOptions">
+            <service class="Paysera\Bundle\ApiBundle\Entity\QueryResolverOptions">
                 <call method="setDenormalizationType">
                     <argument>extract:parameter</argument>
                 </call>
@@ -711,15 +711,15 @@ You can fix any code style issues using this command:
 composer fix-cs
 ```
 
-[ico-version]: https://img.shields.io/packagist/v/paysera/lib-rest-bundle.svg?style=flat-square
+[ico-version]: https://img.shields.io/packagist/v/paysera/lib-api-bundle.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/paysera/lib-rest-bundle/master.svg?style=flat-square
-[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/paysera/lib-rest-bundle.svg?style=flat-square
-[ico-code-quality]: https://img.shields.io/scrutinizer/g/paysera/lib-rest-bundle.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/paysera/lib-rest-bundle.svg?style=flat-square
+[ico-travis]: https://img.shields.io/travis/paysera/lib-api-bundle/master.svg?style=flat-square
+[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/paysera/lib-api-bundle.svg?style=flat-square
+[ico-code-quality]: https://img.shields.io/scrutinizer/g/paysera/lib-api-bundle.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/paysera/lib-api-bundle.svg?style=flat-square
 
-[link-packagist]: https://packagist.org/packages/paysera/lib-rest-bundle
-[link-travis]: https://travis-ci.org/paysera/lib-rest-bundle
-[link-scrutinizer]: https://scrutinizer-ci.com/g/paysera/lib-rest-bundle/code-structure
-[link-code-quality]: https://scrutinizer-ci.com/g/paysera/lib-rest-bundle
-[link-downloads]: https://packagist.org/packages/paysera/lib-rest-bundle
+[link-packagist]: https://packagist.org/packages/paysera/lib-api-bundle
+[link-travis]: https://travis-ci.org/paysera/lib-api-bundle
+[link-scrutinizer]: https://scrutinizer-ci.com/g/paysera/lib-api-bundle/code-structure
+[link-code-quality]: https://scrutinizer-ci.com/g/paysera/lib-api-bundle
+[link-downloads]: https://packagist.org/packages/paysera/lib-api-bundle
