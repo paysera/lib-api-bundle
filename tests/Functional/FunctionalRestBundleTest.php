@@ -129,7 +129,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
             ],
             'validates empty content type' => [
                 new Response(
-                    '{"error":"invalid_request","error_description":"Expected non-empty request body"}',
+                    '{"error":"invalid_request","error_description":"Expected non-empty request body","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
                     400
                 ),
                 $this->createRequest('POST', '/'),
@@ -140,7 +140,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
             ],
             'validates different content type' => [
                 new Response(
-                    '{"error":"invalid_request","error_description":"This Content-Type (application/json) is not supported"}',
+                    '{"error":"invalid_request","error_description":"This Content-Type (application/json) is not supported","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
                     400
                 ),
                 $this->createJsonRequest('POST', '/', ['key' => 'value']),
@@ -194,7 +194,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
             ],
             'body denormalization validates required body' => [
                 new Response(
-                    '{"error":"invalid_request","error_description":"Expected non-empty request body"}',
+                    '{"error":"invalid_request","error_description":"Expected non-empty request body","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
                     400
                 ),
                 $this->createRequest('POST', '/'),
@@ -221,7 +221,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
             ],
             'body validation is used by default' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","errors":[{"code":"is_blank","message":"This value should not be blank.","field":"field1"}]}',
+                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","error_uri":null,"error_properties":null,"error_data":null,"errors":[{"code":"is_blank","message":"This value should not be blank.","field":"field1"}]}',
                     400
                 ),
                 $this->createJsonRequest('POST', '/', ['field1' => '']),
@@ -247,7 +247,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
             ],
             'validation groups work' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","errors":[{"code":"is_blank","message":"Custom message from another group","field":"field1"}]}',
+                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","error_uri":null,"error_properties":null,"error_data":null,"errors":[{"code":"is_blank","message":"Custom message from another group","field":"field1"}]}',
                     400
                 ),
                 $this->createJsonRequest('POST', '/', ['field1' => '']),
@@ -258,7 +258,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
             ],
             'validation property paths can be configured' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","errors":[{"code":"is_blank","message":"This value should not be blank.","field":"my.field"}]}',
+                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","error_uri":null,"error_properties":null,"error_data":null,"errors":[{"code":"is_blank","message":"This value should not be blank.","field":"my.field"}]}',
                     400
                 ),
                 $this->createJsonRequest('POST', '/', ['field1' => '']),
@@ -324,7 +324,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 ),
             ],
             'unresolved path attributes gives 404 error' => [
-                new Response('{"error":"not_found","error_description":"Resource was not found"}', 404),
+                new Response('{"error":"not_found","error_description":"Resource was not found","error_uri":null,"error_properties":null,"error_data":null,"errors":null}', 404),
                 $this->createRequest('POST', '/with-url-parameter/111'),
                 (new RestRequestOptions())->addPathAttributeResolverOptions(
                     (new PathAttributeResolverOptions())
@@ -370,7 +370,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
 
             'query attribute resolvers validate entities by default' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","errors":[{"code":"is_blank","message":"This value should not be blank.","field":"field1"}]}',
+                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","error_uri":null,"error_properties":null,"error_data":null,"errors":[{"code":"is_blank","message":"This value should not be blank.","field":"field1"}]}',
                     400
                 ),
                 $this->createRequest('POST', '/with-parameters?field1=a&field1_custom='),
@@ -388,7 +388,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
 
             'query attribute resolvers validation groups and property paths work' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","errors":[{"code":"is_blank","message":"Custom message from another group","field":"field1_custom"}]}',
+                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","error_uri":null,"error_properties":null,"error_data":null,"errors":[{"code":"is_blank","message":"Custom message from another group","field":"field1_custom"}]}',
                     400
                 ),
                 $this->createRequest('POST', '/with-parameters?field1=a&field1_custom='),
@@ -411,7 +411,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
 
             'required permissions are checked with no authentication' => [
                 new Response(
-                    '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found"}',
+                    '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
                     401
                 ),
                 $this->createRequest('POST', '/'),
@@ -419,7 +419,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
             ],
             'required permissions are checked with no enough permissions' => [
                 new Response(
-                    '{"error":"forbidden","error_description":"Access to this API endpoint is forbidden for current client"}',
+                    '{"error":"forbidden","error_description":"Access to this API endpoint is forbidden for current client","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
                     403
                 ),
                 $this->createRequest('POST', '/', '', [], 'user'),

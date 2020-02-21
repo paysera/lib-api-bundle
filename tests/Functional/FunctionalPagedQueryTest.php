@@ -42,6 +42,7 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                 ['id' => 98, 'some_field' => 'field98'],
             ],
             '_metadata' => [
+                'total' => null,
                 'has_next' => true,
                 'has_previous' => false,
                 'cursors' => [
@@ -67,6 +68,7 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                         ['id' => 95, 'some_field' => 'field95'],
                     ],
                     '_metadata' => [
+                        'total' => null,
                         'has_next' => true,
                         'has_previous' => true,
                         'cursors' => [
@@ -91,6 +93,7 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                 (new JsonResponse([
                     'items' => [],
                     '_metadata' => [
+                        'total' => null,
                         'has_next' => true,
                         'has_previous' => false,
                         'cursors' => [
@@ -141,6 +144,7 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                         ['id' => 88, 'some_field' => 'field88'],
                     ],
                     '_metadata' => [
+                        'total' => null,
                         'has_next' => true,
                         'has_previous' => true,
                         'cursors' => [
@@ -160,6 +164,7 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                         ['id' => 66, 'some_field' => 'field66'],
                     ],
                     '_metadata' => [
+                        'total' => null,
                         'has_next' => false,
                         'has_previous' => false,
                         'cursors' => [
@@ -179,6 +184,7 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                         ['id' => 1, 'some_field' => 'field1'],
                     ],
                     '_metadata' => [
+                        'total' => null,
                         'has_next' => true,
                         'has_previous' => false,
                         'cursors' => [
@@ -198,6 +204,7 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                         ['id' => 1, 'some_field' => 'field1'],
                     ],
                     '_metadata' => [
+                        'total' => null,
                         'has_next' => true,
                         'has_previous' => false,
                         'cursors' => [
@@ -215,6 +222,10 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                 new JsonResponse([
                     'error' => 'invalid_cursor',
                     'error_description' => 'Provided cursor is invalid',
+                    'error_uri' => null,
+                    'error_properties' => null,
+                    'error_data' => null,
+                    'errors' => null,
                 ], 400),
                 $this->createRequest(
                     'GET',
@@ -225,6 +236,10 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                 new JsonResponse([
                     'error' => 'offset_too_large',
                     'error_description' => 'Given offset (10) is bigger than maximum allowed (5). Please use cursor-based navigation',
+                    'error_uri' => null,
+                    'error_properties' => null,
+                    'error_data' => null,
+                    'errors' => null,
                 ], 400),
                 $this->createRequest(
                     'GET',
@@ -236,6 +251,10 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                 new JsonResponse([
                     'error' => 'invalid_parameters',
                     'error_description' => 'limit cannot exceed 2',
+                    'error_uri' => null,
+                    'error_properties' => null,
+                    'error_data' => null,
+                    'errors' => null,
                 ], 400),
                 $this->createRequest(
                     'GET',
