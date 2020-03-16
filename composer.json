@@ -24,7 +24,7 @@
         "paysera/lib-normalization-bundle": "^1.0",
         "paysera/lib-normalization": "^1.0",
         "paysera/lib-object-wrapper": "^0.1.0|^0.2.0",
-        "paysera/lib-pagination": "^0.1.0",
+        "paysera/lib-pagination": "^1.0",
         "paysera/lib-dependency-injection": "^1.1.0",
         "psr/log": "^1.0"
     },
