@@ -222,10 +222,6 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                 new JsonResponse([
                     'error' => 'invalid_cursor',
                     'error_description' => 'Provided cursor is invalid',
-                    'error_uri' => null,
-                    'error_properties' => null,
-                    'error_data' => null,
-                    'errors' => null,
                 ], 400),
                 $this->createRequest(
                     'GET',
@@ -236,10 +232,6 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                 new JsonResponse([
                     'error' => 'offset_too_large',
                     'error_description' => 'Given offset (10) is bigger than maximum allowed (5). Please use cursor-based navigation',
-                    'error_uri' => null,
-                    'error_properties' => null,
-                    'error_data' => null,
-                    'errors' => null,
                 ], 400),
                 $this->createRequest(
                     'GET',
@@ -251,10 +243,6 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                 new JsonResponse([
                     'error' => 'invalid_parameters',
                     'error_description' => 'limit cannot exceed 2',
-                    'error_uri' => null,
-                    'error_properties' => null,
-                    'error_data' => null,
-                    'errors' => null,
                 ], 400),
                 $this->createRequest(
                     'GET',

@@ -17,6 +17,7 @@ class ErrorNormalizer implements NormalizerInterface, TypeAwareInterface
      */
     public function normalize($result, NormalizationContext $normalizationContext)
     {
+        $normalizationContext->markNullValuesForRemoval();
         return [
             'error' => $result->getCode(),
             'error_description' => $result->getMessage(),

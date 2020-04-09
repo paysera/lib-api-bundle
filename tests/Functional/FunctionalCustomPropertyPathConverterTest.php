@@ -30,7 +30,7 @@ class FunctionalCustomPropertyPathConverterTest extends FunctionalTestCase
         $response = $this->handleRequest($request);
 
         $this->assertEquals(
-            '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","error_uri":null,"error_properties":null,"error_data":null,"errors":[{"code":"is_blank","message":"This value should not be blank.","field":"prefixed:field1"}]}',
+            '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","errors":[{"code":"is_blank","message":"This value should not be blank.","field":"prefixed:field1"}]}',
             $response->getContent()
         );
     }
