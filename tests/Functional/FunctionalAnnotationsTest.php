@@ -68,7 +68,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'test default content types validation' => [
                 new Response(
-                    '{"error":"invalid_request","error_description":"This Content-Type (text/plain) is not supported","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"invalid_request","error_description":"This Content-Type (text/plain) is not supported"}',
                     400
                 ),
                 $this->createRequest(
@@ -80,7 +80,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testBodyNormalizationWithRequiredBody' => [
                 new Response(
-                    '{"error":"invalid_request","error_description":"Expected non-empty request body","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"invalid_request","error_description":"Expected non-empty request body"}',
                     400
                 ),
                 $this->createRequest(
@@ -98,7 +98,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testBodyAndResponseNormalization with invalid structure' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Expected string but got integer for key \"internal.field1\"","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"invalid_parameters","error_description":"Expected string but got integer for key \"internal.field1\""}',
                     400
                 ),
                 $this->createJsonRequest(
@@ -109,7 +109,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testBodyNormalizationWithCustomContentType and JSON' => [
                 new Response(
-                    '{"error":"invalid_request","error_description":"This Content-Type (application/json) is not supported","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"invalid_request","error_description":"This Content-Type (application/json) is not supported"}',
                     400
                 ),
                 $this->createJsonRequest(
@@ -129,7 +129,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testBodyNormalizationWithCustomContentTypeAndJsonDecode and JSON content-type' => [
                 new Response(
-                    '{"error":"invalid_request","error_description":"This Content-Type (application/json) is not supported","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"invalid_request","error_description":"This Content-Type (application/json) is not supported"}',
                     400
                 ),
                 $this->createJsonRequest(
@@ -158,7 +158,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testBodyNormalizationWithSemiContentTypeRestriction and invalid content type' => [
                 new Response(
-                    '{"error":"invalid_request","error_description":"This Content-Type (image/gif) is not supported","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"invalid_request","error_description":"This Content-Type (image/gif) is not supported"}',
                     400
                 ),
                 $this->createRequest(
@@ -173,9 +173,6 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     json_encode([
                         'error' => 'invalid_parameters',
                         'error_description' => 'Some required parameter is missing or it\'s format is invalid',
-                        'error_uri' => null,
-                        'error_properties' => null,
-                        'error_data' => null,
                         'errors' => [
                             [
                                 'code' => 'strict_check_failed',
@@ -197,9 +194,6 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     json_encode([
                         'error' => 'invalid_parameters',
                         'error_description' => 'Some required parameter is missing or it\'s format is invalid',
-                        'error_uri' => null,
-                        'error_properties' => null,
-                        'error_data' => null,
                         'errors' => [
                             [
                                 'code' => 'strict_check_failed',
@@ -254,7 +248,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
             ],
             'testPathAttributeWithFailedResolution' => [
-                new Response('{"error":"not_found","error_description":"Resource was not found","error_uri":null,"error_properties":null,"error_data":null,"errors":null}', 404),
+                new Response('{"error":"not_found","error_description":"Resource was not found"}', 404),
                 $this->createRequest(
                     'GET',
                     '/annotated/testPathAttributeWithFailedResolution/{id}'
@@ -269,7 +263,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testQueryResolver is always mandatory' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Missing required key \"parameter\"","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"invalid_parameters","error_description":"Missing required key \"parameter\""}',
                     400
                 ),
                 $this->createRequest(
@@ -293,7 +287,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testQueryResolverHasDefaultValidation' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","error_uri":null,"error_properties":null,"error_data":null,"errors":[{"code":"is_blank","message":"This value should not be blank.","field":"field1"}]}',
+                    '{"error":"invalid_parameters","error_description":"Some required parameter is missing or it\'s format is invalid","errors":[{"code":"is_blank","message":"This value should not be blank.","field":"field1"}]}',
                     400
                 ),
                 $this->createRequest(
@@ -323,7 +317,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testQueryResolverValidationWithInvalidData - normalizer errors do not map fields' => [
                 new Response(
-                    '{"error":"invalid_parameters","error_description":"Missing required key \"field1\"","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"invalid_parameters","error_description":"Missing required key \"field1\""}',
                     400
                 ),
                 $this->createRequest(
@@ -336,9 +330,6 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     json_encode([
                         'error' => 'invalid_parameters',
                         'error_description' => 'Some required parameter is missing or it\'s format is invalid',
-                        'error_uri' => null,
-                        'error_properties' => null,
-                        'error_data' => null,
                         'errors' => [
                             [
                                 'code' => 'strict_check_failed',
@@ -356,7 +347,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testRequiredPermissions without auth' => [
                 new Response(
-                    '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found"}',
                     401
                 ),
                 $this->createRequest(
@@ -366,7 +357,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testRequiredPermissions without not enough permissions' => [
                 new Response(
-                    '{"error":"forbidden","error_description":"Access to this API endpoint is forbidden for current client","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"forbidden","error_description":"Access to this API endpoint is forbidden for current client"}',
                     403
                 ),
                 $this->createRequest(
@@ -389,7 +380,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testRequiredPermissions with class annotation and with no auth' => [
                 new Response(
-                    '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found"}',
                     401
                 ),
                 $this->createRequest(
@@ -399,7 +390,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testRequiredPermissions with class annotation and with not enough permissions' => [
                 new Response(
-                    '{"error":"forbidden","error_description":"Access to this API endpoint is forbidden for current client","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"forbidden","error_description":"Access to this API endpoint is forbidden for current client"}',
                     403
                 ),
                 $this->createRequest(
@@ -422,7 +413,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'testRequiredPermissions with class annotation and REST-specific method annotations' => [
                 new Response(
-                    '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found","error_uri":null,"error_properties":null,"error_data":null,"errors":null}',
+                    '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found"}',
                     401
                 ),
                 $this->createRequest(
@@ -445,9 +436,6 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     json_encode([
                         'error' => 'invalid_parameters',
                         'error_description' => 'Some required parameter is missing or it\'s format is invalid',
-                        'error_uri' => null,
-                        'error_properties' => null,
-                        'error_data' => null,
                         'errors' => [
                             [
                                 'code' => 'strict_check_failed',
@@ -469,9 +457,6 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     json_encode([
                         'error' => 'invalid_parameters',
                         'error_description' => 'Some required parameter is missing or it\'s format is invalid',
-                        'error_uri' => null,
-                        'error_properties' => null,
-                        'error_data' => null,
                         'errors' => [
                             [
                                 'code' => 'strict_check_failed',
