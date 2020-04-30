@@ -47,8 +47,7 @@ class ReflectionMethodWrapper
             ));
         }
 
-        // `$type->getName()` should be used when 7.0 support is dropped
-        return (string)$type;
+        return version_compare(PHP_VERSION, '7.1.0') >= 0 ? $type->getName() : (string)$type;
     }
 
     public function getFriendlyName()

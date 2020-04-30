@@ -15,12 +15,12 @@
         }
     },
     "require": {
-        "php": ">=7.0,<7.4",
+        "php": ">=7.0",
         "ext-json": "*",
         "symfony/framework-bundle": "^3.4.34|^4.3",
         "symfony/security-bundle": "^3.4.34|^4.3",
         "symfony/validator": "^3.4.34|^4.3",
-        "doctrine/common": ">=2.1 <2.9",
+        "doctrine/common": "^2.1",
         "paysera/lib-normalization-bundle": "^1.0",
         "paysera/lib-normalization": "^1.1",
         "paysera/lib-object-wrapper": "^0.1.0|^0.2.0",

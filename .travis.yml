@@ -12,6 +12,7 @@ matrix:
       - php: "7.1"
       - php: "7.2"
       - php: "7.3"
+      - php: "7.4"
         env: WITH_CS="true"
 
       - php: "7.0"
@@ -21,6 +22,8 @@ matrix:
       - php: "7.2"
         env: LOWER_CONSTRAINTS="true"
       - php: "7.3"
+        env: LOWER_CONSTRAINTS="true"
+      - php: "7.4"
         env: LOWER_CONSTRAINTS="true"
 
 cache:
