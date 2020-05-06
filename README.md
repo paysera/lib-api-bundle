@@ -130,7 +130,7 @@ class ApiController
     // ...
 
     /**
-     * @Route("/users", method="POST")
+     * @Route("/users", methods="POST")
      * @Body(parameterName="user")
      * 
      * @param User $user
@@ -212,7 +212,7 @@ class ApiController
     // ...
     
     /**
-     * @Route("/users/{userId}", method="GET")
+     * @Route("/users/{userId}", methods="GET")
      * @PathAttribute(parameterName="user", pathPartName="userId")
      * 
      * @param User $user
@@ -323,7 +323,7 @@ class ApiController
     // ...
     
     /**
-     * @Route("/users", method="GET")
+     * @Route("/users", methods="GET")
      * @Query(parameterName="filter")
      * @Query(parameterName="pager")
      * 
