@@ -26,7 +26,7 @@ class RestRequestHelperTest extends MockeryTestCase
 
         $request = new Request();
         $request->attributes->add($route->getDefaults());
-        $options = $helper->resolveRestRequestOptions($request, function () {});
+        $options = $helper->resolveRestRequestOptionsForRequest($request);
         $this->assertEquals($originalOptions, $options);
     }
 
@@ -60,7 +60,7 @@ class RestRequestHelperTest extends MockeryTestCase
 
         $request = new Request();
 
-        $this->assertNull($helper->resolveRestRequestOptions($request, function () {}));
+        $this->assertNull($helper->resolveRestRequestOptionsForRequest($request));
     }
 
     public function testResolveRestRequestOptionsWithRegisteredOptionsAndCustomController()
@@ -80,7 +80,7 @@ class RestRequestHelperTest extends MockeryTestCase
             ->andReturn($options)
         ;
 
-        $this->assertSame($options, $helper->resolveRestRequestOptions($request, function () {}));
+        $this->assertSame($options, $helper->resolveRestRequestOptionsForController($request, function () {}));
     }
 
     public function testResolveRestRequestOptionsWithRegisteredOptionsAndClassController()
@@ -106,7 +106,7 @@ class RestRequestHelperTest extends MockeryTestCase
             ->andReturn($options)
         ;
 
-        $this->assertSame($options, $helper->resolveRestRequestOptions(
+        $this->assertSame($options, $helper->resolveRestRequestOptionsForController(
             $request,
             ['DateTimeImmutable', 'createFromFormat']
         ));

@@ -26,6 +26,7 @@
         <service class="Paysera\Bundle\ApiBundle\Listener\RestRequestListener"
                  id="paysera_api.listener.rest_request">
             <tag name="kernel.event_listener" event="kernel.controller"/>
+            <tag name="kernel.event_listener" event="kernel.request" priority="31"/>
 
             <argument id="paysera_normalization.core_denormalizer" type="service"/>
             <argument id="security.authorization_checker" type="service"/>

@@ -3,4 +3,5 @@ build/
 phpunit.xml
 composer.lock
 bin/
+var/
 !bin/update-constraints-to-lowest.php

@@ -28,26 +28,43 @@ class RestRequestHelper
     }
 
     /**
-     * Resolves REST related options for current request.
-     * If request is configured for REST support, returns null.
+     * Resolves REST related options for current route.
+     * If request is configured for via annotations for REST support, returns RestRequestOptions.
      *
      * @param Request $request
-     * @param callable $controller
-     * @return null|RestRequestOptions
+     *
+     * @return RestRequestOptions|null
      *
      * @internal
      */
-    public function resolveRestRequestOptions(Request $request, callable $controller)
+    public function resolveRestRequestOptionsForRequest(Request $request)
     {
         $serialized = $request->attributes->get(self::SERIALIZED_REST_OPTIONS_KEY);
         if ($serialized !== null) {
             return unserialize($serialized);
         }
 
+        return null;
+    }
+
+    /**
+     * Resolves REST related options for current request.
+     * If request is configured via custom configuration for REST support, returns RestRequestOptions.
+     *
+     * @param Request $request
+     * @param callable $controller
+     *
+     * @return RestRequestOptions|null
+     *
+     * @internal
+     */
+    public function resolveRestRequestOptionsForController(Request $request, callable $controller)
+    {
         $controllerIdentifier = $request->attributes->get('_controller');
         $options = $controllerIdentifier !== null
             ? $this->restRequestOptionsRegistry->getRestRequestOptionsForController($controllerIdentifier)
-            : null;
+            : null
+        ;
         if ($options !== null) {
             return $options;
         }
@@ -60,6 +77,7 @@ class RestRequestHelper
             $options = $this->restRequestOptionsRegistry->getRestRequestOptionsForController(
                 implode('::', $controllerAsArray)
             );
+
             return $options;
         }
 
@@ -90,7 +108,8 @@ class RestRequestHelper
 
     /**
      * Returns whether this is REST configured request.
-     * Only works after setting Options – use resolveRestRequestOptions before that
+     * Only works after setting Options – use either
+     * resolveRestRequestOptionsForController or resolveRestRequestOptionsForRequest before that
      *
      * @param Request $request
      * @return bool
