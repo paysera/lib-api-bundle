@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0]
 ### Changed
-- `RestRequestListener` will not try to resolve `RestRequestOptions` on `kernel.request` event after resolving route configuration.
+- When using annotations, `RestRequestOptions` will now be available after `kernel.request` event instead of `kernel.controller` one. This allows to show proper REST errors when exceptions are raised in the firewall.
 
 ## [1.0.0]
 ### Changed

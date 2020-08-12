@@ -87,21 +87,38 @@ class RestRequestListener
     public function onKernelController($event)
     {
         $request = $event->getRequest();
-        // We need make sure firewall allows the client to make the request,
-        // so instead we validate request here
-        if ($this->requestHelper->isRestRequest($request)) {
-            $options = $this->requestHelper->getOptionsFromRequest($request);
-            $this->checkOptions($request, $options);
-            return;
-        }
-
-        $options = $this->requestHelper->resolveRestRequestOptionsForController($request, $event->getController());
+        $options = $this->resolveOptionsForController($request, $event->getController());
         if ($options === null) {
             return;
         }
 
+        $this->checkRequiredPermissions($options);
+
+        $this->addAttributesFromURL($request, $options);
+        $this->addAttributesFromQuery($request, $options);
+        $this->addAttributesFromBody($request, $options);
+    }
+
+    /**
+     * @param Request $request
+     * @param callable $controller
+     *
+     * @return RestRequestOptions|null
+     */
+    private function resolveOptionsForController(Request $request, callable $controller)
+    {
+        if ($this->requestHelper->isRestRequest($request)) {
+            return $this->requestHelper->getOptionsFromRequest($request);
+        }
+
+        $options = $this->requestHelper->resolveRestRequestOptionsForController($request, $controller);
+        if ($options === null) {
+            return null;
+        }
+
         $this->requestHelper->setOptionsForRequest($request, $options);
-        $this->checkOptions($request, $options);
+
+        return $options;
     }
 
     private function checkRequiredPermissions(RestRequestOptions $options)
@@ -267,21 +284,5 @@ class RestRequestListener
         if (!$options->isBodyOptional()) {
             throw new ApiException(ApiException::INVALID_REQUEST, 'Expected non-empty request body');
         }
-    }
-
-    /**
-     * @param Request $request
-     * @param RestRequestOptions $options
-     *
-     * @throws ApiException
-     * @throws InvalidItemException
-     */
-    private function checkOptions(Request $request, RestRequestOptions $options)
-    {
-        $this->checkRequiredPermissions($options);
-
-        $this->addAttributesFromURL($request, $options);
-        $this->addAttributesFromQuery($request, $options);
-        $this->addAttributesFromBody($request, $options);
     }
 }

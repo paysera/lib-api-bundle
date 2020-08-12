@@ -108,8 +108,7 @@ class RestRequestHelper
 
     /**
      * Returns whether this is REST configured request.
-     * Only works after setting Options – use either
-     * resolveRestRequestOptionsForController or resolveRestRequestOptionsForRequest before that
+     * Only works after setting options in kernel.request or kernel.controller
      *
      * @param Request $request
      * @return bool
