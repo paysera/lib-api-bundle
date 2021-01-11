@@ -6,7 +6,7 @@
     <services>
 
         <service class="Paysera\Bundle\ApiBundle\Listener\LocaleListener" id="paysera_api.listener.locale">
-            <tag name="kernel.event_listener" event="kernel.request"/>
+            <tag name="kernel.event_listener" event="kernel.request" priority="20"/>
 
             <argument id="paysera_api.rest_request_helper" type="service"/>
             <argument>%paysera_api.locales%</argument>
