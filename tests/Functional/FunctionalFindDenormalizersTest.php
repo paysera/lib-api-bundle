@@ -8,7 +8,7 @@ use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\
 
 class FunctionalFindDenormalizersTest extends FunctionalTestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->setUpContainer('basic');

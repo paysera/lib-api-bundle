@@ -18,8 +18,12 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $treeBuilder->root('paysera_fixture_test');
+        $treeBuilder = new TreeBuilder('paysera_fixture_test');
+
+        if (!method_exists($treeBuilder, 'getRootNode')) {
+            $treeBuilder->root('paysera_fixture_test');
+        }
+
         return $treeBuilder;
     }
 }

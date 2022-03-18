@@ -8,7 +8,7 @@ use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\
 
 class FunctionalCustomPropertyPathConverterTest extends FunctionalTestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->setUpContainer('custom_converter');

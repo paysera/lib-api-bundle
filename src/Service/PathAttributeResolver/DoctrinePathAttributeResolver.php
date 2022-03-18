@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Service\PathAttributeResolver;
 
-use Doctrine\Common\Persistence\ObjectRepository;
+use Doctrine\Persistence\ObjectRepository;
 
 class DoctrinePathAttributeResolver implements PathAttributeResolverInterface
 {
