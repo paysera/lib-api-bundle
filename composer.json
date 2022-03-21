@@ -15,7 +15,7 @@
         }
     },
     "require": {
-        "php": ">=7.1",
+        "php": "^7.1 || ^8.0",
         "ext-json": "*",
         "symfony/framework-bundle": "^3.4.34|^4.3",
         "symfony/security-bundle": "^3.4.34|^4.3",
