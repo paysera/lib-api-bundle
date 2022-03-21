@@ -7,18 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Added
 - support for PHP 8
+- `doctrine/persistence` added
 
 ### Changed
-- `doctrine/common` bumped to `^3.0`
 - `paysera/lib-normalization-bundle` bumped to `^1.1.0`
 - `paysera/lib-normalization` bumped to `^1.2.0`
 - `paysera/lib-dependency-injection` bumped to `^1.3.0`
-- `doctrine/doctrine-bundle` bumped to `^2.0`
-- `doctrine/orm` bumped to `^2.6`
+- `doctrine/doctrine-bundle` bumped to `^1.4|^2.0`
+- `doctrine/orm` bumped to `^2.5.14|^2.6`
 
 ### Removed
 - support for PHP 7.0
 - `paysera/lib-php-cs-fixer-config`
+- `doctrine/common`
+
 
 
 ## [1.2.0]
