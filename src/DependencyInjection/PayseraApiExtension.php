@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\DependencyInjection;
 
-use Doctrine\Common\Persistence\ObjectRepository;
+use Doctrine\Persistence\ObjectRepository;
 use Paysera\Bundle\ApiBundle\Service\PathAttributeResolver\DoctrinePathAttributeResolver;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
