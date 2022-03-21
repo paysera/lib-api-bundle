@@ -22,8 +22,7 @@ matrix:
         env: LOWER_CONSTRAINTS="true"
       - php: "7.4"
         env: LOWER_CONSTRAINTS="true"
-      - php: "8.0"
-        env: LOWER_CONSTRAINTS="true"
+
 
 cache:
     directories:
