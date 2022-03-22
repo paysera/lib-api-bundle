@@ -17,7 +17,7 @@ class DenormalizerTestCase extends MockeryTestCase
      */
     protected $context;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->context = Mockery::mock(DenormalizationContext::class);

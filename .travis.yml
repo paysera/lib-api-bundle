@@ -8,15 +8,12 @@ env:
 
 matrix:
     include:
-      - php: "7.0"
       - php: "7.1"
       - php: "7.2"
       - php: "7.3"
       - php: "7.4"
-        env: WITH_CS="true"
+      - php: "8.0"
 
-      - php: "7.0"
-        env: LOWER_CONSTRAINTS="true"
       - php: "7.1"
         env: LOWER_CONSTRAINTS="true"
       - php: "7.2"
@@ -25,6 +22,7 @@ matrix:
         env: LOWER_CONSTRAINTS="true"
       - php: "7.4"
         env: LOWER_CONSTRAINTS="true"
+
 
 cache:
     directories:
@@ -40,4 +38,3 @@ before_script:
 
 script:
     - bin/phpunit
-    - if [[ "$WITH_CS" == "true" ]]; then bin/paysera-php-cs-fixer fix --config=.php_cs -v --dry-run --stop-on-violation --path-mode=intersection "${COMMIT_SCA_FILES[@]}"; fi

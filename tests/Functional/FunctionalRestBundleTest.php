@@ -14,7 +14,7 @@ use RuntimeException;
 
 class FunctionalRestBundleTest extends FunctionalTestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->setUpContainer('basic');
