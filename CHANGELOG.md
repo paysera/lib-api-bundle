@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `symfony/security-bundle` bumped to `^5.4`
 - `symfony/validator` bumped to `^5.4`
 - `symfony/yaml` bumped to `^5.4`
-- `paysera/lib-normalization-bundle` bumped to `^1.2`
 
 ## [1.3.1]
 ### Changed
