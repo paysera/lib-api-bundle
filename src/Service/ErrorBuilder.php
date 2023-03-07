@@ -18,7 +18,7 @@ use Paysera\Bundle\ApiBundle\Entity\Error;
 use Paysera\Bundle\ApiBundle\Exception\ApiException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Exception;
+use Throwable;
 
 class ErrorBuilder implements ErrorBuilderInterface
 {
@@ -37,12 +37,12 @@ class ErrorBuilder implements ErrorBuilderInterface
         ];
     }
 
-    public function createErrorFromException(Exception $exception): Error
+    public function createErrorFromException(Throwable $exception): Error
     {
         return $this->fillErrorFields($this->buildErrorFromException($exception));
     }
 
-    private function buildErrorFromException(Exception $exception): Error
+    private function buildErrorFromException(Throwable $exception): Error
     {
         if ($exception instanceof ApiException) {
             return (new Error())
