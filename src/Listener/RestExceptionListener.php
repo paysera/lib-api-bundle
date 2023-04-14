@@ -14,6 +14,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Psr\Log\LoggerInterface;
 use Exception;
 use Paysera\Bundle\ApiBundle\Service\ErrorBuilderInterface;
+use Throwable;
 
 /**
  * @internal
@@ -55,7 +56,11 @@ class RestExceptionListener
             return;
         }
 
-        $exception = $event->getException();
+        if (method_exists($event, 'getException')) {
+            $exception = $event->getException();
+        } else {
+            $exception = $event->getThrowable();
+        }
         $error = $this->errorBuilder->createErrorFromException($exception);
         $normalizedError = $this->coreNormalizer->normalize($error);
 
@@ -69,7 +74,7 @@ class RestExceptionListener
         $event->setResponse($response);
     }
 
-    private function logException(Response $response, Exception $exception)
+    private function logException(Response $response, Throwable $exception)
     {
         if ($response->getStatusCode() >= 500) {
             $level = LogLevel::ERROR;
