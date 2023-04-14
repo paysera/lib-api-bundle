@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.1]
 ### Changed
 - Changed error handling signatures to work with new versions.
-- Minimum PHP version is now set to 7.4.
 
 ## [1.5.0]
 ### Changed
