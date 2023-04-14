@@ -56,7 +56,16 @@ class RestExceptionListener
             return;
         }
 
-        $exception = $event->getThrowable();
+        if (method_exists($event, 'getException')) {
+            $exception = $event->getException();
+            trigger_deprecation(
+                'lib-api-bundle',
+                '1.5.1',
+                'getException() is deprecated and should no longer be used.'
+            );
+        } else {
+            $exception = $event->getThrowable();
+        }
         $error = $this->errorBuilder->createErrorFromException($exception);
         $normalizedError = $this->coreNormalizer->normalize($error);
 
