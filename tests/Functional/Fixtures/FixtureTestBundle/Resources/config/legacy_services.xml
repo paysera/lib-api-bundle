@@ -57,7 +57,7 @@
                  controller="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action1bAction"/>
             <tag name="paysera_api.request_options"
                  controller="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action2"/>
-            <tag name="paysera_api.request_options" controller="paysera_fixture_test.controller.default_controller::action3"/>
+            <tag name="paysera_api.request_options" controller="paysera_fixture_test.controller.default_controller:action3"/>
             <tag name="paysera_api.request_options"
                  controller="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action4"/>
             <tag name="paysera_api.request_options" controller="paysera_fixture_test.controller.default_controller::action5"/>

@@ -5,3 +5,5 @@ composer.lock
 bin/
 var/
 !bin/update-constraints-to-lowest.php
+
+.phpunit.result.cache

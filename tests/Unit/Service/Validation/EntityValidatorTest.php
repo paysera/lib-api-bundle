@@ -67,6 +67,7 @@ class EntityValidatorTest extends MockeryTestCase
             if ($expectedException !== null) {
                 $this->fail('Expected exception');
             }
+            $this->expectNotToPerformAssertions();
         } catch (ApiException $exception) {
             $this->assertEquals($expectedException, $exception);
         }

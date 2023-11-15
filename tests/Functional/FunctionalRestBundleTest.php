@@ -47,7 +47,7 @@ class FunctionalRestBundleTest extends FunctionalTestCase
                 new Response('default'),
                 $this->createRequest('GET', '/config/by-full-controller?parameter=works'),
             ],
-            'config works by full class name when using bundle notation routing (Bundle:Controller:action)' => [
+            'config works by full class name' => [
                 new Response('works'),
                 $this->createRequest('GET', '/config/by-full-controller-and-class-name?parameter=works'),
             ],

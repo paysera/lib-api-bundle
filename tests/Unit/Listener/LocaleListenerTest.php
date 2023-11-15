@@ -7,6 +7,7 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Paysera\Bundle\ApiBundle\Listener\LocaleListener;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Helper\HttpKernelHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -34,9 +35,9 @@ class LocaleListenerTest extends MockeryTestCase
         $helper->shouldReceive('isRestRequest')->with($request)->andReturn($rest);
 
         if (class_exists('Symfony\Component\HttpKernel\Event\RequestEvent')) {
-            $event = new RequestEvent($kernel, $request, HttpKernelInterface::MASTER_REQUEST);
+            $event = new RequestEvent($kernel, $request, HttpKernelHelper::getMainRequestConstValue());
         } else {
-            $event = new GetResponseEvent($kernel, $request, HttpKernelInterface::MASTER_REQUEST);
+            $event = new GetResponseEvent($kernel, $request, HttpKernelHelper::getMainRequestConstValue());
         }
 
         $listener->onKernelRequest($event);
