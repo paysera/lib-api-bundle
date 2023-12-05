@@ -44,6 +44,7 @@ class ResponseBuilderTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('expected');
         $builder->buildResponse(new class() implements JsonSerializable {
+            #[\ReturnTypeWillChange]
             public function jsonSerialize()
             {
                 throw new RuntimeException('expected');

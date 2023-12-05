@@ -1,11 +1,10 @@
 framework:
     secret: 'secret'
     router:
-        resource: '%kernel.project_dir%/tests/Functional/Fixtures/config/routing.yml'
+        resource: '%kernel.root_dir%/config/legacy_routing.yml'
     validation: ~
 
 security:
-    enable_authenticator_manager: true
     providers:
         in_memory:
             memory:
@@ -17,15 +16,12 @@ security:
                         password: pass
                         roles: ['ROLE_USER', 'ROLE_ADMIN']
     firewalls:
-        config:
-            pattern: ^/(config)/
-            security: false
         main:
+            anonymous: true
             http_basic: ~
             stateless: true
-    password_hashers:
-        Symfony\Component\Security\Core\User\InMemoryUser:
-            algorithm: plaintext
+    encoders:
+        Symfony\Component\Security\Core\User\User: plaintext
 
 doctrine:
     orm:
@@ -37,7 +33,7 @@ doctrine:
 
 services:
     logger:
-        class: Symfony\Component\ErrorHandler\BufferingLogger
+        class: Symfony\Component\Debug\BufferingLogger
         public: true
     rest_registry:
         alias: paysera_api.rest_request_options_registry

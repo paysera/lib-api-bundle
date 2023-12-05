@@ -1,0 +1,3 @@
+paysera_fixture_test:
+    resource: "@PayseraFixtureTestBundle/Resources/config/legacy_routing.xml"
+    prefix:   /

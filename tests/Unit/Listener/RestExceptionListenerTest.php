@@ -11,6 +11,7 @@ use Paysera\Bundle\ApiBundle\Listener\RestExceptionListener;
 use Paysera\Bundle\ApiBundle\Service\ErrorBuilderInterface;
 use Paysera\Bundle\ApiBundle\Service\ResponseBuilder;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Helper\HttpKernelHelper;
 use Paysera\Component\Normalization\CoreNormalizer;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,14 +52,14 @@ class RestExceptionListenerTest extends MockeryTestCase
             $event = new ExceptionEvent(
                 $kernel,
                 $request,
-                HttpKernelInterface::MASTER_REQUEST,
+                HttpKernelHelper::getMainRequestConstValue(),
                 $exception
             );
         } else {
             $event = new GetResponseForExceptionEvent(
                 $kernel,
                 $request,
-                HttpKernelInterface::MASTER_REQUEST,
+                HttpKernelHelper::getMainRequestConstValue(),
                 $exception
             );
         }

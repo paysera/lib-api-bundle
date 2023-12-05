@@ -24,7 +24,7 @@ class TestKernel extends Kernel
         $this->commonFile = $commonFile;
     }
 
-    public function registerBundles()
+    public function registerBundles(): array
     {
         return [
             new FrameworkBundle(),
