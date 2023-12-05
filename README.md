@@ -1,8 +1,8 @@
 # PayseraApiBundle
 
-[![Latest Version on Packagist][ico-version]][link-packagist]
-[![Software License][ico-license]](LICENSE)
-[![Build Status][ico-travis]][link-travis]
+[![Build Status][ico-build]][link-build]
+[![Latest Stable Version][ico-version]][link-packagist]
+[![License][ico-license]](LICENSE)
 [![Coverage Status][ico-scrutinizer]][link-scrutinizer]
 [![Quality Score][ico-code-quality]][link-code-quality]
 [![Total Downloads][ico-downloads]][link-downloads]
@@ -711,15 +711,15 @@ You can fix any code style issues using this command:
 composer fix-cs
 ```
 
-[ico-version]: https://img.shields.io/packagist/v/paysera/lib-api-bundle.svg?style=flat-square
-[ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/paysera/lib-api-bundle/master.svg?style=flat-square
-[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/paysera/lib-api-bundle.svg?style=flat-square
-[ico-code-quality]: https://img.shields.io/scrutinizer/g/paysera/lib-api-bundle.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/paysera/lib-api-bundle.svg?style=flat-square
+[ico-build]: https://github.com/paysera/lib-api-bundle/workflows/CI/badge.svg
+[ico-version]: https://img.shields.io/packagist/v/paysera/lib-api-bundle.svg
+[ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg
+[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/paysera/lib-api-bundle.svg
+[ico-code-quality]: https://img.shields.io/scrutinizer/g/paysera/lib-api-bundle.svg
+[ico-downloads]: https://img.shields.io/packagist/dt/paysera/lib-api-bundle.svg
 
+[link-build]: https://github.com/paysera/lib-api-bundle/actions
 [link-packagist]: https://packagist.org/packages/paysera/lib-api-bundle
-[link-travis]: https://travis-ci.org/paysera/lib-api-bundle
 [link-scrutinizer]: https://scrutinizer-ci.com/g/paysera/lib-api-bundle/code-structure
 [link-code-quality]: https://scrutinizer-ci.com/g/paysera/lib-api-bundle
 [link-downloads]: https://packagist.org/packages/paysera/lib-api-bundle
