@@ -27,6 +27,10 @@ class PayseraApiExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config/services'));
         if (class_exists(AttributeRouteControllerLoader::class)) {
             $loader->load('annotations.xml');
+
+            if (PHP_VERSION_ID >= 80000) {
+                $loader->load('attributes.xml');
+            }
         } else {
             $loader->load('annotations_legacy.xml');
         }
