@@ -33,7 +33,7 @@ doctrine:
 
 services:
     logger:
-        class: Symfony\Component\Debug\BufferingLogger
+        class: Psr\Log\NullLogger
         public: true
     rest_registry:
         alias: paysera_api.rest_request_options_registry

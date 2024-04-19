@@ -18,15 +18,33 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
      * @dataProvider restRequestsConfigurationProvider
      * @param Response $expectedResponse
      * @param Request $request
+     * @param Response|null $extraResponseVersion
      */
-    public function testRestRequestConfiguration(Response $expectedResponse, Request $request)
-    {
+    public function testRestRequestConfiguration(
+        Response $expectedResponse,
+        Request $request,
+        Response $extraResponseVersion = null
+    ) {
         $response = $this->handleRequest($request);
-        $this->assertEquals(
-            $expectedResponse->getContent(),
-            $response->getContent(),
-            'expected correct content'
-        );
+        $assertionMessage = 'expected correct content';
+
+        if ($extraResponseVersion === null) {
+            $this->assertEquals(
+                $expectedResponse->getContent(),
+                $response->getContent(),
+                $assertionMessage
+            );
+        } else {
+            $this->assertThat(
+                $response->getContent(),
+                $this->logicalOr(
+                    $this->equalTo($expectedResponse->getContent()),
+                    $this->equalTo($extraResponseVersion->getContent())
+                ),
+                $assertionMessage
+            );
+        }
+
         $this->assertEquals(
             $expectedResponse->getStatusCode(),
             $response->getStatusCode(),
@@ -188,6 +206,20 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     '/annotated/testBodyNormalizationWithValidation',
                     ['field1' => 'not an email']
                 ),
+                new Response(
+                    json_encode([
+                        'error' => 'invalid_parameters',
+                        'error_description' => 'Some required parameter is missing or it\'s format is invalid',
+                        'errors' => [
+                            [
+                                'code' => 'invalid_format',
+                                'message' => 'This value is not a valid email address.',
+                                'field' => 'my_mapped_key',
+                            ],
+                        ],
+                    ]),
+                    400
+                ),
             ],
             'testBodyNormalizationWithInnerTypeValidation - should convert to snake case' => [
                 new Response(
@@ -208,6 +240,20 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     'POST',
                     '/annotated/testBodyNormalizationWithInnerTypeValidation',
                     ['field1' => 'blah', 'internal' => ['field1' => 'not an email']]
+                ),
+                new Response(
+                    json_encode([
+                        'error' => 'invalid_parameters',
+                        'error_description' => 'Some required parameter is missing or it\'s format is invalid',
+                        'errors' => [
+                            [
+                                'code' => 'invalid_format',
+                                'message' => 'Custom message',
+                                'field' => 'internal_field1', // <-- this is converted from internalField1
+                            ],
+                        ],
+                    ]),
+                    400
                 ),
             ],
             'testBodyValidationCanBeTurnedOff' => [
@@ -344,6 +390,20 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     'GET',
                     '/annotated/testQueryResolverValidationWithInvalidData?field1=not_an_email'
                 ),
+                new Response(
+                    json_encode([
+                        'error' => 'invalid_parameters',
+                        'error_description' => 'Some required parameter is missing or it\'s format is invalid',
+                        'errors' => [
+                            [
+                                'code' => 'invalid_format',
+                                'message' => 'This value is not a valid email address.',
+                                'field' => 'mapped_key',
+                            ],
+                        ],
+                    ]),
+                    400
+                ),
             ],
             'testRequiredPermissions without auth' => [
                 new Response(
@@ -451,6 +511,20 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     '/annotated/class/testValidation',
                     ['field1' => 'not an email', 'internal' => ['field1' => 'also not an email']]
                 ),
+                new Response(
+                    json_encode([
+                        'error' => 'invalid_parameters',
+                        'error_description' => 'Some required parameter is missing or it\'s format is invalid',
+                        'errors' => [
+                            [
+                                'code' => 'invalid_format',
+                                'message' => 'This value is not a valid email address.',
+                                'field' => 'my_mapped_key',
+                            ],
+                        ],
+                    ]),
+                    400
+                ),
             ],
             'testValidation with class annotation' => [
                 new Response(
@@ -471,6 +545,20 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     'POST',
                     '/annotated/class/testValidationFromClass',
                     ['field1' => 'not an email', 'internal' => ['field1' => 'also not an email']]
+                ),
+                new Response(
+                    json_encode([
+                        'error' => 'invalid_parameters',
+                        'error_description' => 'Some required parameter is missing or it\'s format is invalid',
+                        'errors' => [
+                            [
+                                'code' => 'invalid_format',
+                                'message' => 'Custom message',
+                                'field' => 'internal.field1',
+                            ],
+                        ],
+                    ]),
+                    400
                 ),
             ],
             'testResponseNormalization' => [
