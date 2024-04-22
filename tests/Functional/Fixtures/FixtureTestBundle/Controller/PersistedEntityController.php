@@ -15,11 +15,8 @@ class PersistedEntityController
      * @Route(path="/persisted-entities/{identifier}", methods={"GET"})
      *
      * @PathAttribute(parameterName="entity", pathPartName="identifier")
-     *
-     * @param PersistedEntity $entity
-     * @return Response
      */
-    public function findPersistedEntity(PersistedEntity $entity)
+    public function findPersistedEntity(PersistedEntity $entity): Response
     {
         return new Response((string)$entity->getId());
     }
@@ -28,11 +25,8 @@ class PersistedEntityController
      * @Route(path="/simple-persisted-entities/{identifier}", methods={"GET"})
      *
      * @PathAttribute(parameterName="entity", pathPartName="identifier")
-     *
-     * @param SimplePersistedEntity $entity
-     * @return Response
      */
-    public function findSimplePersistedEntity(SimplePersistedEntity $entity)
+    public function findSimplePersistedEntity(SimplePersistedEntity $entity): Response
     {
         return new Response((string)$entity->getId());
     }

@@ -21,11 +21,8 @@ class AnnotatedController
      * @Route(path="/annotated/testBodyNormalizationWithExtractedKeyValue", methods={"POST"})
      *
      * @Body(parameterName="keyValueInBody", denormalizationType="extract:key")
-     *
-     * @param string $keyValueInBody
-     * @return Response
      */
-    public function testBodyNormalizationWithExtractedKeyValue(string $keyValueInBody = 'default')
+    public function testBodyNormalizationWithExtractedKeyValue(string $keyValueInBody = 'default'): Response
     {
         return new Response($keyValueInBody);
     }
@@ -34,11 +31,8 @@ class AnnotatedController
      * @Route(path="/annotated/testBodyNormalizationWithDenormalizationGroup", methods={"POST"})
      *
      * @Body(parameterName="keyValueInBody", denormalizationType="extract:key", denormalizationGroup="custom")
-     *
-     * @param string $keyValueInBody
-     * @return Response
      */
-    public function testBodyNormalizationWithDenormalizationGroup(string $keyValueInBody = 'default')
+    public function testBodyNormalizationWithDenormalizationGroup(string $keyValueInBody = 'default'): Response
     {
         return new Response($keyValueInBody);
     }
@@ -47,11 +41,8 @@ class AnnotatedController
      * @Route(path="/annotated/testBodyNormalizationWithRequiredBody", methods={"POST"})
      *
      * @Body(parameterName="body", denormalizationType="extract:key")
-     *
-     * @param string $body
-     * @return Response
      */
-    public function testBodyNormalizationWithRequiredBody(string $body)
+    public function testBodyNormalizationWithRequiredBody(string $body): Response
     {
         // should fail as we don't pass any body
         return new Response('FAIL');
@@ -61,11 +52,8 @@ class AnnotatedController
      * @Route(path="/annotated/testBodyAndResponseNormalization", methods={"POST"})
      *
      * @Body(parameterName="resource")
-     *
-     * @param MyObject $resource
-     * @return MyObject
      */
-    public function testBodyAndResponseNormalization(MyObject $resource)
+    public function testBodyAndResponseNormalization(MyObject $resource): MyObject
     {
         return $resource;
     }
@@ -75,11 +63,8 @@ class AnnotatedController
      *
      * @Body(parameterName="body", denormalizationType="prefixed")
      * @BodyContentType(supportedContentTypes={"text/plain"})
-     *
-     * @param string $body
-     * @return Response
      */
-    public function testBodyNormalizationWithCustomContentType(string $body)
+    public function testBodyNormalizationWithCustomContentType(string $body): Response
     {
         return new Response($body);
     }
@@ -89,11 +74,8 @@ class AnnotatedController
      *
      * @Body(parameterName="keyValueInBody", denormalizationType="extract:key")
      * @BodyContentType(supportedContentTypes={"text/plain"}, jsonEncodedBody=true)
-     *
-     * @param string $keyValueInBody
-     * @return Response
      */
-    public function testBodyNormalizationWithCustomContentTypeAndJsonDecode(string $keyValueInBody)
+    public function testBodyNormalizationWithCustomContentTypeAndJsonDecode(string $keyValueInBody): Response
     {
         return new Response($keyValueInBody);
     }
@@ -103,11 +85,8 @@ class AnnotatedController
      *
      * @Body(parameterName="body", denormalizationType="prefixed")
      * @BodyContentType(supportedContentTypes={"image/jpeg", "text/*"})
-     *
-     * @param string $body
-     * @return Response
      */
-    public function testBodyNormalizationWithSemiContentTypeRestriction(string $body)
+    public function testBodyNormalizationWithSemiContentTypeRestriction(string $body): Response
     {
         return new Response($body);
     }
@@ -117,11 +96,8 @@ class AnnotatedController
      *
      * @Body(parameterName="resource")
      * @Validation(groups={"field1_email"}, violationPathMap={"field1": "my_mapped_key"})
-     *
-     * @param MyObject $resource
-     * @return Response
      */
-    public function testBodyNormalizationWithValidation(MyObject $resource)
+    public function testBodyNormalizationWithValidation(MyObject $resource): Response
     {
         // should fail validation
         return new Response('FAIL');
@@ -132,11 +108,8 @@ class AnnotatedController
      *
      * @Body(parameterName="resource")
      * @Validation(groups={"internal_field1_email"})
-     *
-     * @param MyObject $resource
-     * @return Response
      */
-    public function testBodyNormalizationWithInnerTypeValidation(MyObject $resource)
+    public function testBodyNormalizationWithInnerTypeValidation(MyObject $resource): Response
     {
         // should fail validation
         return new Response('FAIL');
@@ -147,11 +120,8 @@ class AnnotatedController
      *
      * @Body(parameterName="resource")
      * @Validation(enabled=false)
-     *
-     * @param MyObject $resource
-     * @return Response
      */
-    public function testBodyValidationCanBeTurnedOff(MyObject $resource)
+    public function testBodyValidationCanBeTurnedOff(MyObject $resource): Response
     {
         return new Response('OK');
     }
@@ -161,11 +131,8 @@ class AnnotatedController
      *
      * @Body(parameterName="resource")
      * @Validation(groups={})
-     *
-     * @param MyObject $resource
-     * @return Response
      */
-    public function testBodyValidationCanBeTurnedOffWithEmptyGroups(MyObject $resource)
+    public function testBodyValidationCanBeTurnedOffWithEmptyGroups(MyObject $resource): Response
     {
         return new Response('OK');
     }
@@ -175,11 +142,8 @@ class AnnotatedController
      * @Route(path="/annotated/testPathAttribute", methods={"GET"})
      *
      * @PathAttribute(parameterName="parameter", pathPartName="id", resolverType="prefixed")
-     *
-     * @param string $parameter
-     * @return Response
      */
-    public function testPathAttribute(string $parameter = 'default')
+    public function testPathAttribute(string $parameter = 'default'): Response
     {
         return new Response($parameter);
     }
@@ -188,11 +152,8 @@ class AnnotatedController
      * @Route(path="/annotated/testPathAttributeWithFindingObject/{id}", methods={"GET"})
      *
      * @PathAttribute(parameterName="myObject", pathPartName="id")
-     *
-     * @param MyObject $myObject
-     * @return Response
      */
-    public function testPathAttributeWithFindingObject(MyObject $myObject)
+    public function testPathAttributeWithFindingObject(MyObject $myObject): Response
     {
         return new Response($myObject->getField1());
     }
@@ -201,11 +162,8 @@ class AnnotatedController
      * @Route(path="/annotated/testPathAttributeWithFailedResolution/{id}", methods={"GET"})
      *
      * @PathAttribute(parameterName="myObject", pathPartName="id", resolverType="always_null")
-     *
-     * @param MyObject $myObject
-     * @return Response
      */
-    public function testPathAttributeWithFailedResolution(MyObject $myObject)
+    public function testPathAttributeWithFailedResolution(MyObject $myObject): Response
     {
         // should fail before calling controller
         return new Response('FAIL');
@@ -215,11 +173,8 @@ class AnnotatedController
      * @Route(path="/annotated/testQueryResolver", methods={"GET"})
      *
      * @Query(parameterName="parameter", denormalizationType="extract:parameter")
-     *
-     * @param string $parameter
-     * @return Response
      */
-    public function testQueryResolver(string $parameter)
+    public function testQueryResolver(string $parameter): Response
     {
         return new Response($parameter);
     }
@@ -228,11 +183,8 @@ class AnnotatedController
      * @Route(path="/annotated/testQueryResolverWithDenormalizationGroup", methods={"GET"})
      *
      * @Query(parameterName="parameter", denormalizationType="extract:parameter", denormalizationGroup="custom")
-     *
-     * @param string $parameter
-     * @return Response
      */
-    public function testQueryResolverWithDenormalizationGroup(string $parameter)
+    public function testQueryResolverWithDenormalizationGroup(string $parameter): Response
     {
         return new Response($parameter);
     }
@@ -241,11 +193,8 @@ class AnnotatedController
      * @Route(path="/annotated/testQueryResolverPagerLimitIs42", methods={"GET"})
      *
      * @Query(parameterName="pager")
-     *
-     * @param Pager $pager
-     * @return Response
      */
-    public function testQueryResolverPagerLimitIs42(Pager $pager)
+    public function testQueryResolverPagerLimitIs42(Pager $pager): Response
     {
         return new Response($pager->getLimit() === 42 ? 'OK' : 'FAIL');
     }
@@ -254,11 +203,8 @@ class AnnotatedController
      * @Route(path="/annotated/testQueryResolverHasDefaultValidation", methods={"GET"})
      *
      * @Query(parameterName="myObject")
-     *
-     * @param MyObject $myObject
-     * @return Response
      */
-    public function testQueryResolverHasDefaultValidation(MyObject $myObject)
+    public function testQueryResolverHasDefaultValidation(MyObject $myObject): Response
     {
         // should fail validation
         return new Response('FAIL');
@@ -268,11 +214,8 @@ class AnnotatedController
      * @Route(path="/annotated/testQueryResolverCanTurnOffValidation", methods={"GET"})
      *
      * @Query(parameterName="myObject", validation=@Validation(enabled=false))
-     *
-     * @param MyObject $myObject
-     * @return Response
      */
-    public function testQueryResolverCanTurnOffValidation(MyObject $myObject)
+    public function testQueryResolverCanTurnOffValidation(MyObject $myObject): Response
     {
         return new Response('OK');
     }
@@ -281,11 +224,8 @@ class AnnotatedController
      * @Route(path="/annotated/testQueryResolverCanTurnOffValidationWithEmptyGroups", methods={"GET"})
      *
      * @Query(parameterName="myObject", validation=@Validation(groups={}))
-     *
-     * @param MyObject $myObject
-     * @return Response
      */
-    public function testQueryResolverCanTurnOffValidationWithEmptyGroups(MyObject $myObject)
+    public function testQueryResolverCanTurnOffValidationWithEmptyGroups(MyObject $myObject): Response
     {
         return new Response('OK');
     }
@@ -297,11 +237,8 @@ class AnnotatedController
      *     groups={"field1_email"},
      *     violationPathMap={"field1": "mapped_key"}
      * ))
-     *
-     * @param MyObject $myObject
-     * @return Response
      */
-    public function testQueryResolverValidationWithInvalidData(MyObject $myObject)
+    public function testQueryResolverValidationWithInvalidData(MyObject $myObject): Response
     {
         // should fail validation
         return new Response('FAIL');
@@ -311,10 +248,8 @@ class AnnotatedController
      * @Route(path="/annotated/testRequiredPermissions", methods={"GET"})
      *
      * @RequiredPermissions(permissions={"ROLE_USER", "ROLE_ADMIN"})
-     *
-     * @return Response
      */
-    public function testRequiredPermissions()
+    public function testRequiredPermissions(): Response
     {
         return new Response('OK');
     }
@@ -323,35 +258,35 @@ class AnnotatedController
      * @Route(path="/annotated/testResponseNormalization", methods={"GET"})
      *
      * @ResponseNormalization(normalizationType="my_object_custom")
-     *
-     * @return string
      */
-    public function testResponseNormalization()
+    public function testResponseNormalization(): MyObject
     {
-        return (new MyObject())->setField1('hi');
+        return (new MyObject())
+            ->setField1('hi')
+        ;
     }
 
     /**
      * @Route(path="/annotated/testResponseNormalizationWithNormalizationGroup", methods={"GET"})
      *
      * @ResponseNormalization(normalizationGroup="custom")
-     *
-     * @return string
      */
-    public function testResponseNormalizationWithNormalizationGroup()
+    public function testResponseNormalizationWithNormalizationGroup(): MyObject
     {
-        return (new MyObject())->setField1('hi');
+        return (new MyObject())
+            ->setField1('hi')
+        ;
     }
 
     /**
      * @Route(path="/annotated/testResponseNormalizationWithGuessedNormalizer", methods={"GET"})
      *
      * @ResponseNormalization()
-     *
-     * @return string
      */
-    public function testResponseNormalizationWithGuessedNormalizer()
+    public function testResponseNormalizationWithGuessedNormalizer(): MyObject
     {
-        return (new MyObject())->setField1('hi');
+        return (new MyObject())
+            ->setField1('hi')
+        ;
     }
 }

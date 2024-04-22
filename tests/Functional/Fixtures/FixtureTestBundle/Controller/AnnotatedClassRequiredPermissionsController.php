@@ -18,20 +18,16 @@ class AnnotatedClassRequiredPermissionsController
      * @RequiredPermissions(permissions={"ROLE_USER"})
      * @RequiredPermissions(permissions={"ROLE_ADMIN"})
      * @RequiredPermissions(permissions={"ROLE_USER"})
-     *
-     * @return Response
      */
-    public function test()
+    public function test(): Response
     {
         return new Response('OK');
     }
 
     /**
      * @Route(path="/annotated/class/simpleAction", methods={"GET"})
-     *
-     * @return Response
      */
-    public function simpleAction()
+    public function simpleAction(): Response
     {
         return new Response('OK');
     }
