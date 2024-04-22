@@ -7,7 +7,7 @@ namespace Paysera\Bundle\ApiBundle\Attribute;
 use Attribute;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
-use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\ReflectionMethodWrapper;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class Body implements RestAttributeInterface

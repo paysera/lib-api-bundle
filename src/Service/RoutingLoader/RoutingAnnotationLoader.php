@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\ApiBundle\Service\Annotation;
+namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
 use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
@@ -21,7 +21,7 @@ class RoutingAnnotationLoader extends AnnotatedRouteControllerLoader
     private $restRequestHelper;
 
     /**
-     * @var RestRequestOptionsBuilder
+     * @var RestRequestAnnotationOptionsBuilder
      */
     private $restRequestOptionsBuilder;
 
@@ -30,7 +30,7 @@ class RoutingAnnotationLoader extends AnnotatedRouteControllerLoader
         $this->restRequestHelper = $restRequestHelper;
     }
 
-    public function setRestRequestOptionsBuilder(RestRequestOptionsBuilder $restRequestOptionsBuilder)
+    public function setRestRequestOptionsBuilder(RestRequestAnnotationOptionsBuilder $restRequestOptionsBuilder)
     {
         $this->restRequestOptionsBuilder = $restRequestOptionsBuilder;
     }

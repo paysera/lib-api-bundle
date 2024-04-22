@@ -5,7 +5,7 @@ namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation;
 
 use DateTime;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
-use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\ReflectionMethodWrapper;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 

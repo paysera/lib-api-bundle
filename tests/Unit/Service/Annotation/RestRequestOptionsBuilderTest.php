@@ -9,7 +9,7 @@ use Paysera\Bundle\ApiBundle\Annotation\Body;
 use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
-use Paysera\Bundle\ApiBundle\Service\Annotation\RestRequestOptionsBuilder;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
 use ReflectionMethod;
 
@@ -19,7 +19,7 @@ class RestRequestOptionsBuilderTest extends MockeryTestCase
     {
         $optionsValidator = Mockery::mock(RestRequestOptionsValidator::class);
 
-        $builder = new RestRequestOptionsBuilder($optionsValidator);
+        $builder = new RestRequestAnnotationOptionsBuilder($optionsValidator);
 
         $reflectionMethod = new ReflectionMethod(self::class, 'fixtureMethod');
 
@@ -65,7 +65,7 @@ class RestRequestOptionsBuilderTest extends MockeryTestCase
     {
         $optionsValidator = Mockery::mock(RestRequestOptionsValidator::class);
 
-        $builder = new RestRequestOptionsBuilder($optionsValidator);
+        $builder = new RestRequestAnnotationOptionsBuilder($optionsValidator);
 
         $this->expectException(ConfigurationException::class);
 

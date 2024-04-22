@@ -2,24 +2,19 @@
 
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
 
-        <service decorates="routing.loader.attribute"
-                 parent="routing.loader.attribute"
-                 id="paysera_api.loader.attribute"
-                 class="Paysera\Bundle\ApiBundle\Service\Annotation\RoutingAnnotationLoader">
+        <service decorates="routing.loader.annotation"
+                 parent="routing.loader.annotation"
+                 id="paysera_api.annotations.loader"
+                 class="Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAnnotationLoader">
             <call method="setRequestHelper">
                 <argument type="service" id="paysera_api.rest_request_helper"/>
             </call>
             <call method="setRestRequestOptionsBuilder">
                 <argument type="service" id="paysera_api.annotations.options_builder"/>
             </call>
-        </service>
-
-        <service id="paysera_api.annotations.options_builder"
-                class="Paysera\Bundle\ApiBundle\Service\Annotation\RestRequestOptionsBuilder">
-            <argument type="service" id="paysera_api.rest_request_options_validator"/>
         </service>
     </services>
 </container>

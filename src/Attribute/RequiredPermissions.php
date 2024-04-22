@@ -6,7 +6,7 @@ namespace Paysera\Bundle\ApiBundle\Attribute;
 
 use Attribute;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
-use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\ReflectionMethodWrapper;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class RequiredPermissions implements RestAttributeInterface

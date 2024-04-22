@@ -9,7 +9,7 @@ use Paysera\Bundle\ApiBundle\Annotation\Validation;
 use Paysera\Bundle\ApiBundle\Entity\QueryResolverOptions;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
-use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\ReflectionMethodWrapper;
 
 #[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class Query implements RestAttributeInterface

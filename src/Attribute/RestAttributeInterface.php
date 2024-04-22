@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Attribute;
 
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
-use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\ReflectionMethodWrapper;
 
 interface RestAttributeInterface
 {
