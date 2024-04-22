@@ -19,13 +19,8 @@ use Symfony\Component\Routing\Route;
  */
 class RoutingAttributeLoader extends AttributeRouteControllerLoader
 {
-    public function __construct(
-        private RestRequestHelper $restRequestHelper,
-        private RestRequestOptionsValidator $validator,
-        protected $env = null
-    ) {
-        parent::__construct($env);
-    }
+    private RestRequestHelper $restRequestHelper;
+    private RestRequestOptionsValidator $validator;
 
     protected function configureRoute(
         Route $route,
@@ -70,5 +65,15 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $this->validator->validateRestRequestOptions($options, $wrapper->getFriendlyName());
 
         return $options;
+    }
+
+    public function setRequestHelper(RestRequestHelper $restRequestHelper)
+    {
+        $this->restRequestHelper = $restRequestHelper;
+    }
+
+    public function setRequestOptionsValidator(RestRequestOptionsValidator $validator)
+    {
+        $this->validator = $validator;
     }
 }

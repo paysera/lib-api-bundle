@@ -5,15 +5,34 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Attribute;
 
 use Attribute;
-use Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions as RequiredPermissionsAnnotation;
+use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
+use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-class RequiredPermissions extends RequiredPermissionsAnnotation implements RestAttributeInterface
+class RequiredPermissions implements RestAttributeInterface
 {
-    public function __construct(array $permissions)
+    /**
+     * @var array
+     */
+    private $permissions;
+
+    public function __construct(
+        array $data = [],
+        array $permissions = null
+    ) {
+        $this->setPermissions($data['permissions'] ?? $permissions);
+    }
+
+    private function setPermissions(array $permissions): self
     {
-        parent::__construct([
-            'permissions' => $permissions,
-        ]);
+        $this->permissions = $permissions;
+        return $this;
+    }
+
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void
+    {
+        $options->setRequiredPermissions(
+            array_unique(array_merge($options->getRequiredPermissions(), $this->permissions))
+        );
     }
 }

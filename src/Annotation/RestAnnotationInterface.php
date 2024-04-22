@@ -9,6 +9,4 @@ use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 interface RestAnnotationInterface
 {
     public function isSeveralSupported(): bool;
-
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod);
 }

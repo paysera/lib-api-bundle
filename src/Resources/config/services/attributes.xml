@@ -4,13 +4,13 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="paysera_api.attribute.loader"
-                 class="Paysera\Bundle\ApiBundle\Service\Attribute\RoutingAttributeLoader">
-            <tag name="routing.loader"/>
+<!--        <service id="paysera_api.attribute.loader"-->
+<!--                 class="Paysera\Bundle\ApiBundle\Service\Attribute\RoutingAttributeLoader">-->
+<!--            <tag name="routing.loader"/>-->
 
-            <argument type="service" id="paysera_api.rest_request_helper"/>
-            <argument type="service" id="paysera_api.rest_request_options_validator"/>
-            <argument type="string">%kernel.environment%</argument>
-        </service>
+<!--            <argument type="service" id="paysera_api.rest_request_helper"/>-->
+<!--            <argument type="service" id="paysera_api.rest_request_options_validator"/>-->
+<!--            <argument type="string">%kernel.environment%</argument>-->
+<!--        </service>-->
     </services>
 </container>
