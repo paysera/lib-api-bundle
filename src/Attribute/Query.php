@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Attribute;
 
 use Attribute;
-use Paysera\Bundle\ApiBundle\Annotation\Validation;
 use Paysera\Bundle\ApiBundle\Entity\QueryResolverOptions;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;

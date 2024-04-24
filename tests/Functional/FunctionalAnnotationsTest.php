@@ -20,11 +20,42 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
      * @param Request $request
      * @param Response|null $extraResponseVersion
      */
-    public function testRestRequestConfiguration(
+    public function testAnnotatedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
         Response $extraResponseVersion = null
     ) {
+        $this->makeTest('annotated', $expectedResponse, $request, $extraResponseVersion);
+    }
+
+    /**
+     * @dataProvider restRequestsConfigurationProvider
+     * @param Response $expectedResponse
+     * @param Request $request
+     * @param Response|null $extraResponseVersion
+     */
+    public function testAttributedRestRequestConfiguration(
+        Response $expectedResponse,
+        Request $request,
+        Response $extraResponseVersion = null
+    ) {
+        $this->makeTest('attributed', $expectedResponse, $request, $extraResponseVersion);
+    }
+
+    private function makeTest(
+        string $pathPrefix,
+        Response $expectedResponse,
+        Request $request,
+        Response $extraResponseVersion = null
+    ): void {
+        if ($pathPrefix === 'attributed') {
+            $this->checkAttributeConfigurationSupport();
+        }
+
+        $request->server->set(
+            'REQUEST_URI',
+            sprintf('/%s%s', $pathPrefix, $request->server->get('REQUEST_URI'))
+        );
         $response = $this->handleRequest($request);
         $assertionMessage = 'expected correct content';
 
@@ -52,14 +83,14 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
         );
     }
 
-    public function restRequestsConfigurationProvider()
+    public function restRequestsConfigurationProvider(): array
     {
         return [
             'testBodyNormalizationWithExtractedKeyValue' => [
                 new Response('this_should_be_extracted'),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithExtractedKeyValue',
+                    '/testBodyNormalizationWithExtractedKeyValue',
                     [
                         'something' => 'unimportant',
                         'key' => 'this_should_be_extracted',
@@ -70,14 +101,14 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('default'),
                 $this->createRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithExtractedKeyValue'
+                    '/testBodyNormalizationWithExtractedKeyValue'
                 ),
             ],
             'testBodyNormalizationWithDenormalizationGroup' => [
                 new Response('custom'),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithDenormalizationGroup',
+                    '/testBodyNormalizationWithDenormalizationGroup',
                     [
                         'key_custom' => 'custom',
                         'key' => 'wrong_key',
@@ -91,7 +122,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithExtractedKeyValue',
+                    '/testBodyNormalizationWithExtractedKeyValue',
                     'something',
                     ['Content-Type' => 'text/plain']
                 ),
@@ -103,14 +134,14 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithRequiredBody'
+                    '/testBodyNormalizationWithRequiredBody'
                 ),
             ],
             'testBodyAndResponseNormalization' => [
                 new Response('{"field1":"value1"}'),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyAndResponseNormalization',
+                    '/testBodyAndResponseNormalization',
                     ['field1' => 'value1']
                 ),
             ],
@@ -121,7 +152,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyAndResponseNormalization',
+                    '/testBodyAndResponseNormalization',
                     ['internal' => ['field1' => 1]]
                 ),
             ],
@@ -132,7 +163,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithCustomContentType',
+                    '/testBodyNormalizationWithCustomContentType',
                     ['key' => 'value']
                 ),
             ],
@@ -140,7 +171,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('prefixed_my_text'),
                 $this->createRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithCustomContentType',
+                    '/testBodyNormalizationWithCustomContentType',
                     'my_text',
                     ['Content-Type' => 'text/plain']
                 ),
@@ -152,7 +183,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithCustomContentTypeAndJsonDecode',
+                    '/testBodyNormalizationWithCustomContentTypeAndJsonDecode',
                     ['key' => 'value']
                 ),
             ],
@@ -160,7 +191,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('value'),
                 $this->createRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithCustomContentTypeAndJsonDecode',
+                    '/testBodyNormalizationWithCustomContentTypeAndJsonDecode',
                     json_encode(['key' => 'value']),
                     ['Content-Type' => 'text/plain']
                 ),
@@ -169,7 +200,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('prefixed_by_body'),
                 $this->createRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithSemiContentTypeRestriction',
+                    '/testBodyNormalizationWithSemiContentTypeRestriction',
                     'by_body',
                     ['Content-Type' => 'text/something']
                 ),
@@ -181,7 +212,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithSemiContentTypeRestriction',
+                    '/testBodyNormalizationWithSemiContentTypeRestriction',
                     'by_body',
                     ['Content-Type' => 'image/gif']
                 ),
@@ -203,7 +234,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithValidation',
+                    '/testBodyNormalizationWithValidation',
                     ['field1' => 'not an email']
                 ),
                 new Response(
@@ -238,7 +269,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyNormalizationWithInnerTypeValidation',
+                    '/testBodyNormalizationWithInnerTypeValidation',
                     ['field1' => 'blah', 'internal' => ['field1' => 'not an email']]
                 ),
                 new Response(
@@ -260,7 +291,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('OK', 200),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyValidationCanBeTurnedOff',
+                    '/testBodyValidationCanBeTurnedOff',
                     ['field1' => '']
                 ),
             ],
@@ -268,7 +299,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('OK', 200),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/testBodyValidationCanBeTurnedOffWithEmptyGroups',
+                    '/testBodyValidationCanBeTurnedOffWithEmptyGroups',
                     ['field1' => '']
                 ),
             ],
@@ -276,35 +307,35 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('prefixed_123'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testPathAttribute/123'
+                    '/testPathAttribute/123'
                 ),
             ],
             'testPathAttribute with optional resolution' => [
                 new Response('default'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testPathAttribute'
+                    '/testPathAttribute'
                 ),
             ],
             'testPathAttributeWithFindingObject' => [
                 new Response('123'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testPathAttributeWithFindingObject/123'
+                    '/testPathAttributeWithFindingObject/123'
                 ),
             ],
             'testPathAttributeWithFailedResolution' => [
                 new Response('{"error":"not_found","error_description":"Resource was not found"}', 404),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testPathAttributeWithFailedResolution/{id}'
+                    '/testPathAttributeWithFailedResolution/{id}'
                 ),
             ],
             'testQueryResolver' => [
                 new Response('my_param'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolver?parameter=my_param'
+                    '/testQueryResolver?parameter=my_param'
                 ),
             ],
             'testQueryResolver is always mandatory' => [
@@ -314,21 +345,21 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolver?other_parameter=my_param'
+                    '/testQueryResolver?other_parameter=my_param'
                 ),
             ],
             'testQueryResolverWithDenormalizationGroup' => [
                 new Response('custom'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolverWithDenormalizationGroup?parameter=wrong_key&parameter_custom=custom'
+                    '/testQueryResolverWithDenormalizationGroup?parameter=wrong_key&parameter_custom=custom'
                 ),
             ],
             'testQueryResolverPagerLimitIs42' => [
                 new Response('OK'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolverPagerLimitIs42?limit=42'
+                    '/testQueryResolverPagerLimitIs42?limit=42'
                 ),
             ],
             'testQueryResolverHasDefaultValidation' => [
@@ -338,7 +369,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolverHasDefaultValidation?field1='
+                    '/testQueryResolverHasDefaultValidation?field1='
                 ),
             ],
             'testQueryResolverCanTurnOffValidation' => [
@@ -348,7 +379,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolverCanTurnOffValidation?field1='
+                    '/testQueryResolverCanTurnOffValidation?field1='
                 ),
             ],
             'testQueryResolverCanTurnOffValidationWithEmptyGroups' => [
@@ -358,7 +389,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolverCanTurnOffValidationWithEmptyGroups?field1='
+                    '/testQueryResolverCanTurnOffValidationWithEmptyGroups?field1='
                 ),
             ],
             'testQueryResolverValidationWithInvalidData - normalizer errors do not map fields' => [
@@ -368,7 +399,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolverValidationWithInvalidData'
+                    '/testQueryResolverValidationWithInvalidData'
                 ),
             ],
             'testQueryResolverValidationWithInvalidData' => [
@@ -388,7 +419,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testQueryResolverValidationWithInvalidData?field1=not_an_email'
+                    '/testQueryResolverValidationWithInvalidData?field1=not_an_email'
                 ),
                 new Response(
                     json_encode([
@@ -412,7 +443,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testRequiredPermissions'
+                    '/testRequiredPermissions'
                 ),
             ],
             'testRequiredPermissions without not enough permissions' => [
@@ -422,7 +453,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testRequiredPermissions',
+                    '/testRequiredPermissions',
                     null,
                     [],
                     'user'
@@ -432,7 +463,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('OK'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testRequiredPermissions',
+                    '/testRequiredPermissions',
                     null,
                     [],
                     'admin'
@@ -445,7 +476,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/class/testRequiredPermissions'
+                    '/class/testRequiredPermissions'
                 ),
             ],
             'testRequiredPermissions with class annotation and with not enough permissions' => [
@@ -455,7 +486,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/class/testRequiredPermissions',
+                    '/class/testRequiredPermissions',
                     null,
                     [],
                     'user'
@@ -465,7 +496,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('OK'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/class/testRequiredPermissions',
+                    '/class/testRequiredPermissions',
                     null,
                     [],
                     'admin'
@@ -478,14 +509,14 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createRequest(
                     'GET',
-                    '/annotated/class/simpleAction'
+                    '/class/simpleAction'
                 ),
             ],
             'testRequiredPermissions with class annotation and REST-specific method annotations: OK' => [
                 new Response('OK'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/class/simpleAction',
+                    '/class/simpleAction',
                     null,
                     [],
                     'user'
@@ -508,7 +539,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/class/testValidation',
+                    '/class/testValidation',
                     ['field1' => 'not an email', 'internal' => ['field1' => 'also not an email']]
                 ),
                 new Response(
@@ -543,7 +574,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 ),
                 $this->createJsonRequest(
                     'POST',
-                    '/annotated/class/testValidationFromClass',
+                    '/class/testValidationFromClass',
                     ['field1' => 'not an email', 'internal' => ['field1' => 'also not an email']]
                 ),
                 new Response(
@@ -565,21 +596,21 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                 new Response('{"field1_custom":"hi"}'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testResponseNormalization'
+                    '/testResponseNormalization'
                 ),
             ],
             'testResponseNormalizationWithNormalizationGroup' => [
                 new Response('{"field1_custom":"hi"}'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testResponseNormalizationWithNormalizationGroup'
+                    '/testResponseNormalizationWithNormalizationGroup'
                 ),
             ],
             'testResponseNormalizationWithGuessedNormalizer' => [
                 new Response('{"field1":"hi"}'),
                 $this->createRequest(
                     'GET',
-                    '/annotated/testResponseNormalizationWithGuessedNormalizer'
+                    '/testResponseNormalizationWithGuessedNormalizer'
                 ),
             ],
         ];

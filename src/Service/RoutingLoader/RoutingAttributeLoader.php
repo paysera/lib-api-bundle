@@ -17,6 +17,8 @@ use Symfony\Component\Routing\Route;
  */
 class RoutingAttributeLoader extends AttributeRouteControllerLoader
 {
+    private const ATTRIBUTE_SUPPORT_PHP_VERSION_ID = 80100; // `new` in initializers support is required
+
     /**
      * @var RestRequestHelper
      */
@@ -57,7 +59,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
 
         $this->loadAnnotations($route, $class, $method);
 
-        if (PHP_VERSION_ID >= 80000) {
+        if (PHP_VERSION_ID >= self::ATTRIBUTE_SUPPORT_PHP_VERSION_ID) {
             $this->loadAttributes($route, $class, $method);
         }
     }

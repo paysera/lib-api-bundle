@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader;
 
 use DateTime;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
@@ -11,14 +11,14 @@ use ReflectionMethod;
 
 class ReflectionMethodWrapperTest extends TestCase
 {
-    public function testGetParameterByName()
+    public function testGetParameterByName(): void
     {
         $wrapper = new ReflectionMethodWrapper(new ReflectionMethod(self::class, 'fixtureMethod'));
         $reflectionParameter = $wrapper->getParameterByName('param2');
         $this->assertSame('param2', $reflectionParameter->getName());
     }
 
-    public function testGetParameterByNameWithNoSuchParameter()
+    public function testGetParameterByNameWithNoSuchParameter(): void
     {
         $wrapper = new ReflectionMethodWrapper(new ReflectionMethod(self::class, 'fixtureMethod'));
 
@@ -26,14 +26,14 @@ class ReflectionMethodWrapperTest extends TestCase
         $wrapper->getParameterByName('nonExisting');
     }
 
-    public function testGetNonBuiltInTypeForParameter()
+    public function testGetNonBuiltInTypeForParameter(): void
     {
         $wrapper = new ReflectionMethodWrapper(new ReflectionMethod(self::class, 'fixtureMethod'));
 
         $this->assertSame('DateTime', $wrapper->getNonBuiltInTypeForParameter('param2'));
     }
 
-    public function testGetNonBuiltInTypeForParameterWithBuiltInType()
+    public function testGetNonBuiltInTypeForParameterWithBuiltInType(): void
     {
         $wrapper = new ReflectionMethodWrapper(new ReflectionMethod(self::class, 'fixtureMethod'));
 
@@ -41,7 +41,7 @@ class ReflectionMethodWrapperTest extends TestCase
         $wrapper->getNonBuiltInTypeForParameter('param1');
     }
 
-    public function testGetNonBuiltInTypeForParameterWithNoType()
+    public function testGetNonBuiltInTypeForParameterWithNoType(): void
     {
         $wrapper = new ReflectionMethodWrapper(new ReflectionMethod(self::class, 'fixtureMethod'));
 
@@ -49,11 +49,11 @@ class ReflectionMethodWrapperTest extends TestCase
         $wrapper->getNonBuiltInTypeForParameter('param3');
     }
 
-    public function testGetFriendlyName()
+    public function testGetFriendlyName(): void
     {
         $wrapper = new ReflectionMethodWrapper(new ReflectionMethod(self::class, 'fixtureMethod'));
         $this->assertSame(
-            'Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation\ReflectionMethodWrapperTest::fixtureMethod',
+            sprintf('%s::%s', get_class($this), 'fixtureMethod'),
             $wrapper->getFriendlyName()
         );
     }
