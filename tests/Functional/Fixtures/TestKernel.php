@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use Paysera\Bundle\NormalizationBundle\PayseraNormalizationBundle;
 use Paysera\Bundle\ApiBundle\PayseraApiBundle;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\PayseraFixtureTestBundle;
@@ -38,7 +39,12 @@ class TestKernel extends Kernel
 
     public function registerContainerConfiguration(LoaderInterface $loader)
     {
-        $loader->load(__DIR__ . '/config/' . $this->commonFile);
+        $loader->load(__DIR__ . '/config/services.yml');
         $loader->load(__DIR__ . '/config/' . $this->configFile);
+        $loader->load(__DIR__ . '/config/' . $this->commonFile);
+
+        if (TestHelper::phpAttributeSupportExists()) {
+            $loader->load(__DIR__ . '/config/attributed_common.yml');
+        }
     }
 }

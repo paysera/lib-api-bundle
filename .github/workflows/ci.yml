@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, add-php-8-attributes-support ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, add-php-8-attributes-support ]
 
 permissions:
   contents: read

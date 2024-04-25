@@ -1,18 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\DependencyInjection;
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Persistence\ObjectRepository;
 use Paysera\Bundle\ApiBundle\Service\PathAttributeResolver\DoctrinePathAttributeResolver;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\HttpKernel\Kernel;
 
 class PayseraApiExtension extends Extension
 {
@@ -27,8 +30,7 @@ class PayseraApiExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config/services'));
         class_exists(AttributeRouteControllerLoader::class)
             ? $loader->load('attributes.xml')
-            : $loader->load('annotations.xml')
-        ;
+            : $loader->load('annotations.xml');
 
         $container->setParameter('paysera_api.locales', $config['locales']);
         if (count($config['locales']) === 0) {
@@ -56,6 +58,7 @@ class PayseraApiExtension extends Extension
         }
 
         $this->configurePagination($container, $config['pagination']);
+        $this->overrideDummyAnnotationRegistry($loader);
     }
 
     private function buildPathAttributeResolverDefinition(string $className, string $field): Definition
@@ -88,5 +91,20 @@ class PayseraApiExtension extends Extension
             'paysera_api.pagination.maximum_limit',
             $paginationConfig['maximum_limit']
         );
+    }
+
+    private function overrideDummyAnnotationRegistry(Loader\XmlFileLoader $loader): void
+    {
+        if (Kernel::VERSION_ID < 40000 || Kernel::VERSION >= 50400) {
+            return;
+        }
+
+        // override the dummy registry when doctrine/annotations v2 is used
+        if (
+            !method_exists(AnnotationRegistry::class, 'registerLoader')
+            || !method_exists(AnnotationRegistry::class, 'registerUniqueLoader')
+        ) {
+            $loader->load('annotation_registry.xml');
+        }
     }
 }

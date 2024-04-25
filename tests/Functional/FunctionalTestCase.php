@@ -5,6 +5,7 @@ namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\TestKernel;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
@@ -116,7 +117,7 @@ abstract class FunctionalTestCase extends TestCase
             $this->markTestSkipped('Unsupported Symfony version');
         }
 
-        if (PHP_VERSION_ID < 80100) {
+        if (!TestHelper::phpAttributeSupportExists()) {
             $this->markTestSkipped('Unsupported PHP version');
         }
     }

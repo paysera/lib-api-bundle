@@ -27,6 +27,5 @@ class PayseraFixtureTestExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $prefix = Kernel::MAJOR_VERSION <= 4 ? 'legacy_' : '';
         $loader->load($prefix . 'services.xml');
-
     }
 }

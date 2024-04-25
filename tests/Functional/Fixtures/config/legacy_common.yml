@@ -1,20 +1,8 @@
 framework:
-    secret: 'secret'
     router:
         resource: '%kernel.root_dir%/config/legacy_routing.yml'
-    validation: ~
 
 security:
-    providers:
-        in_memory:
-            memory:
-                users:
-                    user:
-                        password: pass
-                        roles: 'ROLE_USER'
-                    admin:
-                        password: pass
-                        roles: ['ROLE_USER', 'ROLE_ADMIN']
     firewalls:
         main:
             anonymous: true
@@ -22,25 +10,3 @@ security:
             stateless: true
     encoders:
         Symfony\Component\Security\Core\User\User: plaintext
-
-doctrine:
-    orm:
-        auto_mapping: true
-    dbal:
-        driver:  pdo_sqlite
-        memory:  true
-        charset: UTF8
-
-services:
-    logger:
-        class: Psr\Log\NullLogger
-        public: true
-    rest_registry:
-        alias: paysera_api.rest_request_options_registry
-        public: true
-
-paysera_api:
-    path_attribute_resolvers:
-        Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\PersistedEntity:
-            field: someField
-        Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\SimplePersistedEntity: ~

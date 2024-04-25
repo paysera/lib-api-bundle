@@ -1,0 +1,7 @@
+paysera_fixture_test:
+    resource: "@PayseraFixtureTestBundle/Resources/config/routing.xml"
+    prefix:   /
+
+paysera_fixture_attributed_test:
+    resource: '@PayseraFixtureTestBundle/Resources/config/attributed_routing.xml'
+    prefix:   /
