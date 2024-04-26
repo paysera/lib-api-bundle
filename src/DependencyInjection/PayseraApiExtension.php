@@ -28,7 +28,8 @@ class PayseraApiExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config/services'));
         class_exists(AttributeRouteControllerLoader::class)
             ? $loader->load('attributes.xml')
-            : $loader->load('annotations.xml');
+            : $loader->load('annotations.xml')
+        ;
 
         $container->setParameter('paysera_api.locales', $config['locales']);
         if (count($config['locales']) === 0) {
