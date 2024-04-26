@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\DependencyInjection;
 
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Persistence\ObjectRepository;
 use Paysera\Bundle\ApiBundle\Service\PathAttributeResolver\DoctrinePathAttributeResolver;
 use RuntimeException;
@@ -15,7 +14,6 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\HttpKernel\Kernel;
 
 class PayseraApiExtension extends Extension
 {
@@ -58,7 +56,6 @@ class PayseraApiExtension extends Extension
         }
 
         $this->configurePagination($container, $config['pagination']);
-        $this->overrideDummyAnnotationRegistry($loader);
     }
 
     private function buildPathAttributeResolverDefinition(string $className, string $field): Definition
@@ -91,20 +88,5 @@ class PayseraApiExtension extends Extension
             'paysera_api.pagination.maximum_limit',
             $paginationConfig['maximum_limit']
         );
-    }
-
-    private function overrideDummyAnnotationRegistry(Loader\XmlFileLoader $loader): void
-    {
-        if (Kernel::VERSION_ID < 40000 || Kernel::VERSION >= 50400) {
-            return;
-        }
-
-        // override the dummy registry when doctrine/annotations v2 is used
-        if (
-            !method_exists(AnnotationRegistry::class, 'registerLoader')
-            || !method_exists(AnnotationRegistry::class, 'registerUniqueLoader')
-        ) {
-            $loader->load('annotation_registry.xml');
-        }
     }
 }

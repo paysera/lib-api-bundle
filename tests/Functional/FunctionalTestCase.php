@@ -5,7 +5,6 @@ namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
-use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\TestKernel;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
@@ -109,16 +108,5 @@ abstract class FunctionalTestCase extends TestCase
     protected function getEntityManager(): EntityManagerInterface
     {
         return $this->kernel->getContainer()->get('doctrine.orm.entity_manager');
-    }
-
-    protected function checkAttributeConfigurationSupport(): void
-    {
-        if (!class_exists(AttributeRouteControllerLoader::class)) {
-            $this->markTestSkipped('Unsupported Symfony version');
-        }
-
-        if (!TestHelper::phpAttributeSupportExists()) {
-            $this->markTestSkipped('Unsupported PHP version');
-        }
     }
 }

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -48,8 +49,8 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
         Request $request,
         Response $extraResponseVersion = null
     ): void {
-        if ($pathPrefix === 'attributed') {
-            $this->checkAttributeConfigurationSupport();
+        if ($pathPrefix === 'attributed' && !TestHelper::phpAttributeSupportExists()) {
+            $this->markTestSkipped('Unsupported environment');
         }
 
         $request->server->set(
