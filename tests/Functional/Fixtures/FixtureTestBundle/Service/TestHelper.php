@@ -10,6 +10,6 @@ class TestHelper
 {
     public static function phpAttributeSupportExists(): bool
     {
-        return PHP_VERSION_ID >= 80100 && class_exists(AttributeRouteControllerLoader::class);
+        return class_exists(AttributeRouteControllerLoader::class);
     }
 }
