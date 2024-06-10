@@ -17,10 +17,10 @@ class RequiredPermissions implements RestAttributeInterface
     private $permissions;
 
     public function __construct(
-        array $data = [],
+        array $options = [],
         array $permissions = null
     ) {
-        $this->setPermissions($data['permissions'] ?? $permissions);
+        $this->setPermissions($options['permissions'] ?? $permissions);
     }
 
     private function setPermissions(array $permissions): self
@@ -29,7 +29,7 @@ class RequiredPermissions implements RestAttributeInterface
         return $this;
     }
 
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         $options->setRequiredPermissions(
             array_unique(array_merge($options->getRequiredPermissions(), $this->permissions))

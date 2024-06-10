@@ -29,14 +29,14 @@ class Validation implements RestAttributeInterface
     private $enabled;
 
     public function __construct(
-        array $data = [],
+        array $options = [],
         array $groups = [Constraint::DEFAULT_GROUP],
         array $violationPathMap = [],
         bool $enabled = true
     ) {
-        $this->setGroups($data['groups'] ?? $groups);
-        $this->setViolationPathMap($data['violationPathMap'] ?? $violationPathMap);
-        $this->setEnabled($data['enabled'] ?? $enabled);
+        $this->setGroups($options['groups'] ?? $groups);
+        $this->setViolationPathMap($options['violationPathMap'] ?? $violationPathMap);
+        $this->setEnabled($options['enabled'] ?? $enabled);
     }
 
     private function setGroups(array $groups): self
@@ -57,7 +57,7 @@ class Validation implements RestAttributeInterface
         return $this;
     }
 
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         if (!$this->enabled) {
             $options->disableBodyValidation();

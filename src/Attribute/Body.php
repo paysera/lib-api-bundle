@@ -33,25 +33,33 @@ class Body implements RestAttributeInterface
     private $optional;
 
     public function __construct(
-        array $data = [],
+        array $options = [],
         string $parameterName = null,
         ?string $denormalizationType = null,
         ?string $denormalizationGroup = null,
         ?bool $optional = null
     ) {
-        $this->setParameterName($data['parameterName'] ?? $parameterName);
-        $this->setDenormalizationType($data['denormalizationType'] ?? $denormalizationType);
-        $this->setDenormalizationGroup($data['denormalizationGroup'] ?? $denormalizationGroup);
-        $this->setOptional($data['optional'] ?? $optional);
+        $this->setParameterName($options['parameterName'] ?? $parameterName);
+        $this->setDenormalizationType($options['denormalizationType'] ?? $denormalizationType);
+        $this->setDenormalizationGroup($options['denormalizationGroup'] ?? $denormalizationGroup);
+        $this->setOptional($options['optional'] ?? $optional);
     }
 
-    private function setDenormalizationType(?string $denormalizationType): self
+    /**
+     * @param string|null $denormalizationType
+     * @return $this
+     */
+    private function setDenormalizationType($denormalizationType): self
     {
         $this->denormalizationType = $denormalizationType;
         return $this;
     }
 
-    public function setDenormalizationGroup(?string $denormalizationGroup): self
+    /**
+     * @param string|null $denormalizationGroup
+     * @return $this
+     */
+    public function setDenormalizationGroup($denormalizationGroup): self
     {
         $this->denormalizationGroup = $denormalizationGroup;
         return $this;
@@ -63,13 +71,17 @@ class Body implements RestAttributeInterface
         return $this;
     }
 
-    private function setOptional(?bool $optional): self
+    /**
+     * @param bool|null $optional
+     * @return $this
+     */
+    private function setOptional($optional): self
     {
         $this->optional = $optional;
         return $this;
     }
 
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         $options->setBodyParameterName($this->parameterName);
         $options->setBodyDenormalizationType($this->resolveDenormalizationType($reflectionMethod));

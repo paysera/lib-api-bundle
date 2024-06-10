@@ -22,28 +22,36 @@ class ResponseNormalization implements RestAttributeInterface
     private $normalizationGroup;
 
     public function __construct(
-        array $data = [],
+        array $options = [],
         ?string $normalizationType = null,
         ?string $normalizationGroup = null
     )
     {
-        $this->setNormalizationType($data['normalizationType'] ?? $normalizationType);
-        $this->setNormalizationGroup($data['normalizationGroup'] ?? $normalizationGroup);
+        $this->setNormalizationType($options['normalizationType'] ?? $normalizationType);
+        $this->setNormalizationGroup($options['normalizationGroup'] ?? $normalizationGroup);
     }
 
-    private function setNormalizationType(?string $normalizationType): self
+    /**
+     * @param string|null $normalizationType
+     * @return $this
+     */
+    private function setNormalizationType($normalizationType): self
     {
         $this->normalizationType = $normalizationType;
         return $this;
     }
 
-    public function setNormalizationGroup(?string $normalizationGroup): self
+    /**
+     * @param string|null $normalizationGroup
+     * @return $this
+     */
+    public function setNormalizationGroup($normalizationGroup): self
     {
         $this->normalizationGroup = $normalizationGroup;
         return $this;
     }
 
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         $options->setResponseNormalizationType($this->normalizationType);
         $options->setResponseNormalizationGroup($this->normalizationGroup);

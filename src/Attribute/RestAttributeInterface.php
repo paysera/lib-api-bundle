@@ -9,5 +9,5 @@ use Paysera\Bundle\ApiBundle\Service\RoutingLoader\ReflectionMethodWrapper;
 
 interface RestAttributeInterface
 {
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void;
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod);
 }

@@ -12,7 +12,7 @@ use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 /**
  * @internal
  */
-class RestRequestAnnotationOptionsBuilder implements RestRequestOptionsBuilderInterface
+class RestRequestAnnotationOptionsBuilder
 {
     /**
      * @var RestRequestOptionsValidator

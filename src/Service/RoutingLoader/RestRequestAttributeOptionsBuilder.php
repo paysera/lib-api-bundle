@@ -12,7 +12,7 @@ use ReflectionMethod;
 /**
  * @internal
  */
-class RestRequestAttributeOptionsBuilder implements RestRequestOptionsBuilderInterface
+class RestRequestAttributeOptionsBuilder
 {
     /**
      * @var RestRequestOptionsValidator

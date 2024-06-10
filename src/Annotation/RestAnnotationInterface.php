@@ -11,5 +11,5 @@ interface RestAnnotationInterface
 {
     public function isSeveralSupported(): bool;
 
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void;
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod);
 }

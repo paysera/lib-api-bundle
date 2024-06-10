@@ -22,12 +22,12 @@ class BodyContentType implements RestAttributeInterface
     private $jsonEncodedBody;
 
     public function __construct(
-        array $data = [],
+        array $options = [],
         array $supportedContentTypes = null,
         bool $jsonEncodedBody = false
     ) {
-        $this->setSupportedContentTypes($data['supportedContentTypes'] ?? $supportedContentTypes);
-        $this->setJsonEncodedBody($data['jsonEncodedBody'] ?? $jsonEncodedBody);
+        $this->setSupportedContentTypes($options['supportedContentTypes'] ?? $supportedContentTypes);
+        $this->setJsonEncodedBody($options['jsonEncodedBody'] ?? $jsonEncodedBody);
     }
 
     private function setSupportedContentTypes(array $supportedContentTypes): self
@@ -42,7 +42,7 @@ class BodyContentType implements RestAttributeInterface
         return $this;
     }
 
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         $options->setSupportedContentTypes($this->supportedContentTypes, $this->jsonEncodedBody);
     }

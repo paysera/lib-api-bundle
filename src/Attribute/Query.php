@@ -34,16 +34,16 @@ class Query implements RestAttributeInterface
     private $validation;
 
     public function __construct(
-        array $data = [],
+        array $options = [],
         string $parameterName = null,
         ?string $denormalizationType = null,
         ?string $denormalizationGroup = null,
         ?Validation $validation = null
     ) {
-        $this->setParameterName($data['parameterName'] ?? $parameterName);
-        $this->setDenormalizationType($data['denormalizationType'] ?? $denormalizationType);
-        $this->setDenormalizationGroup($data['denormalizationGroup'] ?? $denormalizationGroup);
-        $this->setValidation($data['validation'] ?? $validation);
+        $this->setParameterName($options['parameterName'] ?? $parameterName);
+        $this->setDenormalizationType($options['denormalizationType'] ?? $denormalizationType);
+        $this->setDenormalizationGroup($options['denormalizationGroup'] ?? $denormalizationGroup);
+        $this->setValidation($options['validation'] ?? $validation);
     }
 
     private function setParameterName(string $parameterName): self
@@ -52,25 +52,37 @@ class Query implements RestAttributeInterface
         return $this;
     }
 
-    private function setDenormalizationType(?string $denormalizationType): self
+    /**
+     * @param string|null $denormalizationType
+     * @return $this
+     */
+    private function setDenormalizationType($denormalizationType): self
     {
         $this->denormalizationType = $denormalizationType;
         return $this;
     }
 
-    public function setDenormalizationGroup(?string $denormalizationGroup): self
+    /**
+     * @param string|null $denormalizationGroup
+     * @return $this
+     */
+    public function setDenormalizationGroup($denormalizationGroup): self
     {
         $this->denormalizationGroup = $denormalizationGroup;
         return $this;
     }
 
-    private function setValidation(?Validation $validation): self
+    /**
+     * @param Validation|null $validation
+     * @return $this
+     */
+    private function setValidation($validation): self
     {
         $this->validation = $validation;
         return $this;
     }
 
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         $resolverOptions = (new QueryResolverOptions())
             ->setParameterName($this->parameterName)
@@ -104,7 +116,7 @@ class Query implements RestAttributeInterface
         return $typeName;
     }
 
-    private function setValidationOptions(ReflectionMethodWrapper $reflectionMethod, QueryResolverOptions $options)
+    private function setValidationOptions(ReflectionMethodWrapper $reflectionMethod, QueryResolverOptions $options): void
     {
         if ($this->validation === null) {
             return;

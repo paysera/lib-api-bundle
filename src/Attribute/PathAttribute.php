@@ -34,16 +34,16 @@ class PathAttribute implements RestAttributeInterface
     private $resolutionMandatory;
 
     public function __construct(
-        array $data = [],
+        array $options = [],
         string $parameterName = null,
         string $pathPartName = null,
         ?string $resolverType = null,
         ?bool $resolutionMandatory = null
     ) {
-        $this->setParameterName($data['parameterName'] ?? $parameterName);
-        $this->setPathPartName($data['pathPartName'] ?? $pathPartName);
-        $this->setResolverType($data['resolverType'] ?? $resolverType);
-        $this->setResolutionMandatory($data['resolutionMandatory'] ?? $resolutionMandatory);
+        $this->setParameterName($options['parameterName'] ?? $parameterName);
+        $this->setPathPartName($options['pathPartName'] ?? $pathPartName);
+        $this->setResolverType($options['resolverType'] ?? $resolverType);
+        $this->setResolutionMandatory($options['resolutionMandatory'] ?? $resolutionMandatory);
     }
 
     private function setParameterName(string $parameterName): self
@@ -58,19 +58,27 @@ class PathAttribute implements RestAttributeInterface
         return $this;
     }
 
-    private function setResolverType(?string $resolverType): self
+    /**
+     * @param string|null $resolverType
+     * @return $this
+     */
+    private function setResolverType($resolverType): self
     {
         $this->resolverType = $resolverType;
         return $this;
     }
 
-    private function setResolutionMandatory(?bool $resolutionMandatory): self
+    /**
+     * @param bool|null $resolutionMandatory
+     * @return $this
+     */
+    private function setResolutionMandatory($resolutionMandatory): self
     {
         $this->resolutionMandatory = $resolutionMandatory;
         return $this;
     }
 
-    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod): void
+    public function apply(RestRequestOptions $options, ReflectionMethodWrapper $reflectionMethod)
     {
         $options->addPathAttributeResolverOptions(
             (new PathAttributeResolverOptions())
