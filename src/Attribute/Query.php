@@ -52,11 +52,7 @@ class Query implements RestAttributeInterface
         return $this;
     }
 
-    /**
-     * @param string|null $denormalizationType
-     * @return $this
-     */
-    private function setDenormalizationType($denormalizationType): self
+    private function setDenormalizationType(?string $denormalizationType): self
     {
         $this->denormalizationType = $denormalizationType;
         return $this;
@@ -72,11 +68,7 @@ class Query implements RestAttributeInterface
         return $this;
     }
 
-    /**
-     * @param Validation|null $validation
-     * @return $this
-     */
-    private function setValidation($validation): self
+    private function setValidation(?Validation $validation): self
     {
         $this->validation = $validation;
         return $this;

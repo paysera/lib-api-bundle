@@ -45,11 +45,7 @@ class Body implements RestAttributeInterface
         $this->setOptional($options['optional'] ?? $optional);
     }
 
-    /**
-     * @param string|null $denormalizationType
-     * @return $this
-     */
-    private function setDenormalizationType($denormalizationType): self
+    private function setDenormalizationType(?string $denormalizationType): self
     {
         $this->denormalizationType = $denormalizationType;
         return $this;
@@ -71,11 +67,7 @@ class Body implements RestAttributeInterface
         return $this;
     }
 
-    /**
-     * @param bool|null $optional
-     * @return $this
-     */
-    private function setOptional($optional): self
+    private function setOptional(?bool $optional): self
     {
         $this->optional = $optional;
         return $this;

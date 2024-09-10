@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
+use Paysera\Bundle\ApiBundle\Service\Annotation\ReflectionMethodWrapper as LegacyReflectionMethodWrapper;
 use ReflectionMethod;
 use ReflectionParameter;
 
@@ -58,4 +59,8 @@ class ReflectionMethodWrapper
             $this->reflectionMethod->getName()
         );
     }
+}
+
+if (!class_exists(LegacyReflectionMethodWrapper::class, false)) {
+    class_alias(ReflectionMethodWrapper::class, LegacyReflectionMethodWrapper::class);
 }

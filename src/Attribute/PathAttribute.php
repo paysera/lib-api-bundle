@@ -58,21 +58,13 @@ class PathAttribute implements RestAttributeInterface
         return $this;
     }
 
-    /**
-     * @param string|null $resolverType
-     * @return $this
-     */
-    private function setResolverType($resolverType): self
+    private function setResolverType(?string $resolverType): self
     {
         $this->resolverType = $resolverType;
         return $this;
     }
 
-    /**
-     * @param bool|null $resolutionMandatory
-     * @return $this
-     */
-    private function setResolutionMandatory($resolutionMandatory): self
+    private function setResolutionMandatory(?bool $resolutionMandatory): self
     {
         $this->resolutionMandatory = $resolutionMandatory;
         return $this;

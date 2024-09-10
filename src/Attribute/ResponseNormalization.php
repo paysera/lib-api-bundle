@@ -25,17 +25,12 @@ class ResponseNormalization implements RestAttributeInterface
         array $options = [],
         ?string $normalizationType = null,
         ?string $normalizationGroup = null
-    )
-    {
+    ) {
         $this->setNormalizationType($options['normalizationType'] ?? $normalizationType);
         $this->setNormalizationGroup($options['normalizationGroup'] ?? $normalizationGroup);
     }
 
-    /**
-     * @param string|null $normalizationType
-     * @return $this
-     */
-    private function setNormalizationType($normalizationType): self
+    private function setNormalizationType(?string $normalizationType): self
     {
         $this->normalizationType = $normalizationType;
         return $this;
