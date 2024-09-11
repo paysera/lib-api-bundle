@@ -4,7 +4,12 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
-    <import resource="../../Controller/" type="annotation"/>
+    <import resource="../../Controller/AnnotatedClassRequiredPermissionsController.php" type="annotation"/>
+    <import resource="../../Controller/AnnotatedClassValidationController.php" type="annotation"/>
+    <import resource="../../Controller/AnnotatedController.php" type="annotation"/>
+    <import resource="../../Controller/DefaultController.php" type="annotation"/>
+    <import resource="../../Controller/PagedQueryController.php" type="annotation"/>
+    <import resource="../../Controller/PersistedEntityController.php" type="annotation"/>
 
     <route id="paysera_fixture_test_1" path="/config/by-full-controller">
         <default key="_controller">Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DefaultController::action1Action</default>

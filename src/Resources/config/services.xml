@@ -18,6 +18,16 @@
             <argument id="paysera_api.rest_request_options_registry" type="service"/>
         </service>
 
+        <service id="paysera_api.annotations.options_builder"
+                 class="Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder">
+            <argument type="service" id="paysera_api.rest_request_options_validator"/>
+        </service>
+
+        <service id="paysera_api.attributes.options_builder"
+                 class="Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder">
+            <argument type="service" id="paysera_api.rest_request_options_validator"/>
+        </service>
+
         <service class="Paysera\Bundle\ApiBundle\Service\ResponseBuilder" id="paysera_api.response_builder"/>
         <service class="\Paysera\Bundle\ApiBundle\Service\ErrorBuilder" id="paysera_api.error_builder">
             <call method="configureError">

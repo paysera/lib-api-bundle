@@ -78,9 +78,15 @@
 
         <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedController"
                  public="true"/>
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AttributedController"
+                 public="true"/>
         <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedClassRequiredPermissionsController"
                  public="true"/>
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AttributedClassRequiredPermissionsController"
+                 public="true"/>
         <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AnnotatedClassValidationController"
+                 public="true"/>
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\AttributedClassValidationController"
                  public="true"/>
         <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\PagedQueryController"
                  public="true">

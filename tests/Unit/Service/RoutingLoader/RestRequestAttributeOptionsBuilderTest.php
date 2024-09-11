@@ -1,36 +1,36 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation;
+namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader;
 
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Paysera\Bundle\ApiBundle\Annotation\Body;
 use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
+use Paysera\Bundle\ApiBundle\Attribute\RestAttributeInterface;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
-use Paysera\Bundle\ApiBundle\Service\Annotation\RestRequestOptionsBuilder;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
 use ReflectionMethod;
 
-class RestRequestOptionsBuilderTest extends MockeryTestCase
+class RestRequestAttributeOptionsBuilderTest extends MockeryTestCase
 {
-    public function testBuildOptions()
+    public function testBuildOptions(): void
     {
         $optionsValidator = Mockery::mock(RestRequestOptionsValidator::class);
 
-        $builder = new RestRequestOptionsBuilder($optionsValidator);
+        $builder = new RestRequestAttributeOptionsBuilder($optionsValidator);
 
         $reflectionMethod = new ReflectionMethod(self::class, 'fixtureMethod');
 
-        $annotationMock1 = Mockery::mock(RestAnnotationInterface::class);
-        $annotationMock1->shouldReceive('isSeveralSupported')->andReturn(true);
+        $annotationMock1 = Mockery::mock(RestAttributeInterface::class);
         $annotationMock1->shouldReceive('apply')->andReturnUsing(function (RestRequestOptions $options) {
             $options->setRequiredPermissions(['modified1']);
         });
 
-        $annotationMock2 = Mockery::mock(RestAnnotationInterface::class);
-        $annotationMock2->shouldReceive('isSeveralSupported')->andReturn(true);
+        $annotationMock2 = Mockery::mock(RestAttributeInterface::class);
         $annotationMock2->shouldReceive('apply')->andReturnUsing(function (RestRequestOptions $options) {
             $options->setResponseNormalizationType('modified2');
         });
@@ -42,11 +42,11 @@ class RestRequestOptionsBuilderTest extends MockeryTestCase
 
         $optionsValidator
             ->shouldReceive('validateRestRequestOptions')
-            ->andReturnUsing(function (RestRequestOptions $options, string $fieldlyName) use ($expectedOptions) {
+            ->andReturnUsing(function (RestRequestOptions $options, string $friendlyName) use ($expectedOptions) {
                 $this->assertEquals($expectedOptions, $options);
                 $this->assertEquals(
-                    'Paysera\Bundle\ApiBundle\Tests\Unit\Service\Annotation\RestRequestOptionsBuilderTest::fixtureMethod',
-                    $fieldlyName
+                    sprintf('%s::%s', get_class($this), 'fixtureMethod'),
+                    $friendlyName
                 );
             })
         ;
@@ -61,21 +61,7 @@ class RestRequestOptionsBuilderTest extends MockeryTestCase
         $this->assertEquals($expectedOptions, $options);
     }
 
-    public function testBuildOptionsWithSeveralUnsupportedAnnotations()
-    {
-        $optionsValidator = Mockery::mock(RestRequestOptionsValidator::class);
-
-        $builder = new RestRequestOptionsBuilder($optionsValidator);
-
-        $this->expectException(ConfigurationException::class);
-
-        $builder->buildOptions([
-            new Body(['parameterName' => 'a']),
-            new Body(['parameterName' => 'b']),
-        ], new ReflectionMethod(self::class, 'fixtureMethod'));
-    }
-
-    public function fixtureMethod()
+    public function fixtureMethod(): void
     {
         // do nothing
     }

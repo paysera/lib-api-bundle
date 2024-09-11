@@ -19,11 +19,8 @@ class AnnotatedClassValidationController
      *
      * @Body(parameterName="resource")
      * @Validation(groups={"field1_email"}, violationPathMap={"field1": "my_mapped_key"})
-     *
-     * @param MyObject $resource
-     * @return Response
      */
-    public function testValidation(MyObject $resource)
+    public function testValidation(MyObject $resource): Response
     {
         // should fail validation
         return new Response('FAIL');
@@ -33,11 +30,8 @@ class AnnotatedClassValidationController
      * @Route(path="/annotated/class/testValidationFromClass", methods={"POST"})
      *
      * @Body(parameterName="resource")
-     *
-     * @param MyObject $resource
-     * @return Response
      */
-    public function testValidationFromClass(MyObject $resource)
+    public function testValidationFromClass(MyObject $resource): Response
     {
         // should fail validation
         return new Response('FAIL');

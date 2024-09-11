@@ -5,15 +5,18 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
 
-        <service decorates="routing.loader.annotation"
-                 parent="routing.loader.annotation"
-                 id="paysera_api.annotations.loader"
-                 class="Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAnnotationLoader">
+        <service decorates="routing.loader.attribute"
+                 parent="routing.loader.attribute"
+                 id="paysera_api.loader.attribute"
+                 class="Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAttributeLoader">
             <call method="setRequestHelper">
                 <argument type="service" id="paysera_api.rest_request_helper"/>
             </call>
-            <call method="setRestRequestOptionsBuilder">
+            <call method="setRestRequestAnnotationOptionsBuilder">
                 <argument type="service" id="paysera_api.annotations.options_builder"/>
+            </call>
+            <call method="setRestRequestAttributeOptionsBuilder">
+                <argument type="service" id="paysera_api.attributes.options_builder"/>
             </call>
         </service>
     </services>

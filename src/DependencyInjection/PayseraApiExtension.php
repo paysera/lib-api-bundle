@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\DependencyInjection;
@@ -7,12 +8,12 @@ use Doctrine\Persistence\ObjectRepository;
 use Paysera\Bundle\ApiBundle\Service\PathAttributeResolver\DoctrinePathAttributeResolver;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\DependencyInjection\Loader;
 
 class PayseraApiExtension extends Extension
 {
@@ -25,11 +26,10 @@ class PayseraApiExtension extends Extension
         $loader->load('services.xml');
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config/services'));
-        if (class_exists(AttributeRouteControllerLoader::class)) {
-            $loader->load('annotations.xml');
-        } else {
-            $loader->load('annotations_legacy.xml');
-        }
+        class_exists(AttributeRouteControllerLoader::class)
+            ? $loader->load('attributes.xml')
+            : $loader->load('annotations.xml')
+        ;
 
         $container->setParameter('paysera_api.locales', $config['locales']);
         if (count($config['locales']) === 0) {

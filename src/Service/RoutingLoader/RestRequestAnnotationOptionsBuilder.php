@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Paysera\Bundle\ApiBundle\Service\Annotation;
+namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
@@ -12,8 +12,11 @@ use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 /**
  * @internal
  */
-class RestRequestOptionsBuilder
+class RestRequestAnnotationOptionsBuilder
 {
+    /**
+     * @var RestRequestOptionsValidator
+     */
     private $validator;
 
     public function __construct(RestRequestOptionsValidator $validator)
@@ -22,7 +25,7 @@ class RestRequestOptionsBuilder
     }
 
     /**
-     * @param array|RestAnnotationInterface[] $annotations
+     * @param RestAnnotationInterface[] $annotations
      * @param ReflectionMethod $reflectionMethod
      * @return RestRequestOptions
      * @throws ConfigurationException

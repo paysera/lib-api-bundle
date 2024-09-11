@@ -50,6 +50,8 @@ class DefaultController
 
     public function actionWithReturn(): MyObject
     {
-        return (new MyObject())->setField1('field from controller');
+        return (new MyObject())
+            ->setField1('field from controller')
+        ;
     }
 }

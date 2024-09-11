@@ -114,10 +114,10 @@ class UserNormalizer implements ObjectDenormalizerInterface, NormalizerInterface
 
 In this case you'd also need to implement normalizer for `Address` class.
 
-It's easiest to configure REST endpoints using annotations. This requires your routing to be provided in 
-controller annotations, too.
+It's easiest to configure REST endpoints using annotations/attributes. This requires your routing to be provided in 
+controller annotations/attributes, too.
 
-Controller example:
+Controller example using annotations:
 ```php
 <?php
 declare(strict_types=1);
@@ -137,6 +137,31 @@ class ApiController
      * @return User
      */
     public function register(User $user)
+    {
+        $this->securityChecker->checkPermissions(Permissions::REGISTER_USER, $user);
+        
+        $this->userManager->registerUser($user);
+        $this->entityManager->flush();
+        
+        return $user;
+    }
+}
+```
+Controller example using attributes:
+```php
+<?php
+declare(strict_types=1);
+
+use Symfony\Component\Routing\Annotation\Route;
+use Paysera\Bundle\ApiBundle\Attribute\Body;
+
+class ApiController
+{
+    // ...
+
+    #[Route(path: '/users', methods: 'POST')]
+    #[Body(parameterName: 'user')]
+    public function register(User $user): User
     {
         $this->securityChecker->checkPermissions(Permissions::REGISTER_USER, $user);
         
@@ -199,7 +224,7 @@ Content-Type: application/json
 
 ### Fetching resource
 
-Controller example:
+Controller example using annotations:
 ```php
 <?php
 declare(strict_types=1);
@@ -219,6 +244,29 @@ class ApiController
      * @return User
      */
     public function getUser(User $user)
+    {
+        $this->securityChecker->checkPermissions(Permissions::ACCESS_USER, $user);
+        
+        return $user;
+    }
+}
+```
+
+Controller example using attributes:
+```php
+<?php
+declare(strict_types=1);
+
+use Symfony\Component\Routing\Annotation\Route;
+use Paysera\Bundle\ApiBundle\Attribute\PathAttribute;
+
+class ApiController
+{
+    // ...
+    
+    #[Route(path: '/users/{userId}', methods: 'GET')]
+    #[PathAttribute(parameterName: 'user', pathPartName: 'userId')]
+    public function getUser(User $user): User
     {
         $this->securityChecker->checkPermissions(Permissions::ACCESS_USER, $user);
         
@@ -308,7 +356,7 @@ Content-Type: application/json
 
 ### Fetching list of resources
 
-Controller example:
+Controller example using annotations:
 ```php
 <?php
 declare(strict_types=1);
@@ -332,6 +380,34 @@ class ApiController
      * @return PagedQuery
      */
     public function getUsers(UserFilter $filter, Pager $pager)
+    {
+        $this->securityChecker->checkPermissions(Permissions::SEARCH_USERS, $filter);
+        
+        $configuredQuery = $this->userRepository->buildConfiguredQuery($filter);
+
+        return new PagedQuery($configuredQuery, $pager);
+    }
+}
+```
+
+Controller example using attributes:
+```php
+<?php
+declare(strict_types=1);
+
+use Symfony\Component\Routing\Annotation\Route;
+use Paysera\Bundle\ApiBundle\Attribute\Query;
+use Paysera\Pagination\Entity\Pager;
+use Paysera\Bundle\ApiBundle\Entity\PagedQuery;
+
+class ApiController
+{
+    // ...
+    
+    #[Route(path: '/users', methods: 'GET')]
+    #[Query(parameterName: 'filter')]
+    #[Query(parameterName: 'pager')]
+    public function getUsers(UserFilter $filter, Pager $pager): PagedQuery
     {
         $this->securityChecker->checkPermissions(Permissions::SEARCH_USERS, $filter);
         
@@ -567,7 +643,7 @@ Host: api.example.com
 In this case, if there would be zero results, `_metadata.cursors.before` would still be the same. Saving last
 cursor and iterating this way until we have `"has_previous": false` is a reliable way to synchronize resources.
 
-## Annotations reference
+## Annotations/Attributes reference
 
 ### `Body`
 
@@ -591,7 +667,7 @@ to denormalizer.
 
 If not configured, defaults to JSON-encoded body and 2 allowed Content-Type values: `""` (empty) and `"application/json"`.
 
-For this annotation to have any effect, `Body` annotation must be present. Provide `plain` as `denormalizationType`
+For this annotation/attribute to have any effect, `Body` annotation/attribute must be present. Provide `plain` as `denormalizationType`
 if you want denormalization process to be skipped.
 
 ### `Validation`
@@ -601,7 +677,7 @@ By default, validation is always enabled.
 
 You can turn it off for an action or whole controller class.
 
-If annotation is provided on both class and action, the one on action "wins" – they are not merged together.
+If annotation/attribute is provided on both class and action, the one on action "wins" – they are not merged together.
 
 | Option name        | Default value | Description                                                                                                                                                                  |
 |--------------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -625,7 +701,7 @@ If nothing is returned from the method (`void`), empty response with HTTP status
 
 Configures denormalization for some concrete part of the path. Usually used to find entities by their IDs.
 
-Multiple such annotations can be used in a single controller's action.
+Multiple such annotations/attributes can be used in a single controller's action.
 
 | Option name           | Default value                            | Description                                                                                                                    |
 |-----------------------|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
@@ -638,26 +714,26 @@ Multiple such annotations can be used in a single controller's action.
 
 Instructs to convert query string into an object and pass to the controller as an argument.
 
-Multiple annotations can be used to map several different objects.
+Multiple annotations/attributes can be used to map several different objects.
 
 | Option name           | Default value                     | Description                                                                                                                    |
 |-----------------------|-----------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | `parameterName`       | Required                          | Specifies parameter name (without `$` in controller action for passing denormalized data                                       |
 | `denormalizationType` | Guessed from type-hint            | Allows configuring custom denormalization type to use. Registered denormalizer must implement `MixedTypeDenormalizerInterface` |
-| `validation`          | Enabled with `['Default']` groups | Use another `@Validation` annotation here, just like when configuring validation for request body                              |
+| `validation`          | Enabled with `['Default']` groups | Use another `@Validation` annotation/attribute here, just like when configuring validation for request body                    |
 
 ### `RequiredPermissions`
 
 Instructs to check for permissions in security context for that specific action.
 
 Could be also added in the class level.
-Permissions from class and method level annotations are merged together.
+Permissions from class and method level annotations/attributes are merged together.
 
 | Option name   | Default value | Description                                                              |
 |---------------|---------------|--------------------------------------------------------------------------|
 | `permissions` | Required      | List of permissions to be checked before any denormalization takes place |
 
-## Configuration without using annotations
+## Configuration without using annotations/attributes
 
 It's also possible to configure options defining `RestRequestOptions` as a service
 and tagging it with `paysera_api.request_options`.

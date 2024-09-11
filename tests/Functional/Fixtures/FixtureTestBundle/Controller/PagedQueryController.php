@@ -26,12 +26,8 @@ class PagedQueryController
      *
      * @Query(parameterName="pager")
      * @Query(parameterName="filter")
-     *
-     * @param Pager $pager
-     * @param PersistedEntityFilter $filter
-     * @return PagedQuery
      */
-    public function findSimplePersistedEntities(Pager $pager, PersistedEntityFilter $filter)
+    public function findSimplePersistedEntities(Pager $pager, PersistedEntityFilter $filter): PagedQuery
     {
         /** @var PersistedEntityRepository $repository */
         $repository = $this->entityManager->getRepository(PersistedEntity::class);

@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\DependencyInjection;
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain as LegacyMappingDriverChain;
+use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -28,5 +31,25 @@ class PayseraFixtureTestExtension extends Extension
         $prefix = Kernel::MAJOR_VERSION <= 4 ? 'legacy_' : '';
         $loader->load($prefix . 'services.xml');
 
+        $this->handleDeprecations($container, $loader);
+    }
+
+    public function handleDeprecations(ContainerBuilder $container, Loader\XmlFileLoader $loader): void
+    {
+        if (Kernel::VERSION_ID < 40000 || Kernel::VERSION >= 50400) {
+            return;
+        }
+
+        // override the dummy registry when doctrine/annotations v2 is used
+        if (
+            !method_exists(AnnotationRegistry::class, 'registerLoader')
+            || !method_exists(AnnotationRegistry::class, 'registerUniqueLoader')
+        ) {
+            $loader->load('annotation_registry.xml');
+        }
+
+        if (!class_exists(LegacyMappingDriverChain::class)) {
+            $container->setParameter('doctrine.orm.metadata.driver_chain.class', MappingDriverChain::class);
+        }
     }
 }
