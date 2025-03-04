@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.8.1]
 ### Added
-- `void` typehint to `PayseraApiBundle::build` method
+- `void` typehint to `PayseraApiBundle::build` method to fix the deprecation message
 - PHP 8.3 to CI
+### Fixed
+- `Call to a member function getClassAnnotations() on null` error in `RoutingAttributeLoader` on Symfony 6
 
 ## [1.8.0]
 ### Added

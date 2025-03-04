@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
+use Doctrine\Common\Annotations\Reader;
 use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
 use Paysera\Bundle\ApiBundle\Attribute\RestAttributeInterface;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
@@ -61,6 +62,10 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
 
     private function loadAnnotations(Route $route, ReflectionClass $class, ReflectionMethod $method): void
     {
+        if (!isset($this->reader) || !$this->reader instanceof Reader) {
+            return;
+        }
+
         $annotations = [];
         foreach ($this->reader->getClassAnnotations($class) as $annotation) {
             if ($annotation instanceof RestAnnotationInterface) {
