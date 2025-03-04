@@ -65,7 +65,7 @@ class RestResponseListener
     {
         $includedFields = [];
         $fields = $request->query->get('fields');
-        if ($fields !== null && is_string($fields) && $fields !== '') {
+        if (is_string($fields) && $fields !== '') {
             $includedFields = explode(',', $fields);
         }
 
