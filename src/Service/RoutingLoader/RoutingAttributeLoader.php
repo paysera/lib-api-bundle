@@ -61,6 +61,10 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
 
     private function loadAnnotations(Route $route, ReflectionClass $class, ReflectionMethod $method): void
     {
+        if (!isset($this->reader)) {
+            return;
+        }
+
         $annotations = [];
         foreach ($this->reader->getClassAnnotations($class) as $annotation) {
             if ($annotation instanceof RestAnnotationInterface) {
