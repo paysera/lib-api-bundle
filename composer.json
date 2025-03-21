@@ -20,11 +20,11 @@
         "symfony/framework-bundle": "^3.4.34|^4.3|^5.4|^6.0",
         "symfony/security-bundle": "^3.4.34|^4.3|^5.4|^6.0",
         "symfony/validator": "^3.4.34|^4.3|^5.4|^6.0",
-        "paysera/lib-normalization-bundle": "^1.1.0",
+        "paysera/lib-normalization-bundle": "^1.1",
         "paysera/lib-normalization": "^1.2",
         "paysera/lib-object-wrapper": "~0.1",
         "paysera/lib-pagination": "^1.0",
-        "paysera/lib-dependency-injection": "^1.3.0",
+        "paysera/lib-dependency-injection": "^1.3",
         "psr/log": "^1.0|^2.0",
         "doctrine/persistence": "^1.3.8 || ^2.0.1 || ^3.0",
         "doctrine/annotations": "^1.14 || ^2.0"
