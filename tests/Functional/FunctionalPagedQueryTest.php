@@ -228,6 +228,16 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
                     '/paged-query/simple?limit=1&after="1","field1"'
                 ),
             ],
+            'testPagedQuery with unsupported order-by field' => [
+                (new JsonResponse([
+                    'error' => 'invalid_parameters',
+                    'error_description' => 'Unsupported order-by field: "bogus_field"',
+                ], 400))->setEncodingOptions(0),
+                $this->createRequest(
+                    'GET',
+                    '/paged-query/simple?sort=bogus_field'
+                ),
+            ],
             'testPagedQuery with too large offset' => [
                 new JsonResponse([
                     'error' => 'offset_too_large',
