@@ -6,6 +6,7 @@ namespace Paysera\Bundle\ApiBundle\Service;
 use Paysera\Component\ObjectWrapper\Exception\InvalidItemException;
 use Paysera\Component\Normalization\Exception\InvalidDataException;
 use Paysera\Pagination\Exception\InvalidCursorException;
+use Paysera\Pagination\Exception\InvalidOrderByException;
 use Paysera\Pagination\Exception\TooLargeOffsetException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -72,6 +73,11 @@ class ErrorBuilder implements ErrorBuilderInterface
             return (new Error())
                 ->setCode(ApiException::INVALID_CURSOR)
                 ->setMessage($exception->getMessage() ?: 'Provided cursor is invalid')
+            ;
+        } elseif ($exception instanceof InvalidOrderByException) {
+            return (new Error())
+                ->setCode(ApiException::INVALID_PARAMETERS)
+                ->setMessage($exception->getMessage())
             ;
         } elseif ($exception instanceof AuthenticationCredentialsNotFoundException) {
             return (new Error())
