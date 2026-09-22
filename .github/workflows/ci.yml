@@ -57,6 +57,13 @@ jobs:
           php-version: ${{ matrix.php }}
           tools: flex
 
+      # Symfony 3.4 and 4.4 are end-of-life, and all their symfony/cache releases have security advisories.
+      # Newer Composer refuses to install them by default. This only affects the test install here.
+      # PHP 7.1 gets Composer 2.2, which does not block advisories and does not know this setting.
+      - name: Allow packages with security advisories
+        if: matrix.php != '7.1'
+        run: composer config policy.advisories.block false
+
       - name: Install dependencies
         uses: ramsey/composer-install@v2
         env:
