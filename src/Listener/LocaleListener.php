@@ -87,7 +87,8 @@ class LocaleListener
     {
         $languages = [];
         foreach (AcceptHeader::fromString($request->headers->get('Accept-Language'))->all() as $item) {
-            $language = $item->getValue();
+            // http-foundation 3.4 gives null or false for a malformed item, such as ";" or a lone quote
+            $language = (string)$item->getValue();
             if (strpos($language, '-') !== false) {
                 $codes = explode('-', $language);
                 if ($codes[0] === 'i') {

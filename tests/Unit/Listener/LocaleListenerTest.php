@@ -156,6 +156,18 @@ class LocaleListenerTest extends MockeryTestCase
                 'i-cherokee',
                 true,
             ],
+            'a malformed item is not a language' => [
+                'unchanged',
+                ['de'],
+                "'",
+                true,
+            ],
+            'a malformed item next to a language' => [
+                'de',
+                ['de'],
+                "de, '",
+                true,
+            ],
         ];
     }
 }
