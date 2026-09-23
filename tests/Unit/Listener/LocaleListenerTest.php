@@ -96,6 +96,36 @@ class LocaleListenerTest extends MockeryTestCase
                 'en-US,en;q=0.8, de-CH;q=0.9',
                 true,
             ],
+            'German among other locales' => [
+                'de',
+                ['en', 'lt', 'de'],
+                'de',
+                true,
+            ],
+            'German region among other locales' => [
+                'de',
+                ['en', 'lt', 'de'],
+                'de-DE, en;q=0.5',
+                true,
+            ],
+            'primary language is not added when the header lists it' => [
+                'de',
+                ['de', 'en'],
+                'en-US, en;q=0.5, de;q=0.9',
+                true,
+            ],
+            'no match keeps the locale' => [
+                'unchanged',
+                ['en', 'lt', 'de'],
+                'fr-FR, fr;q=0.9',
+                true,
+            ],
+            'no header keeps the locale' => [
+                'unchanged',
+                ['en', 'lt', 'de'],
+                '',
+                true,
+            ],
         ];
     }
 }

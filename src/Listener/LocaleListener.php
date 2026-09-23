@@ -42,13 +42,34 @@ class LocaleListener
         }
     }
 
-    private function resolveFromHeaders(Request $request)
+    /**
+     * The first language of Accept-Language, in the client's order of preference, that is a configured locale; a
+     * regional variant (de_CH) also offers its primary language (de) unless the header lists that language itself.
+     *
+     * This is the rule Request::getPreferredLanguage() applied up to Symfony 7.0. Symfony 7.1 changed it, and passing a
+     * placeholder for "no match" stopped working there ("default" starts with "de"), so the listener matches itself and
+     * picks the same locale on every Symfony line.
+     */
+    private function resolveFromHeaders(Request $request): ?string
     {
-        $defaultLocale = 'default';
-        $preferredLanguage = $request->getPreferredLanguage(array_merge([$defaultLocale], $this->locales));
+        $languages = $request->getLanguages();
+        $candidates = [];
+        foreach ($languages as $language) {
+            $candidates[] = $language;
+            $separatorPosition = strpos($language, '_');
+            if ($separatorPosition === false) {
+                continue;
+            }
+            $primaryLanguage = substr($language, 0, $separatorPosition);
+            if (!in_array($primaryLanguage, $languages, true)) {
+                $candidates[] = $primaryLanguage;
+            }
+        }
 
-        if ($preferredLanguage !== null && $preferredLanguage !== $defaultLocale) {
-            return $preferredLanguage;
+        foreach ($candidates as $candidate) {
+            if (in_array($candidate, $this->locales, true)) {
+                return $candidate;
+            }
         }
 
         return null;
