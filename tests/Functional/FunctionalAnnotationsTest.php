@@ -52,6 +52,9 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
         if ($pathPrefix === 'attributed' && !TestHelper::phpAttributeSupportExists()) {
             $this->markTestSkipped('Unsupported environment');
         }
+        if ($pathPrefix === 'annotated' && !TestHelper::docblockRoutingSupportExists()) {
+            $this->markTestSkipped('Symfony 7 reads no @Route docblocks');
+        }
 
         $request->server->set(
             'REQUEST_URI',

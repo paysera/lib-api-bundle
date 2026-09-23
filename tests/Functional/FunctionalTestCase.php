@@ -31,7 +31,12 @@ abstract class FunctionalTestCase extends TestCase
      */
     protected function setUpContainer($testCase, $commonFile = 'common.yml')
     {
-        $prefix = Kernel::MAJOR_VERSION <= 4 ? 'legacy_' : '';
+        $prefix = '';
+        if (Kernel::MAJOR_VERSION <= 4) {
+            $prefix = 'legacy_';
+        } elseif (Kernel::MAJOR_VERSION >= 7) {
+            $prefix = 'sf7_';
+        }
         $this->kernel = new TestKernel($testCase, $prefix . $commonFile);
         $this->kernel->boot();
         return $this->kernel->getContainer();

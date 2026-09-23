@@ -46,6 +46,7 @@ class EntityValidatorTest extends MockeryTestCase
         $entity = new stdClass();
         $validator
             ->shouldReceive('validate')
+            ->once()
             ->with($entity, null, $groups)
             ->andReturn(new ConstraintViolationList($violationList))
         ;
@@ -67,7 +68,6 @@ class EntityValidatorTest extends MockeryTestCase
             if ($expectedException !== null) {
                 $this->fail('Expected exception');
             }
-            $this->expectNotToPerformAssertions();
         } catch (ApiException $exception) {
             $this->assertEquals($expectedException, $exception);
         }

@@ -10,7 +10,7 @@ class HttpKernelHelper
 {
     public static function getMainRequestConstValue(): int
     {
-        if (defined(HttpKernelInterface::class . 'MAIN_REQUEST')) {
+        if (defined(HttpKernelInterface::class . '::MAIN_REQUEST')) {
             return HttpKernelInterface::MAIN_REQUEST;
         }
 
