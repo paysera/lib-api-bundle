@@ -48,8 +48,8 @@ class LocaleListener
      * regional variant (de_CH) also offers its primary language (de) unless the header lists that language itself.
      *
      * This is the rule Request::getPreferredLanguage() applied up to Symfony 7.0. Symfony 7.1 changed it, and passing a
-     * placeholder for "no match" stopped working there ("default" starts with "de"), so the listener matches itself and
-     * picks the same locale on every Symfony line, from a header it reads itself (readLanguages()).
+     * placeholder for "no match" stopped working there ("default" starts with "de"), so the listener applies the rule
+     * itself on every Symfony line, to a header it reads itself (readLanguages()).
      */
     private function resolveFromHeaders(Request $request): ?string
     {
@@ -79,7 +79,7 @@ class LocaleListener
     /**
      * The Accept-Language tags in the client's order of preference, written the way Request::getLanguages() wrote them up
      * to Symfony 7.0: "de-CH" becomes "de_CH", and a tag without a region keeps its case. Symfony 7.1 changed that
-     * formatting too, so reading the header here keeps the result the same on every Symfony line.
+     * formatting too, so the listener writes the tags this way itself, on every Symfony line.
      *
      * @return string[]
      */
