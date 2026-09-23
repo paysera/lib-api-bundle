@@ -1,6 +1,9 @@
 framework:
     router:
         resource: '%kernel.project_dir%/tests/Functional/Fixtures/config/sf7_routing.yml'
+    validation:
+        # Symfony 7's default; framework-bundle 6.4 still defaults to "loose", which validator 7 no longer has
+        email_validation_mode: html5
 
 security:
     firewalls:
