@@ -71,6 +71,24 @@ class ErrorBuilderTest extends TestCase
                 404,
                 'Resource was not found',
             ],
+            'API exception with the invalid parameters code' => [
+                new ApiException(ApiException::INVALID_PARAMETERS),
+                'invalid_parameters',
+                400,
+                'Some required parameter is missing or it\'s format is invalid',
+            ],
+            'API exception with the invalid state code' => [
+                new ApiException(ApiException::INVALID_STATE),
+                'invalid_state',
+                409,
+                'Requested action cannot be made to the current state of resource',
+            ],
+            'API exception with the not acceptable code' => [
+                new ApiException(ApiException::NOT_ACCEPTABLE),
+                'not_acceptable',
+                406,
+                'Unknown request or response format',
+            ],
             'API exception with an unconfigured code' => [
                 new ApiException('unconfigured_code'),
                 'unconfigured_code',
@@ -192,7 +210,8 @@ class ErrorBuilderTest extends TestCase
     private function createConfiguredErrorBuilder(): ErrorBuilder
     {
         $container = new ContainerBuilder();
-        (new XmlFileLoader($container, new FileLocator(__DIR__ . '/../../../src/Resources/config')))->load('services.xml');
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../../../src/Resources/config'));
+        $loader->load('services.xml');
 
         return $container->get('paysera_api.error_builder');
     }
