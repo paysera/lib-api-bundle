@@ -5,6 +5,7 @@ namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\TestKernel;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
@@ -34,7 +35,7 @@ abstract class FunctionalTestCase extends TestCase
         $prefix = '';
         if (Kernel::MAJOR_VERSION <= 4) {
             $prefix = 'legacy_';
-        } elseif (Kernel::MAJOR_VERSION >= 7) {
+        } elseif (!TestHelper::docblockRoutingSupportExists()) {
             $prefix = 'sf7_';
         }
         $this->kernel = new TestKernel($testCase, $prefix . $commonFile);
