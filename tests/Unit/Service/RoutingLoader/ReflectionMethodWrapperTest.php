@@ -58,7 +58,7 @@ class ReflectionMethodWrapperTest extends TestCase
         );
     }
 
-    public function fixtureMethod(string $param1, DateTime $param2 = null, $param3 = null): string
+    public function fixtureMethod(string $param1, ?DateTime $param2 = null, $param3 = null): string
     {
         return $param1;
     }

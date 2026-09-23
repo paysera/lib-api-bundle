@@ -27,6 +27,9 @@ class UnsetOptionsTest extends TestCase
         $options->$getter();
     }
 
+    /**
+     * @return array<int, array{0: object, 1: string, 2: string}>
+     */
     public static function unsetOptionDataProvider(): array
     {
         return [

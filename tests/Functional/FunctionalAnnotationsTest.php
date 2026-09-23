@@ -24,7 +24,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
     public function testAnnotatedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ) {
         $this->makeTest('annotated', $expectedResponse, $request, $extraResponseVersion);
     }
@@ -38,7 +38,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
     public function testAttributedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ) {
         $this->makeTest('attributed', $expectedResponse, $request, $extraResponseVersion);
     }
@@ -47,7 +47,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
         string $pathPrefix,
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ): void {
         if ($pathPrefix === 'attributed' && !TestHelper::phpAttributeSupportExists()) {
             $this->markTestSkipped('Unsupported environment');

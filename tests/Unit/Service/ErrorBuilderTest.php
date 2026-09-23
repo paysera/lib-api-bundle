@@ -14,6 +14,9 @@ use Paysera\Pagination\Exception\InvalidOrderByException;
 use Paysera\Pagination\Exception\TooLargeOffsetException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -25,8 +28,8 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Throwable;
 
 /**
- * The error every REST endpoint answers with, for each kind of exception, with the error codes the bundle configures in
- * Resources/config/services.xml.
+ * The error every REST endpoint answers with, for each kind of exception, built by the bundle's own
+ * paysera_api.error_builder service definition (Resources/config/services.xml) with the error codes it configures.
  */
 class ErrorBuilderTest extends TestCase
 {
@@ -47,6 +50,9 @@ class ErrorBuilderTest extends TestCase
         );
     }
 
+    /**
+     * @return array<string, array{0: Throwable, 1: string, 2: int, 3: string|null}>
+     */
     public static function exceptionDataProvider(): array
     {
         $tooLargeOffset = new TooLargeOffsetException(1000, 1001);
@@ -185,32 +191,9 @@ class ErrorBuilderTest extends TestCase
 
     private function createConfiguredErrorBuilder(): ErrorBuilder
     {
-        $errorBuilder = new ErrorBuilder();
-        $errorBuilder->configureError('invalid_request', 400, 'Request content is invalid');
-        $errorBuilder->configureError(
-            'invalid_parameters',
-            400,
-            'Some required parameter is missing or it\'s format is invalid'
-        );
-        $errorBuilder->configureError(
-            'invalid_state',
-            409,
-            'Requested action cannot be made to the current state of resource'
-        );
-        $errorBuilder->configureError(
-            'unauthorized',
-            401,
-            'You have not provided any credentials or they are invalid'
-        );
-        $errorBuilder->configureError(
-            'forbidden',
-            403,
-            'You have no rights to access requested resource or make requested action'
-        );
-        $errorBuilder->configureError('not_found', 404, 'Resource was not found');
-        $errorBuilder->configureError('internal_server_error', 500, 'Unexpected internal system error');
-        $errorBuilder->configureError('not_acceptable', 406, 'Unknown request or response format');
+        $container = new ContainerBuilder();
+        (new XmlFileLoader($container, new FileLocator(__DIR__ . '/../../../src/Resources/config')))->load('services.xml');
 
-        return $errorBuilder;
+        return $container->get('paysera_api.error_builder');
     }
 }

@@ -9,6 +9,7 @@ use Paysera\Bundle\ApiBundle\Entity\Violation;
 use Paysera\Bundle\ApiBundle\Exception\ApiException;
 use Paysera\Bundle\ApiBundle\Service\Validation\EntityValidator;
 use Paysera\Bundle\ApiBundle\Service\Validation\PropertyPathConverterInterface;
+use RuntimeException;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use stdClass;
 use Symfony\Component\Validator\Constraints\Type;
@@ -23,7 +24,7 @@ class EntityValidatorTest extends MockeryTestCase
     {
         $entityValidator = new EntityValidator(null, Mockery::mock(PropertyPathConverterInterface::class));
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('To use validation in RestBundle you must configure framework.validation');
 
         $entityValidator->validate(new stdClass(), new ValidationOptions());

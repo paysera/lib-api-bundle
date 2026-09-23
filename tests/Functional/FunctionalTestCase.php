@@ -63,9 +63,9 @@ abstract class FunctionalTestCase extends TestCase
     protected function createRequest(
         string $method,
         string $uri,
-        string $content = null,
+        ?string $content = null,
         array $headers = [],
-        string $username = null
+        ?string $username = null
     ): Request {
         $parts = parse_url($uri);
         parse_str($parts['query'] ?? '', $query);

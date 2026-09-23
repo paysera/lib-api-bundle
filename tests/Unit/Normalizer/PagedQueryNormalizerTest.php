@@ -85,7 +85,7 @@ class PagedQueryNormalizerTest extends MockeryTestCase
         array $explicitlyIncluded,
         string $defaultStrategy,
         string $queryStrategy,
-        int $maximumOffset = null
+        ?int $maximumOffset = null
     ) {
         $normalizationContext = Mockery::mock(NormalizationContext::class);
 
