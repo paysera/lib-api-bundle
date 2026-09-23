@@ -18,7 +18,7 @@ class AttributeOnlyController
      */
     #[Route('/attribute-only', methods: ['POST'])]
     #[Body(parameterName: 'item')]
-    #[RequiredPermissions(['ROLE_ADMIN'])]
+    #[RequiredPermissions(permissions: ['ROLE_ADMIN'])]
     public function create($item)
     {
     }
