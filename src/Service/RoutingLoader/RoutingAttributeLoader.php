@@ -6,6 +6,7 @@ namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
 use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
 use Paysera\Bundle\ApiBundle\Attribute\RestAttributeInterface;
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use ReflectionClass;
 use ReflectionMethod;
@@ -59,8 +60,16 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $this->loadAttributes($route, $class, $method);
     }
 
+    /**
+     * @throws ConfigurationException on Symfony 7 and later when the controller uses the bundle's docblock annotations
+     */
     private function loadAnnotations(Route $route, ReflectionClass $class, ReflectionMethod $method): void
     {
+        if (!property_exists($this, 'reader')) {
+            $this->refuseDocblockAnnotations($class, $method);
+            return;
+        }
+
         if (!isset($this->reader)) {
             return;
         }
@@ -86,6 +95,37 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
             $route,
             $this->annotationOptionsBuilder->buildOptions($annotations, $method)
         );
+    }
+
+    /**
+     * Symfony 7 gives the route loader no annotation reader, so these options would be ignored without a word — an
+     * endpoint would lose its required permissions. Fail at route loading instead and name the attributes to use.
+     *
+     * @throws ConfigurationException
+     */
+    private function refuseDocblockAnnotations(ReflectionClass $class, ReflectionMethod $method): void
+    {
+        $annotations = (new DocblockAnnotationFinder())->findBundleAnnotations($class, $method);
+        if ($annotations === []) {
+            return;
+        }
+
+        $attributes = [];
+        foreach ($annotations as $annotation) {
+            $attributes[] = sprintf(
+                '#[%s]',
+                str_replace('\\Annotation\\', '\\Attribute\\', $annotation)
+            );
+        }
+
+        throw new ConfigurationException(sprintf(
+            '%s::%s() configures its REST endpoint with docblock annotations (%s), which Symfony 7 does not read, '
+            . 'so the endpoint would run without those options. Use the attributes instead: %s.',
+            $class->getName(),
+            $method->getName(),
+            implode(', ', $annotations),
+            implode(', ', $attributes)
+        ));
     }
 
     private function loadAttributes(Route $route, ReflectionClass $class, ReflectionMethod $method): void
