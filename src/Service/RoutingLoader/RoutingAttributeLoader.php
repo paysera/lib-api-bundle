@@ -18,6 +18,9 @@ use Symfony\Component\Routing\Route;
  */
 class RoutingAttributeLoader extends AttributeRouteControllerLoader
 {
+    private const ANNOTATION_NAMESPACE = 'Paysera\\Bundle\\ApiBundle\\Annotation\\';
+    private const ATTRIBUTE_NAMESPACE = 'Paysera\\Bundle\\ApiBundle\\Attribute\\';
+
     /**
      * @var RestRequestHelper
      */
@@ -32,6 +35,11 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
      * @var RestRequestAttributeOptionsBuilder
      */
     private $attributeOptionsBuilder;
+
+    /**
+     * @var DocblockAnnotationFinder|null
+     */
+    private $docblockAnnotationFinder;
 
     public function setRequestHelper(RestRequestHelper $restRequestHelper)
     {
@@ -105,26 +113,32 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
      */
     private function refuseDocblockAnnotations(ReflectionClass $class, ReflectionMethod $method): void
     {
-        $annotations = (new DocblockAnnotationFinder())->findBundleAnnotations($class, $method);
+        if ($this->docblockAnnotationFinder === null) {
+            $this->docblockAnnotationFinder = new DocblockAnnotationFinder();
+        }
+        $annotations = $this->docblockAnnotationFinder->findBundleAnnotations($class, $method);
         if ($annotations === []) {
             return;
         }
 
-        $attributes = [];
+        $replacements = [];
         foreach ($annotations as $annotation) {
-            $attributes[] = sprintf(
-                '#[%s]',
-                str_replace('\\Annotation\\', '\\Attribute\\', $annotation)
-            );
+            $replacements[] = strpos($annotation, self::ANNOTATION_NAMESPACE) === 0
+                ? '#[\\' . self::ATTRIBUTE_NAMESPACE . substr($annotation, strlen(self::ANNOTATION_NAMESPACE)) . ']'
+                : sprintf(
+                    'an attribute implementing \\%s in place of \\%s',
+                    RestAttributeInterface::class,
+                    $annotation
+                );
         }
 
         throw new ConfigurationException(sprintf(
-            '%s::%s() configures its REST endpoint with docblock annotations (%s), which Symfony 7 does not read, '
-            . 'so the endpoint would run without those options. Use the attributes instead: %s.',
+            '%s::%s() uses docblock annotations of paysera/lib-api-bundle (\\%s). Symfony 7 does not read docblock '
+            . 'annotations, so they would have no effect. Use the PHP attributes instead: %s.',
             $class->getName(),
             $method->getName(),
-            implode(', ', $annotations),
-            implode(', ', $attributes)
+            implode(', \\', $annotations),
+            implode(', ', $replacements)
         ));
     }
 

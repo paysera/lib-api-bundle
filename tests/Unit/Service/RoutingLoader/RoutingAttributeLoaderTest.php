@@ -16,6 +16,8 @@ use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsB
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAttributeLoader;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOnlyController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomAnnotationOnAttributeRouteController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomRestAnnotation;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsOnAttributeRouteController;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
 
@@ -54,16 +56,29 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             $loader->load(DocblockOptionsOnAttributeRouteController::class);
             $this->fail('The route with the bundle\'s docblock annotations was loaded without them');
         } catch (ConfigurationException $exception) {
-            $this->assertStringContainsString(
-                DocblockOptionsOnAttributeRouteController::class . '::show() configures its REST endpoint with '
-                . 'docblock annotations (' . RequiredPermissions::class . ')',
-                $exception->getMessage()
-            );
-            $this->assertStringContainsString(
-                'Use the attributes instead: #[Paysera\Bundle\ApiBundle\Attribute\RequiredPermissions].',
+            $this->assertSame(
+                DocblockOptionsOnAttributeRouteController::class . '::show() uses docblock annotations of '
+                . 'paysera/lib-api-bundle (\\' . RequiredPermissions::class . '). Symfony 7 does not read docblock '
+                . 'annotations, so they would have no effect. Use the PHP attributes instead: '
+                . '#[\\Paysera\\Bundle\\ApiBundle\\Attribute\\RequiredPermissions].',
                 $exception->getMessage()
             );
         }
+    }
+
+    public function testNamesTheAttributeInterfaceForAnApplicationsOwnAnnotation()
+    {
+        $this->skipUnlessTheRouteLoaderHasNoAnnotationReader();
+        $loader = $this->createLoader();
+
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage(
+            'Use the PHP attributes instead: an attribute implementing '
+            . '\\Paysera\\Bundle\\ApiBundle\\Attribute\\RestAttributeInterface in place of \\'
+            . CustomRestAnnotation::class . '.'
+        );
+
+        $loader->load(CustomAnnotationOnAttributeRouteController::class);
     }
 
     public function testLoadsTheBundleAttributesWhereSymfonyReadsNoDocblocks()

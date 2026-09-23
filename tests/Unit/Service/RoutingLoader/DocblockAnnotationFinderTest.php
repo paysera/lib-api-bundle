@@ -14,7 +14,14 @@ use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationFinder;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOnlyController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ChildWithoutImports;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CommaImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ControllerUsingTheTrait;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomAnnotationOnAttributeRouteController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomRestAnnotation;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DirectImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NotTopLevelAnnotationsController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SameLineImportController;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
@@ -39,6 +46,9 @@ class DocblockAnnotationFinderTest extends TestCase
         );
     }
 
+    /**
+     * @return array<string, array{0: string, 1: string, 2: string[]}>
+     */
     public static function controllerDataProvider(): array
     {
         return [
@@ -61,6 +71,36 @@ class DocblockAnnotationFinderTest extends TestCase
                 ChildWithoutImports::class,
                 'inherited',
                 [ResponseNormalization::class],
+            ],
+            'a method from a trait resolves through the trait file imports' => [
+                ControllerUsingTheTrait::class,
+                'fromTrait',
+                [Query::class],
+            ],
+            'a group import with an alias' => [
+                GroupImportController::class,
+                'create',
+                [RequiredPermissions::class, Body::class],
+            ],
+            'a comma-separated import over two lines' => [
+                CommaImportController::class,
+                'create',
+                [RequiredPermissions::class, Body::class],
+            ],
+            'an import on the namespace line, and a full name without the leading backslash' => [
+                SameLineImportController::class,
+                'create',
+                [Body::class, RequiredPermissions::class],
+            ],
+            'only top-level annotations count, as Doctrine reads them' => [
+                NotTopLevelAnnotationsController::class,
+                'find',
+                [Query::class],
+            ],
+            'an application\'s own annotation class in the same namespace' => [
+                CustomAnnotationOnAttributeRouteController::class,
+                'show',
+                [CustomRestAnnotation::class],
             ],
         ];
     }
