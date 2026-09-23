@@ -10,18 +10,37 @@ use ReflectionMethod;
 
 /**
  * Finds the annotations for this bundle in the docblocks of a controller method and its class without an annotation
- * reader. Each docblock tag is resolved the way Doctrine's reader resolves it on Symfony 4.4 to 6.4: through the `use`
- * imports of the declaring class's file and of the file that declares the method (a trait's), then relative to the
- * class's namespace, then as a fully qualified name.
+ * reader. It follows the rules of Doctrine's reader, which applied them on Symfony 4.4 to 6.4:
+ * - the imports are the `use` statements of the class's file above the class, in the class's namespace; a method
+ *   declared in a trait also gets those of the trait's file (Doctrine's PhpParser, TokenParser, getMethodImports());
+ * - reading starts at the first "@" after a space, a tab or "*"; from there an annotation starts at an "@" after
+ *   whitespace or "*", a quoted string is text, a name followed by "-" is not an annotation, and the arguments of an
+ *   annotation are skipped (Doctrine's DocParser and DocLexer);
+ * - a name resolves through the imports, else relative to the namespace, else as a fully qualified name.
+ * Unlike Doctrine, it does not pass over the tag names Doctrine ignores (param, return and so on) when a class has
+ * that name.
  *
  * @internal
  */
 class DocblockAnnotationFinder
 {
+    private const NAME = '[a-z_\\\\][a-z0-9_:\\\\]*[a-z_][a-z0-9_]*|[a-z_]';
+
     /**
-     * @var array<string, array<string, string>> imports by file name
+     * A quoted string, which is one token, or an "@" at the start or after whitespace or "*" with the name right after
+     * it (group 1) and, when the name is followed by "-", that "-" (group 2).
      */
-    private $importsByFile = [];
+    private const TOKEN_PATTERN = '/"(?:""|[^"])*+"|(?<![^\s*])@(' . self::NAME . ')(-(?![0-9]))?/iu';
+
+    /**
+     * The arguments after an annotation's name: the parentheses, after any whitespace or "*", up to the matching one.
+     */
+    private const ARGUMENTS_PATTERN = '/\G[\s*]*+(\((?:"(?:""|[^"])*+"|[^()"]++|"|(?1))*+\))/u';
+
+    /**
+     * @var array<string, array<string, string>> imports by class name
+     */
+    private $importsByClass = [];
 
     /**
      * @return string[] class names of the bundle annotations the docblocks use, in order, each once
@@ -29,13 +48,16 @@ class DocblockAnnotationFinder
     public function findBundleAnnotations(ReflectionClass $class, ReflectionMethod $method): array
     {
         $declaringClass = $method->getDeclaringClass();
+        $methodImports = $this->readImports($declaringClass);
+        foreach ($declaringClass->getTraits() as $trait) {
+            if ($trait->hasMethod($method->getName()) && $trait->getFileName() === $method->getFileName()) {
+                $methodImports = array_merge($methodImports, $this->readImports($trait));
+            }
+        }
+
         $found = array_merge(
-            $this->findInDocblock($class->getDocComment(), [$class->getFileName()], $class->getNamespaceName()),
-            $this->findInDocblock(
-                $method->getDocComment(),
-                [$declaringClass->getFileName(), $method->getFileName()],
-                $declaringClass->getNamespaceName()
-            )
+            $this->findInDocblock($class->getDocComment(), $this->readImports($class), $class->getNamespaceName()),
+            $this->findInDocblock($method->getDocComment(), $methodImports, $declaringClass->getNamespaceName())
         );
 
         return array_values(array_unique($found));
@@ -43,32 +65,38 @@ class DocblockAnnotationFinder
 
     /**
      * @param string|false $docComment
-     * @param array<string|false> $fileNames the files whose imports apply; a later file's import wins
+     * @param array<string, string> $imports
      * @return string[]
      */
-    private function findInDocblock($docComment, array $fileNames, string $namespace): array
+    private function findInDocblock($docComment, array $imports, string $namespace): array
     {
-        if ($docComment === false || strpos($docComment, '@') === false) {
+        if ($docComment === false || preg_match('/[ \t*]@/', $docComment, $start, PREG_OFFSET_CAPTURE) !== 1) {
             return [];
         }
 
-        // a top-level annotation, as Doctrine's lexer reads it: "@" at the start or after whitespace or "*", so
-        // "{@inheritdoc}", "mail@host" and an annotation nested in another annotation's arguments do not count
-        preg_match_all(
-            '/(?:^|[\s*])@(\\\\?[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*)/',
-            $docComment,
-            $matches
-        );
-        $imports = [];
-        foreach (array_unique($fileNames) as $fileName) {
-            $imports = array_merge($imports, $this->readImports($fileName));
-        }
-
+        $text = substr($docComment, $start[0][1] + 1);
         $found = [];
-        foreach ($matches[1] as $name) {
-            $className = $this->resolveClassName($name, $imports, $namespace);
-            if ($className !== null) {
+        $offset = 0;
+        while (preg_match(self::TOKEN_PATTERN, $text, $token, PREG_OFFSET_CAPTURE, $offset) === 1) {
+            $offset = $token[0][1] + strlen($token[0][0]);
+            $isString = !isset($token[1]);
+            $isFollowedByDash = isset($token[2]);
+            if ($isString || $isFollowedByDash) {
+                continue;
+            }
+
+            $className = $this->resolveClassName($token[1][0], $imports, $namespace);
+            if ($className === null) {
+                continue;
+            }
+            if (is_subclass_of($className, RestAnnotationInterface::class)) {
                 $found[] = $className;
+            }
+            if ($this->isAnnotationClass($className)
+                && preg_match(self::ARGUMENTS_PATTERN, $text, $arguments, 0, $offset) === 1
+            ) {
+                // Doctrine reads an annotation's arguments, so an "@" in them is a nested annotation or text
+                $offset += strlen($arguments[0]);
             }
         }
 
@@ -76,48 +104,77 @@ class DocblockAnnotationFinder
     }
 
     /**
-     * @param string|false $fileName false only for an internal class, which carries no docblocks
-     * @return array<string, string> imported class or namespace name by its lower-case alias
+     * @param array<string, string> $imports
+     * @return string|null the class the name refers to, or null when there is none
      */
-    private function readImports($fileName): array
+    private function resolveClassName(string $name, array $imports, string $namespace): ?string
     {
-        $key = (string)$fileName;
-        if (!isset($this->importsByFile[$key])) {
-            $this->importsByFile[$key] = $this->parseImports(
-                $fileName === false ? '' : (string)file_get_contents($fileName)
-            );
+        if ($name[0] === '\\') {
+            $candidates = [$name];
+        } else {
+            $parts = explode('\\', $name, 2);
+            $alias = strtolower($parts[0]);
+            $candidates = isset($imports[$alias])
+                ? [$imports[$alias] . (isset($parts[1]) ? '\\' . $parts[1] : '')]
+                : [$namespace . '\\' . $name, $name];
         }
 
-        return $this->importsByFile[$key];
+        foreach ($candidates as $candidate) {
+            if (class_exists($candidate)) {
+                return (new ReflectionClass($candidate))->getName();
+            }
+        }
+
+        return null;
+    }
+
+    private function isAnnotationClass(string $className): bool
+    {
+        return strpos((string)(new ReflectionClass($className))->getDocComment(), '@Annotation') !== false;
     }
 
     /**
-     * The `use` statements of a file: one name, "as" aliases, several names separated by commas, and a group
-     * ("use A\{B, C as D};"); function and constant imports are left out. A trait's `use` inside a class body can add a
-     * harmless alias of the trait's own name.
+     * @return array<string, string> imported class or namespace name by its lower-case alias
+     */
+    private function readImports(ReflectionClass $class): array
+    {
+        $className = $class->getName();
+        if (!isset($this->importsByClass[$className])) {
+            $this->importsByClass[$className] = $this->parseImports($class);
+        }
+
+        return $this->importsByClass[$className];
+    }
+
+    /**
+     * The `use` statements of the class's file up to the class, from the class's namespace declaration on. So a
+     * trait's `use` in a class body does not count, nor does a commented-out import or another namespace's import.
      *
      * @return array<string, string>
      */
-    private function parseImports(string $source): array
+    private function parseImports(ReflectionClass $class): array
     {
-        preg_match_all('/(?:^|;)\s*use\s+(?!function\s|const\s)([\\\\A-Za-z_][^;]*);/mi', $source, $statements);
+        $fileName = $class->getFileName();
+        if ($fileName === false || !is_file($fileName)) {
+            return [];
+        }
+
+        $source = implode('', array_slice(file($fileName), 0, $class->getStartLine()));
+        $tokens = [];
+        foreach (token_get_all($source) as $token) {
+            if (!is_array($token) || !in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                $tokens[] = $token;
+            }
+        }
 
         $imports = [];
-        foreach ($statements[1] as $statement) {
-            $prefix = '';
-            if (preg_match('/^([^{]*)\{([^}]*)\}\s*$/', trim($statement), $group) === 1) {
-                $prefix = trim($group[1]);
-                $statement = $group[2];
-            }
-            foreach (explode(',', $statement) as $clause) {
-                $pattern = '/^\s*\\\\?([A-Za-z_][A-Za-z0-9_\\\\]*)(?:\s+as\s+([A-Za-z_][A-Za-z0-9_]*))?\s*$/i';
-                if (preg_match($pattern, $clause, $match) !== 1) {
-                    continue;
-                }
-                $importedName = ltrim($prefix . $match[1], '\\');
-                $parts = explode('\\', $importedName);
-                $alias = isset($match[2]) && $match[2] !== '' ? $match[2] : end($parts);
-                $imports[strtolower($alias)] = $importedName;
+        foreach ($tokens as $index => $token) {
+            if ($token[0] === T_USE) {
+                $imports = array_merge($imports, $this->parseUseStatement($tokens, $index + 1));
+            } elseif ($token[0] === T_NAMESPACE
+                && $this->readName($tokens, $index + 1) === $class->getNamespaceName()
+            ) {
+                $imports = [];
             }
         }
 
@@ -125,29 +182,72 @@ class DocblockAnnotationFinder
     }
 
     /**
-     * @param array<string, string> $imports
-     * @return string|null the bundle annotation class the tag names, or null when it names none
+     * One `use` statement: a name, a name with "as", names separated by commas, or a group ("use A\{B, C as D};").
+     * `use function`, `use const` and a closure's `use (...)` import no class, so they end at their first token.
+     *
+     * @param array<int, string|array{0: int, 1: string, 2: int}> $tokens
+     * @return array<string, string>
      */
-    private function resolveClassName(string $name, array $imports, string $namespace): ?string
+    private function parseUseStatement(array $tokens, int $index): array
     {
-        if ($name[0] === '\\') {
-            $candidates = [substr($name, 1)];
-        } else {
-            $parts = explode('\\', $name, 2);
-            $alias = strtolower($parts[0]);
-            $candidates = isset($imports[$alias])
-                ? [$imports[$alias] . (isset($parts[1]) ? '\\' . $parts[1] : '')]
-                : [($namespace === '' ? '' : $namespace . '\\') . $name, $name];
-        }
-
-        foreach ($candidates as $candidate) {
-            if (class_exists($candidate) || interface_exists($candidate)) {
-                return is_subclass_of($candidate, RestAnnotationInterface::class)
-                    ? (new ReflectionClass($candidate))->getName()
-                    : null;
+        $imports = [];
+        $groupPrefix = '';
+        $name = '';
+        $alias = '';
+        $isAliasNext = false;
+        for (; isset($tokens[$index]); $index++) {
+            $token = $tokens[$index];
+            if ($this->isNameToken($token)) {
+                if ($isAliasNext) {
+                    $alias = $token[1];
+                } else {
+                    $name .= $token[1];
+                    $parts = explode('\\', $token[1]);
+                    $alias = end($parts);
+                }
+            } elseif ($token[0] === T_AS) {
+                $isAliasNext = true;
+            } elseif ($token === ',' || $token === ';') {
+                $imports[strtolower($alias)] = $groupPrefix . $name;
+                if ($token === ';') {
+                    break;
+                }
+                $name = '';
+                $alias = '';
+                $isAliasNext = false;
+            } elseif ($token === '{') {
+                $groupPrefix = $name;
+                $name = '';
+            } elseif ($token !== '}') {
+                break;
             }
         }
 
-        return null;
+        return $imports;
+    }
+
+    /**
+     * @param array<int, string|array{0: int, 1: string, 2: int}> $tokens
+     */
+    private function readName(array $tokens, int $index): string
+    {
+        $name = '';
+        for (; isset($tokens[$index]) && $this->isNameToken($tokens[$index]); $index++) {
+            $name .= $tokens[$index][1];
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param string|array{0: int, 1: string, 2: int} $token
+     */
+    private function isNameToken($token): bool
+    {
+        return is_array($token) && (
+            in_array($token[0], [T_STRING, T_NS_SEPARATOR], true)
+            // PHP 8 reads a qualified name as one token
+            || (PHP_VERSION_ID >= 80000 && in_array($token[0], [T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true))
+        );
     }
 }

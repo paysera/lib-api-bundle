@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader;
 
+use ArrayObject;
 use Paysera\Bundle\ApiBundle\Annotation\Body;
 use Paysera\Bundle\ApiBundle\Annotation\PathAttribute;
 use Paysera\Bundle\ApiBundle\Annotation\Query;
@@ -15,13 +16,18 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedIm
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOnlyController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ChildWithoutImports;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CommaImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CommentedImportsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ControllerUsingTheTrait;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomAnnotationOnAttributeRouteController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomRestAnnotation;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DirectImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportsBeforeTheClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBreakSpaceController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NotTopLevelAnnotationsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SameLineImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TwoImportsOnOneLineController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TwoNamespacesController;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
@@ -40,10 +46,12 @@ class DocblockAnnotationFinderTest extends TestCase
     ) {
         $finder = new DocblockAnnotationFinder();
 
-        $this->assertSame(
-            $expectedAnnotations,
-            $finder->findBundleAnnotations(new ReflectionClass($className), new ReflectionMethod($className, $methodName))
+        $annotations = $finder->findBundleAnnotations(
+            new ReflectionClass($className),
+            new ReflectionMethod($className, $methodName)
         );
+
+        $this->assertSame($expectedAnnotations, $annotations);
     }
 
     /**
@@ -92,10 +100,60 @@ class DocblockAnnotationFinderTest extends TestCase
                 'create',
                 [Body::class, RequiredPermissions::class],
             ],
-            'only top-level annotations count, as Doctrine reads them' => [
+            'comments inside use statements' => [
+                CommentedImportsController::class,
+                'find',
+                [Query::class, RequiredPermissions::class, Validation::class],
+            ],
+            'two use statements on one line' => [
+                TwoImportsOnOneLineController::class,
+                'create',
+                [Body::class, RequiredPermissions::class],
+            ],
+            'only the imports above the class count: not a commented-out one, not a trait in the class body' => [
+                ImportsBeforeTheClassController::class,
+                'find',
+                [Query::class, RequiredPermissions::class],
+            ],
+            'an import in another namespace block of the file does not count' => [
+                TwoNamespacesController::class,
+                'show',
+                [CustomRestAnnotation::class],
+            ],
+            'an "@" right after a word or "{" does not start an annotation, and a nested one is part of its parent' => [
                 NotTopLevelAnnotationsController::class,
                 'find',
                 [Query::class],
+            ],
+            'a nested annotation after a space is part of its parent too' => [
+                NotTopLevelAnnotationsController::class,
+                'findWithASpaceBeforeTheNestedAnnotation',
+                [Query::class],
+            ],
+            'reading starts at the first "@" after a space, a tab or "*", as in Doctrine' => [
+                NotTopLevelAnnotationsController::class,
+                'annotationAtTheStartOfALine',
+                [],
+            ],
+            'an "@" inside a quoted string is text' => [
+                NotTopLevelAnnotationsController::class,
+                'annotationInAString',
+                [],
+            ],
+            'a name followed by "-" is not an annotation' => [
+                NotTopLevelAnnotationsController::class,
+                'annotationFollowedByADash',
+                [],
+            ],
+            'a no-break space before an annotation is whitespace, as in Doctrine\'s lexer' => [
+                NoBreakSpaceController::class,
+                'show',
+                [RequiredPermissions::class],
+            ],
+            'a class of PHP itself has no docblocks' => [
+                ArrayObject::class,
+                'count',
+                [],
             ],
             'an application\'s own annotation class in the same namespace' => [
                 CustomAnnotationOnAttributeRouteController::class,
