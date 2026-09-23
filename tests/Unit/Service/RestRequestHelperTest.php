@@ -63,6 +63,18 @@ class RestRequestHelperTest extends MockeryTestCase
         $this->assertNull($helper->resolveRestRequestOptionsForRequest($request));
     }
 
+    public function testResolvesNoOptionsForAControllerWithoutIdentifierThatIsNotAClassMethodPair()
+    {
+        $registry = Mockery::mock(RestRequestOptionsRegistry::class);
+        $registry->shouldNotReceive('getRestRequestOptionsForController');
+        $helper = new RestRequestHelper($registry);
+
+        $options = $helper->resolveRestRequestOptionsForController(new Request(), function () {
+        });
+
+        $this->assertNull($options);
+    }
+
     public function testResolveRestRequestOptionsWithRegisteredOptionsAndCustomController()
     {
         $registry = Mockery::mock(RestRequestOptionsRegistry::class);

@@ -103,6 +103,22 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         $this->assertCount(1, $routes);
     }
 
+    public function testIgnoresTheBundleDocblockAnnotationsWhereTheApplicationDisabledAnnotationsBeforeSymfony7()
+    {
+        if (!class_exists(AttributeRouteControllerLoader::class)
+            || !property_exists(AttributeRouteControllerLoader::class, 'reader')
+        ) {
+            $this->markTestSkipped('Needs Symfony 6.4: the attribute route loader with an annotation reader property');
+        }
+        $loader = $this->createLoader();
+        $this->annotationOptionsBuilder->shouldNotReceive('buildOptions');
+        $this->requestHelper->shouldNotReceive('setOptionsForRoute');
+
+        $routes = $loader->load(DocblockOptionsOnAttributeRouteController::class);
+
+        $this->assertCount(1, $routes);
+    }
+
     private function skipUnlessTheRouteLoaderHasNoAnnotationReader()
     {
         if (!class_exists(AttributeRouteControllerLoader::class)

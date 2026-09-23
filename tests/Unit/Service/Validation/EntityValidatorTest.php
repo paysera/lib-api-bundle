@@ -19,6 +19,16 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class EntityValidatorTest extends MockeryTestCase
 {
+    public function testValidateRequiresTheValidator()
+    {
+        $entityValidator = new EntityValidator(null, Mockery::mock(PropertyPathConverterInterface::class));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('To use validation in RestBundle you must configure framework.validation');
+
+        $entityValidator->validate(new stdClass(), new ValidationOptions());
+    }
+
     public function testValidateDoesNotFailWithNonObject()
     {
         $validator = Mockery::mock(ValidatorInterface::class);

@@ -180,6 +180,29 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     ['Content-Type' => 'text/plain']
                 ),
             ],
+            'testBodyNormalizationWithCustomContentType and no content type' => [
+                new Response(
+                    '{"error":"invalid_request","error_description":"Content-Type must be provided"}',
+                    400
+                ),
+                $this->createRequest(
+                    'POST',
+                    '/testBodyNormalizationWithCustomContentType',
+                    'my_text'
+                ),
+            ],
+            'testBodyNormalizationWithExtractedKeyValue and a body that is not JSON' => [
+                new Response(
+                    '{"error":"invalid_request","error_description":"Cannot decode request body to JSON"}',
+                    400
+                ),
+                $this->createRequest(
+                    'POST',
+                    '/testBodyNormalizationWithExtractedKeyValue',
+                    '{"key": ',
+                    ['Content-Type' => 'application/json']
+                ),
+            ],
             'testBodyNormalizationWithCustomContentTypeAndJsonDecode and JSON content-type' => [
                 new Response(
                     '{"error":"invalid_request","error_description":"This Content-Type (application/json) is not supported"}',
