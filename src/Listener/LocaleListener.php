@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Listener;
 
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
+use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -48,11 +49,11 @@ class LocaleListener
      *
      * This is the rule Request::getPreferredLanguage() applied up to Symfony 7.0. Symfony 7.1 changed it, and passing a
      * placeholder for "no match" stopped working there ("default" starts with "de"), so the listener matches itself and
-     * picks the same locale on every Symfony line.
+     * picks the same locale on every Symfony line, from a header it reads itself (readLanguages()).
      */
     private function resolveFromHeaders(Request $request): ?string
     {
-        $languages = $request->getLanguages();
+        $languages = $this->readLanguages($request);
         $candidates = [];
         foreach ($languages as $language) {
             $candidates[] = $language;
@@ -73,5 +74,35 @@ class LocaleListener
         }
 
         return null;
+    }
+
+    /**
+     * The Accept-Language tags in the client's order of preference, written the way Request::getLanguages() wrote them up
+     * to Symfony 7.0: "de-CH" becomes "de_CH", and a tag without a region keeps its case. Symfony 7.1 changed that
+     * formatting too, so reading the header here keeps the result the same on every Symfony line.
+     *
+     * @return string[]
+     */
+    private function readLanguages(Request $request): array
+    {
+        $languages = [];
+        foreach (AcceptHeader::fromString($request->headers->get('Accept-Language'))->all() as $item) {
+            $language = $item->getValue();
+            if (strpos($language, '-') !== false) {
+                $codes = explode('-', $language);
+                if ($codes[0] === 'i') {
+                    // a language registered with the i- prefix, such as i-cherokee
+                    $language = $codes[1];
+                } else {
+                    $language = strtolower($codes[0]);
+                    for ($i = 1, $count = count($codes); $i < $count; $i++) {
+                        $language .= '_' . strtoupper($codes[$i]);
+                    }
+                }
+            }
+            $languages[] = $language;
+        }
+
+        return $languages;
     }
 }

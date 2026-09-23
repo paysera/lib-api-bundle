@@ -126,6 +126,36 @@ class LocaleListenerTest extends MockeryTestCase
                 '',
                 true,
             ],
+            'a tag without a region keeps its case, as Symfony 3.4 to 7.0 read it' => [
+                'unchanged',
+                ['de'],
+                'DE',
+                true,
+            ],
+            'a wrong-case tag does not match before a matching one' => [
+                'de',
+                ['en', 'lt', 'de'],
+                'EN,de',
+                true,
+            ],
+            'a numeric tag is not a language' => [
+                'unchanged',
+                ['de'],
+                '1',
+                true,
+            ],
+            'a numeric tag next to a language' => [
+                'de',
+                ['de'],
+                'de, 1',
+                true,
+            ],
+            'a language registered with the i- prefix' => [
+                'cherokee',
+                ['en', 'cherokee'],
+                'i-cherokee',
+                true,
+            ],
         ];
     }
 }
