@@ -36,7 +36,7 @@ class UnsetOptionsTest extends TestCase
             [new QueryResolverOptions(), 'getParameterName', 'parameterName was not set'],
             [new QueryResolverOptions(), 'getDenormalizationType', 'denormalizationType was not set'],
             [
-                new QueryResolverOptions(),
+                (new QueryResolverOptions())->setValidationOptions(null),
                 'getValidationOptions',
                 'No validationOptions available, call isValidationNeeded beforehand',
             ],
