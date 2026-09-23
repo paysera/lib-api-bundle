@@ -58,14 +58,11 @@ class DocblockAnnotationFinder
      */
     private function readImports(ReflectionClass $class): array
     {
+        // only internal classes have no file, and they carry no docblocks, so this method never sees one
         $fileName = $class->getFileName();
-        if ($fileName === false) {
-            return [];
-        }
-
         preg_match_all(
             '/^\s*use\s+(\\\\?[A-Za-z_][A-Za-z0-9_\\\\]*)(?:\s+as\s+([A-Za-z_][A-Za-z0-9_]*))?\s*;/mi',
-            (string)file_get_contents($fileName),
+            $fileName === false ? '' : (string)file_get_contents($fileName),
             $matches,
             PREG_SET_ORDER
         );
