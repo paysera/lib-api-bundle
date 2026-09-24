@@ -8,12 +8,11 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Paysera\Bundle\ApiBundle\Listener\LocaleListener;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Helper\HttpKernelHelper;
-use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Throwable;
+use Symfony\Component\HttpKernel\Kernel;
 
 class LocaleListenerTest extends MockeryTestCase
 {
@@ -32,11 +31,10 @@ class LocaleListenerTest extends MockeryTestCase
 
     public function testAnItemOfOnlyASemicolonIsNotALanguage()
     {
-        try {
-            AcceptHeader::fromString(';');
-        } catch (Throwable $error) {
-            // http-foundation 4.4 reads a missing value from the empty item: a notice or warning, then a TypeError
-            $this->markTestSkipped('This http-foundation release fails on an empty Accept-Language item itself');
+        if (Kernel::MAJOR_VERSION === 4) {
+            // http-foundation 4.4 fails on an empty Accept-Language item itself (a notice or warning, then a
+            // TypeError), with 1.8.2 as well
+            $this->markTestSkipped('Symfony 4.4 fails on an empty Accept-Language item itself');
         }
 
         $this->assertSame('unchanged', $this->resolveLocale(['de'], ';', true));
