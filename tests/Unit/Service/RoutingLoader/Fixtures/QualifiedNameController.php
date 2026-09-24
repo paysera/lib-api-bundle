@@ -28,4 +28,11 @@ class QualifiedNameController
     public function withTwoLeadingBackslashes()
     {
     }
+
+    /**
+     * @\\\Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions(permissions={"ROLE_ADMIN"})
+     */
+    public function withThreeLeadingBackslashes()
+    {
+    }
 }

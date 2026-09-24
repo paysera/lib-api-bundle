@@ -29,6 +29,7 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DirectImp
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Directory;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FunctionAndConstantImportsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredQualifiedNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredTagNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportListWithAliasesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportOnTheClassLineController;
@@ -235,10 +236,15 @@ class DocblockAnnotationFinderTest extends TestCase
                 'show',
                 [RequiredPermissions::class],
             ],
-            'a name with a namespace keeps its arguments, as Doctrine never ignores it' => [
+            'after a name with a namespace that is not imported the arguments are read, as Doctrine may ignore it' => [
                 QualifiedNameController::class,
                 'withoutTheLeadingBackslash',
-                [Query::class],
+                [Query::class, Validation::class],
+            ],
+            'a name with a namespace that the class tells Doctrine to ignore hides nothing' => [
+                IgnoredQualifiedNameController::class,
+                'show',
+                [RequiredPermissions::class],
             ],
             'a fully qualified name keeps its arguments' => [
                 QualifiedNameController::class,
@@ -248,6 +254,11 @@ class DocblockAnnotationFinderTest extends TestCase
             'two leading backslashes, as Doctrine strips them all' => [
                 QualifiedNameController::class,
                 'withTwoLeadingBackslashes',
+                [RequiredPermissions::class],
+            ],
+            'three leading backslashes' => [
+                QualifiedNameController::class,
+                'withThreeLeadingBackslashes',
                 [RequiredPermissions::class],
             ],
             'a name continues after a separator and a space, as Doctrine joins it' => [
@@ -264,6 +275,21 @@ class DocblockAnnotationFinderTest extends TestCase
                 NameAcrossASeparatorController::class,
                 'starAfterTheSeparator',
                 [RequiredPermissions::class],
+            ],
+            'a name continues across two separators with spaces' => [
+                NameAcrossASeparatorController::class,
+                'twoSeparatorsWithSpaces',
+                [RequiredPermissions::class],
+            ],
+            'a name continues after a separator and a no-break space' => [
+                NameAcrossASeparatorController::class,
+                'noBreakSpaceAfterTheSeparator',
+                [RequiredPermissions::class],
+            ],
+            'a name does not take the next line\'s words without a separator' => [
+                NameAcrossASeparatorController::class,
+                'nameFollowedByTextOnTheNextLine',
+                [ResponseNormalization::class],
             ],
             'a class named like a tag Doctrine ignores does not hide what its parentheses hold' => [
                 IgnoredTagNameController::class,

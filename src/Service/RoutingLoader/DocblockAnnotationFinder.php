@@ -16,13 +16,14 @@ use ReflectionMethod;
  * - reading starts at the first "@" after a space, a tab or "*"; from there an annotation starts at an "@" after
  *   whitespace, "*" or a quote, a quoted string is text, a name may continue after a "\" over whitespace and "*", a
  *   name followed by "-" is not an annotation (unless the "-" starts a number), and the arguments of an annotation
- *   class named through an import or with a namespace are skipped (Doctrine's DocParser and DocLexer);
+ *   class named through an import or in full are skipped (Doctrine's DocParser and DocLexer);
  * - a name resolves through the imports, else relative to the namespace, else as a fully qualified name; the bundle's
  *   own annotation classes are loaded first, so a name written in another case resolves as it did once Doctrine had
  *   loaded them.
- * Doctrine also passes over the tag names it ignores (Target, Required, param and so on, all without a namespace)
- * unless they are imported annotation classes. This finder keeps no such list: after such a name it reads on, so it
- * can report a nested annotation Doctrine did not apply, which refuses the route rather than dropping options.
+ * Doctrine also passes over the tag names it ignores (Target, Required, param and so on, and any a class lists with
+ * @IgnoreAnnotation) unless they are imported or written in full. This finder keeps no such list: after any other
+ * name it reads on, so it can report a nested annotation Doctrine did not apply, which refuses the route rather than
+ * dropping options.
  *
  * @internal
  */
@@ -115,11 +116,10 @@ class DocblockAnnotationFinder
             if (is_subclass_of($className, RestAnnotationInterface::class)) {
                 $found[] = $className;
             }
-            // Doctrine reads the arguments of an annotation class named through an import or with a namespace, so an
-            // "@" in them is a nested annotation or text. A name without either may be one Doctrine ignores, and then
-            // Doctrine reads what follows as top-level annotations: so do not skip.
-            $isNeverIgnored = $importedName !== null || strpos($name, '\\') !== false;
-            if ($isNeverIgnored
+            // Doctrine reads the arguments of an annotation class named through an import or in full, so an "@" in them
+            // is a nested annotation or text. Any other name may be one Doctrine ignores, and then Doctrine reads what
+            // follows as top-level annotations: so do not skip.
+            if ($importedName !== null
                 && $this->isAnnotationClass($className)
                 && preg_match(self::ARGUMENTS_PATTERN, $text, $arguments, 0, $offset) === 1
             ) {
@@ -175,8 +175,10 @@ class DocblockAnnotationFinder
         }
         $this->bundleAnnotationsLoaded = true;
         $namespace = (new ReflectionClass(RestAnnotationInterface::class))->getNamespaceName();
-        foreach (glob(dirname(__DIR__, 2) . '/Annotation/*.php') ?: [] as $file) {
-            class_exists($namespace . '\\' . basename($file, '.php'));
+        foreach (scandir(dirname(__DIR__, 2) . '/Annotation') ?: [] as $file) {
+            if (substr($file, -4) === '.php') {
+                class_exists($namespace . '\\' . substr($file, 0, -4));
+            }
         }
     }
 

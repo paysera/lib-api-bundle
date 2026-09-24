@@ -30,4 +30,26 @@ class NameAcrossASeparatorController
     public function starAfterTheSeparator()
     {
     }
+
+    /**
+     * @Api\ Annotation\ RequiredPermissions(permissions={"ROLE_ADMIN"})
+     */
+    public function twoSeparatorsWithSpaces()
+    {
+    }
+
+    /**
+     * @REST\ RequiredPermissions(permissions={"ROLE_ADMIN"})
+     */
+    public function noBreakSpaceAfterTheSeparator()
+    {
+    }
+
+    /**
+     * @REST\ResponseNormalization
+     * Only administrators.
+     */
+    public function nameFollowedByTextOnTheNextLine()
+    {
+    }
 }
