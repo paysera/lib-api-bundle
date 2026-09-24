@@ -77,8 +77,8 @@ class LocaleListener
     }
 
     /**
-     * The Accept-Language tags in the client's order of preference, written the way Request::getLanguages() wrote them up
-     * to Symfony 7.0: "de-CH" becomes "de_CH", and a tag without a region keeps its case. Symfony 7.1 changed that
+     * The Accept-Language tags in the client's order of preference, written the way Request::getLanguages() wrote them
+     * up to Symfony 7.0: "de-CH" becomes "de_CH", and a tag without a region keeps its case. Symfony 7.1 changed that
      * formatting too, so the listener writes the tags this way itself, on every Symfony line.
      *
      * @return string[]

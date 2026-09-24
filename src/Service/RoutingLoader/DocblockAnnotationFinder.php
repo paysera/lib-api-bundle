@@ -14,8 +14,8 @@ use ReflectionMethod;
  * - the imports are the `use` statements of the class's file above the class, in the class's namespace; a method
  *   declared in a trait also gets those of the trait's file (Doctrine's PhpParser, TokenParser, getMethodImports());
  * - reading starts at the first "@" after a space, a tab or "*"; from there an annotation starts at an "@" after
- *   whitespace or "*", a quoted string is text, a name followed by "-" is not an annotation, and the arguments of an
- *   annotation are skipped (Doctrine's DocParser and DocLexer);
+ *   whitespace or "*", a quoted string is text, a name followed by "-" is not an annotation (unless the "-" starts a
+ *   number), and the arguments of an annotation are skipped (Doctrine's DocParser and DocLexer);
  * - a name resolves through the imports, else relative to the namespace, else as a fully qualified name.
  * Unlike Doctrine, it does not pass over the tag names Doctrine ignores (param, return and so on) when a class has
  * that name.
@@ -24,18 +24,26 @@ use ReflectionMethod;
  */
 class DocblockAnnotationFinder
 {
+    /**
+     * A name as Doctrine's lexer reads it: letters, digits, "_", ":" and "\".
+     */
     private const NAME = '[a-z_\\\\][a-z0-9_:\\\\]*[a-z_][a-z0-9_]*|[a-z_]';
 
     /**
-     * A quoted string, which is one token, or an "@" at the start or after whitespace or "*" with the name right after
-     * it (group 1) and, when the name is followed by "-", that "-" (group 2).
+     * A quoted string, in which "" stands for a quote.
      */
-    private const TOKEN_PATTERN = '/"(?:""|[^"])*+"|(?<![^\s*])@(' . self::NAME . ')(-(?![0-9]))?/iu';
+    private const STRING = '"(?:""|[^"])*+"';
+
+    /**
+     * A quoted string, which is one token, or an "@" at the start or after whitespace or "*" with the name right after
+     * it (group 1) and, when the name is followed by "-" that does not start a number, that "-" (group 2).
+     */
+    private const TOKEN_PATTERN = '/' . self::STRING . '|(?<![^\s*])@(' . self::NAME . ')(-(?![0-9]))?/iu';
 
     /**
      * The arguments after an annotation's name: the parentheses, after any whitespace or "*", up to the matching one.
      */
-    private const ARGUMENTS_PATTERN = '/\G[\s*]*+(\((?:"(?:""|[^"])*+"|[^()"]++|"|(?1))*+\))/u';
+    private const ARGUMENTS_PATTERN = '/\G[\s*]*+(\((?:' . self::STRING . '|[^()"]++|"|(?1))*+\))/u';
 
     /**
      * @var array<string, array<string, string>> imports by class name
