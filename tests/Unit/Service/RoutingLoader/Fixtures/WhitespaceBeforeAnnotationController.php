@@ -6,7 +6,7 @@ namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures;
 
 use Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions;
 
-class NoBreakSpaceController
+class WhitespaceBeforeAnnotationController
 {
     /**
      * The annotation below follows a no-break space (U+00A0), which Doctrine's lexer reads as whitespace.
@@ -14,7 +14,14 @@ class NoBreakSpaceController
      * @param int $id
      * @RequiredPermissions(permissions={"ROLE_ADMIN"})
      */
-    public function show($id)
+    public function afterANoBreakSpace($id)
+    {
+    }
+
+    /**
+	@RequiredPermissions(permissions={"ROLE_ADMIN"})
+     */
+    public function afterATab()
     {
     }
 }

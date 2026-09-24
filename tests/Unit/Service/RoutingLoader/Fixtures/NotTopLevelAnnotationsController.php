@@ -35,6 +35,14 @@ class NotTopLevelAnnotationsController
     }
 
     /**
+@RequiredPermissions(permissions={"ROLE_ADMIN"})
+     * @Query(parameterName="filter")
+     */
+    public function annotationAfterOneAtTheStartOfALine()
+    {
+    }
+
+    /**
      * @param string $size see "the note on @RequiredPermissions in the parent"
      */
     public function annotationInAString($size)
