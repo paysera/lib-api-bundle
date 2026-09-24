@@ -13,8 +13,12 @@ use Paysera\Bundle\ApiBundle\Annotation\ResponseNormalization;
 use Paysera\Bundle\ApiBundle\Annotation\Validation;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationFinder;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ArgumentBoundariesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOnlyController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ChildOfAParentInAnotherNamespace;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ChildWithoutImports;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ChildWithOwnImports;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassLevelCustomAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CommaImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CommentedImportsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ControllerOverridingTheTraitMethod;
@@ -24,10 +28,15 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomRes
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DirectImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FunctionAndConstantImportsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredTagNameController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportListWithAliasesController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportOnTheClassLineController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportsBeforeTheClassController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAnnotationClassTagController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NotTopLevelAnnotationsController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherNamespace\LocalRestAnnotation;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SameLineImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\StarAndQuoteBeforeAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TwoImportsOnOneLineController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TwoNamespacesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\WhitespaceBeforeAnnotationController;
@@ -84,7 +93,7 @@ class DocblockAnnotationFinderTest extends TestCase
             'namespace alias, class alias and a fully qualified name' => [
                 AliasedImportController::class,
                 'find',
-                [Query::class, Validation::class, PathAttribute::class],
+                [Query::class, Validation::class, PathAttribute::class, ResponseNormalization::class],
             ],
             'attributes, Symfony tags and attribute class names are not the annotations' => [
                 AttributeOnlyController::class,
@@ -98,6 +107,26 @@ class DocblockAnnotationFinderTest extends TestCase
             ],
             'a method the class declares over its trait\'s resolves through the class file imports only' => [
                 ControllerOverridingTheTraitMethod::class,
+                'find',
+                [Query::class],
+            ],
+            'the class docblock resolves through its own file, the inherited method through the parent\'s' => [
+                ChildWithOwnImports::class,
+                'inherited',
+                [RequiredPermissions::class, ResponseNormalization::class],
+            ],
+            'a class docblock resolves relative to its namespace' => [
+                ClassLevelCustomAnnotationController::class,
+                'show',
+                [CustomRestAnnotation::class],
+            ],
+            'each of two classes in one file reads its own namespace block' => [
+                ChildOfAParentInAnotherNamespace::class,
+                'create',
+                [RequiredPermissions::class, Body::class, LocalRestAnnotation::class],
+            ],
+            'an import on the class\'s own line counts' => [
+                ImportOnTheClassLineController::class,
                 'find',
                 [Query::class],
             ],
@@ -180,6 +209,66 @@ class DocblockAnnotationFinderTest extends TestCase
                 NonAnnotationClassTagController::class,
                 'show',
                 [RequiredPermissions::class],
+            ],
+            'a class named like a tag Doctrine ignores does not hide what its parentheses hold' => [
+                IgnoredTagNameController::class,
+                'show',
+                [RequiredPermissions::class],
+            ],
+            'an annotation without arguments does not take the next one\'s' => [
+                ArgumentBoundariesController::class,
+                'afterAnAnnotationWithoutArguments',
+                [ResponseNormalization::class, RequiredPermissions::class],
+            ],
+            'a parenthesis in a quoted argument does not end the arguments' => [
+                ArgumentBoundariesController::class,
+                'afterAParenthesisInAString',
+                [Query::class, RequiredPermissions::class],
+            ],
+            'arguments after a space are still the annotation\'s' => [
+                ArgumentBoundariesController::class,
+                'argumentsAfterASpace',
+                [Query::class],
+            ],
+            'a one-letter alias, aliases in a comma list and an import written with a leading backslash' => [
+                ImportListWithAliasesController::class,
+                'create',
+                [RequiredPermissions::class, Body::class, Validation::class, Query::class],
+            ],
+            'reading can start at an "@" right after a star' => [
+                StarAndQuoteBeforeAnnotationController::class,
+                'firstRightAfterAStar',
+                [RequiredPermissions::class],
+            ],
+            'an "@" right after a star starts an annotation' => [
+                StarAndQuoteBeforeAnnotationController::class,
+                'laterAfterAStar',
+                [ResponseNormalization::class, RequiredPermissions::class],
+            ],
+            'an "@" right after a closing quote starts an annotation, as in Doctrine' => [
+                StarAndQuoteBeforeAnnotationController::class,
+                'afterAClosingQuote',
+                [RequiredPermissions::class],
+            ],
+            'an "@" right after a lone quote starts one too' => [
+                StarAndQuoteBeforeAnnotationController::class,
+                'afterALoneQuote',
+                [ResponseNormalization::class],
+            ],
+            'a ":" after a name leaves it an annotation' => [
+                ArgumentBoundariesController::class,
+                'colonAfterAName',
+                [ResponseNormalization::class],
+            ],
+            'the parentheses after an imported class that is not an annotation are read' => [
+                NonAnnotationClassTagController::class,
+                'afterAnImportedNonAnnotationClass',
+                [RequiredPermissions::class],
+            ],
+            'a name followed by a negative number is an annotation, as in Doctrine' => [
+                ArgumentBoundariesController::class,
+                'nameFollowedByANegativeNumber',
+                [ResponseNormalization::class],
             ],
             'a no-break space before an annotation is whitespace, as in Doctrine\'s lexer' => [
                 WhitespaceBeforeAnnotationController::class,

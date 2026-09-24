@@ -10,7 +10,7 @@ use Paysera\Bundle\ApiBundle\Annotation\{
 };
 use Paysera\Bundle\ApiBundle\Annotation\PathAttribute, /* admin only */
     Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions;
-use /* the bundle's */ Paysera\Bundle\ApiBundle\Annotation\Validation;
+use /** the bundle's */ Paysera\Bundle\ApiBundle\Annotation\Validation;
 
 class CommentedImportsController
 {

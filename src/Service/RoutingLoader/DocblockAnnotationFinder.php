@@ -17,8 +17,8 @@ use ReflectionMethod;
  *   whitespace or "*", a quoted string is text, a name followed by "-" is not an annotation (unless the "-" starts a
  *   number), and the arguments of an annotation are skipped (Doctrine's DocParser and DocLexer);
  * - a name resolves through the imports, else relative to the namespace, else as a fully qualified name.
- * Unlike Doctrine, it does not pass over the tag names Doctrine ignores (param, return and so on) when a class has
- * that name.
+ * Doctrine also passes over the tag names it ignores (Target, Required, param and so on) unless they are imported or
+ * written in full. This finder keeps no such list, so where it cannot tell, it reads on and reports more, never less.
  *
  * @internal
  */
@@ -35,10 +35,12 @@ class DocblockAnnotationFinder
     private const STRING = '"(?:""|[^"])*+"';
 
     /**
-     * A quoted string, which is one token, or an "@" at the start or after whitespace or "*" with the name right after
-     * it (group 1) and, when the name is followed by "-" that does not start a number, that "-" (group 2).
+     * A quoted string, which is one token, or an "@" at the start or after whitespace, "*" or a quote, with the name
+     * right after it (group 1) and, when the name is followed by "-" that does not start a number, that "-" (group 2).
+     * Doctrine's lexer measures a token that starts with a quote without its quotes, so an "@" right after a quote is
+     * never glued to it.
      */
-    private const TOKEN_PATTERN = '/' . self::STRING . '|(?<![^\s*])@(' . self::NAME . ')(-(?![0-9]))?/iu';
+    private const TOKEN_PATTERN = '/' . self::STRING . '|(?<![^\s*"])@(' . self::NAME . ')(-(?![0-9]))?/iu';
 
     /**
      * The arguments after an annotation's name: the parentheses, after any whitespace or "*", up to the matching one.
@@ -93,17 +95,23 @@ class DocblockAnnotationFinder
                 continue;
             }
 
-            $className = $this->resolveClassName($token[1][0], $imports, $namespace);
+            $name = $token[1][0];
+            $importedName = $this->resolveImportedName($name, $imports);
+            $candidates = $importedName !== null ? [$importedName] : [$namespace . '\\' . $name, $name];
+            $className = $this->findClass($candidates);
             if ($className === null) {
                 continue;
             }
             if (is_subclass_of($className, RestAnnotationInterface::class)) {
                 $found[] = $className;
             }
-            if ($this->isAnnotationClass($className)
+            // Doctrine reads the arguments of an annotation class named through an import or in full, so an "@" in them
+            // is a nested annotation or text. Found another way, the class may carry a name Doctrine ignores, and then
+            // Doctrine reads what follows as top-level annotations: so do not skip.
+            if ($importedName !== null
+                && $this->isAnnotationClass($className)
                 && preg_match(self::ARGUMENTS_PATTERN, $text, $arguments, 0, $offset) === 1
             ) {
-                // Doctrine reads an annotation's arguments, so an "@" in them is a nested annotation or text
                 $offset += strlen($arguments[0]);
             }
         }
@@ -113,20 +121,29 @@ class DocblockAnnotationFinder
 
     /**
      * @param array<string, string> $imports
-     * @return string|null the class the name refers to, or null when there is none
+     * @return string|null the class name a fully qualified or imported name stands for, or null for any other name
      */
-    private function resolveClassName(string $name, array $imports, string $namespace): ?string
+    private function resolveImportedName(string $name, array $imports): ?string
     {
         if ($name[0] === '\\') {
-            $candidates = [$name];
-        } else {
-            $parts = explode('\\', $name, 2);
-            $alias = strtolower($parts[0]);
-            $candidates = isset($imports[$alias])
-                ? [$imports[$alias] . (isset($parts[1]) ? '\\' . $parts[1] : '')]
-                : [$namespace . '\\' . $name, $name];
+            return $name;
         }
 
+        $parts = explode('\\', $name, 2);
+        $alias = strtolower($parts[0]);
+        if (!isset($imports[$alias])) {
+            return null;
+        }
+
+        return $imports[$alias] . (isset($parts[1]) ? '\\' . $parts[1] : '');
+    }
+
+    /**
+     * @param string[] $candidates class names in the order Doctrine tries them
+     * @return string|null the first that exists, as the class declares its name
+     */
+    private function findClass(array $candidates): ?string
+    {
         foreach ($candidates as $candidate) {
             if (class_exists($candidate)) {
                 return (new ReflectionClass($candidate))->getName();
