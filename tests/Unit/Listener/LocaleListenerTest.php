@@ -8,10 +8,12 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Paysera\Bundle\ApiBundle\Listener\LocaleListener;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Helper\HttpKernelHelper;
+use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use TypeError;
 
 class LocaleListenerTest extends MockeryTestCase
 {
@@ -24,6 +26,25 @@ class LocaleListenerTest extends MockeryTestCase
      * @param bool $rest
      */
     public function testOnKernelRequest(string $expectedLocale, array $locales, string $acceptLanguage, bool $rest)
+    {
+        $this->assertSame($expectedLocale, $this->resolveLocale($locales, $acceptLanguage, $rest));
+    }
+
+    public function testAnItemOfOnlyASemicolonIsNotALanguage()
+    {
+        try {
+            AcceptHeader::fromString(';');
+        } catch (TypeError $error) {
+            $this->markTestSkipped('This http-foundation release fails on an empty Accept-Language item itself');
+        }
+
+        $this->assertSame('unchanged', $this->resolveLocale(['de'], ';', true));
+    }
+
+    /**
+     * @param string[] $locales
+     */
+    private function resolveLocale(array $locales, string $acceptLanguage, bool $rest): string
     {
         $helper = Mockery::mock(RestRequestHelper::class);
         $kernel = Mockery::mock(HttpKernelInterface::class);
@@ -42,7 +63,7 @@ class LocaleListenerTest extends MockeryTestCase
 
         $listener->onKernelRequest($event);
 
-        $this->assertSame($expectedLocale, $request->getLocale());
+        return $request->getLocale();
     }
 
     public function provider()
