@@ -21,9 +21,10 @@ use ReflectionMethod;
  *   own annotation classes are loaded first, so a name written in another case resolves as it did once Doctrine had
  *   loaded them.
  * Doctrine also passes over the tag names it ignores (Target, Required, param and so on, and any a class lists with
- * @IgnoreAnnotation) unless they are imported or written in full. This finder keeps no such list: after any other
- * name it reads on, so it can report a nested annotation Doctrine did not apply, which refuses the route rather than
- * dropping options.
+ * @IgnoreAnnotation) unless they name an annotation class through an import or in full. This finder keeps no such
+ * list: after any other name it reads on, so it can report a nested annotation Doctrine did not apply, which refuses
+ * the route rather than dropping options. Where doctrine/lexer 1.0 read a docblock differently from its later
+ * versions (a no-break space, a byte that is not UTF-8), it takes the reading that reports more.
  *
  * @internal
  */
@@ -46,12 +47,13 @@ class DocblockAnnotationFinder
      * never glued to it; and its parser joins a name ending in "\" to the next one over whitespace and "*".
      */
     private const TOKEN_PATTERN = '/' . self::STRING . '|(?<![^\s*"])@((?:' . self::NAME . ')(?:\\\\[\s*]*+(?:'
-        . self::NAME . '))*+)(-(?![0-9]))?/iu';
+        . self::NAME . '))*+)(-(?![0-9]))?/';
 
     /**
-     * The arguments after an annotation's name: the parentheses, after any whitespace or "*", up to the matching one.
+     * The arguments after an annotation's name: the parentheses, after any ASCII whitespace or "*", up to the matching
+     * one. doctrine/lexer 1.0 did not read other whitespace as whitespace, so parentheses after it were not arguments.
      */
-    private const ARGUMENTS_PATTERN = '/\G[\s*]*+(\((?:' . self::STRING . '|[^()"]++|"|(?1))*+\))/u';
+    private const ARGUMENTS_PATTERN = '/\G[\s*]*+(\((?:' . self::STRING . '|[^()"]++|"|(?1))*+\))/';
 
     /**
      * @var array<string, array<string, string>> imports by class name
@@ -98,7 +100,9 @@ class DocblockAnnotationFinder
         $text = substr($docComment, $start[0][1] + 1);
         $found = [];
         $offset = 0;
-        while (preg_match(self::TOKEN_PATTERN, $text, $token, PREG_OFFSET_CAPTURE, $offset) === 1) {
+        // doctrine/lexer 1.2 and later read a docblock that is not valid UTF-8 as no annotations, 1.0 byte by byte
+        $pattern = self::TOKEN_PATTERN . (preg_match('//u', $text) === 1 ? 'iu' : 'i');
+        while (preg_match($pattern, $text, $token, PREG_OFFSET_CAPTURE, $offset) === 1) {
             $offset = $token[0][1] + strlen($token[0][0]);
             $isString = !isset($token[1]);
             $isFollowedByDash = isset($token[2]);

@@ -34,9 +34,11 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredTa
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportListWithAliasesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportOnTheClassLineController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportsBeforeTheClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LexerOneController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NameAcrossASeparatorController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAnnotationClassTagController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NotTopLevelAnnotationsController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NotUtf8DocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherNamespace\LocalRestAnnotation;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\QualifiedNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SameLineImportController;
@@ -290,6 +292,16 @@ class DocblockAnnotationFinderTest extends TestCase
                 NameAcrossASeparatorController::class,
                 'nameFollowedByTextOnTheNextLine',
                 [ResponseNormalization::class],
+            ],
+            'a no-break space before the arguments leaves them unread, as doctrine/lexer 1.0 read them' => [
+                LexerOneController::class,
+                'noBreakSpaceBeforeTheArguments',
+                [RequiredPermissions::class],
+            ],
+            'a docblock with a byte that is not UTF-8 is still read, as doctrine/lexer 1.0 read it' => [
+                NotUtf8DocblockController::class,
+                'show',
+                [RequiredPermissions::class],
             ],
             'a class named like a tag Doctrine ignores does not hide what its parentheses hold' => [
                 IgnoredTagNameController::class,
