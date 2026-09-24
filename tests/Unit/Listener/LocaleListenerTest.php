@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use TypeError;
+use Throwable;
 
 class LocaleListenerTest extends MockeryTestCase
 {
@@ -34,7 +34,8 @@ class LocaleListenerTest extends MockeryTestCase
     {
         try {
             AcceptHeader::fromString(';');
-        } catch (TypeError $error) {
+        } catch (Throwable $error) {
+            // http-foundation 4.4 reads a missing value from the empty item: a notice or warning, then a TypeError
             $this->markTestSkipped('This http-foundation release fails on an empty Accept-Language item itself');
         }
 
