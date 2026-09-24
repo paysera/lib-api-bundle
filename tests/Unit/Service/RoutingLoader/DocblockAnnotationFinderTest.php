@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader;
 
 use ArrayObject;
+use FilesystemIterator;
 use Paysera\Bundle\ApiBundle\Annotation\Body;
 use Paysera\Bundle\ApiBundle\Annotation\PathAttribute;
 use Paysera\Bundle\ApiBundle\Annotation\Query;
@@ -48,6 +49,8 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TwoNamesp
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\WhitespaceBeforeAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\WrongCaseNameController;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -87,6 +90,37 @@ class DocblockAnnotationFinderTest extends TestCase
         );
 
         $this->assertSame([RequiredPermissions::class], $annotations);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testResolvesAnotherCaseWhenTheBundleIsInstalledUnderAPathWithBrackets()
+    {
+        $directory = sys_get_temp_dir() . '/api-bundle-' . getmypid() . '[1]';
+        $this->copyDirectory(dirname(__DIR__, 4) . '/src', $directory . '/src');
+        spl_autoload_register(function (string $className) use ($directory) {
+            $prefix = 'Paysera\\Bundle\\ApiBundle\\';
+            $file = $directory . '/src/' . str_replace('\\', '/', substr($className, strlen($prefix))) . '.php';
+            if (strpos($className, $prefix) === 0 && is_file($file)) {
+                require $file;
+            }
+        }, true, true);
+
+        try {
+            $annotations = (new DocblockAnnotationFinder())->findBundleAnnotations(
+                new ReflectionClass(WrongCaseNameController::class),
+                new ReflectionMethod(WrongCaseNameController::class, 'show')
+            );
+        } finally {
+            $this->removeDirectory($directory);
+        }
+
+        $this->assertSame(
+            [$directory . '/src/Service/RoutingLoader/DocblockAnnotationFinder.php', [RequiredPermissions::class]],
+            [(new ReflectionClass(DocblockAnnotationFinder::class))->getFileName(), $annotations]
+        );
     }
 
     public function testReadsAClassDeclaredInEvaluatedCode()
@@ -389,5 +423,30 @@ class DocblockAnnotationFinderTest extends TestCase
                 [CustomRestAnnotation::class],
             ],
         ];
+    }
+
+    private function copyDirectory(string $source, string $target)
+    {
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+        mkdir($target, 0777, true);
+        foreach ($files as $file) {
+            $path = $target . '/' . substr($file->getPathname(), strlen($source) + 1);
+            $file->isDir() ? mkdir($path) : copy($file->getPathname(), $path);
+        }
+    }
+
+    private function removeDirectory(string $directory)
+    {
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($files as $file) {
+            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
+        }
+        rmdir($directory);
     }
 }
