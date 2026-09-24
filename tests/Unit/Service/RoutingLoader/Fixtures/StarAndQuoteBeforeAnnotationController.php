@@ -23,6 +23,11 @@ class StarAndQuoteBeforeAnnotationController
     {
     }
 
+    /** "a quote"@RequiredPermissions(permissions={"ROLE_ADMIN"}) */
+    public function firstGluedToAQuote()
+    {
+    }
+
     /**
      * @param string $note see "the notes"@RequiredPermissions(permissions={"ROLE_ADMIN"})
      */

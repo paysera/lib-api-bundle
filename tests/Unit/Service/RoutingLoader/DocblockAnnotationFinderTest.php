@@ -32,14 +32,17 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredTa
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportListWithAliasesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportOnTheClassLineController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportsBeforeTheClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NameAcrossASeparatorController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAnnotationClassTagController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NotTopLevelAnnotationsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherNamespace\LocalRestAnnotation;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\QualifiedNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SameLineImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\StarAndQuoteBeforeAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TwoImportsOnOneLineController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TwoNamespacesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\WhitespaceBeforeAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\WrongCaseNameController;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
@@ -64,6 +67,22 @@ class DocblockAnnotationFinderTest extends TestCase
         );
 
         $this->assertSame($expectedAnnotations, $annotations);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testResolvesABundleAnnotationWrittenInAnotherCaseBeforeAnythingLoadedIt()
+    {
+        $finder = new DocblockAnnotationFinder();
+
+        $annotations = $finder->findBundleAnnotations(
+            new ReflectionClass(WrongCaseNameController::class),
+            new ReflectionMethod(WrongCaseNameController::class, 'show')
+        );
+
+        $this->assertSame([RequiredPermissions::class], $annotations);
     }
 
     public function testReadsAClassDeclaredInEvaluatedCode()
@@ -123,7 +142,7 @@ class DocblockAnnotationFinderTest extends TestCase
             'each of two classes in one file reads its own namespace block' => [
                 ChildOfAParentInAnotherNamespace::class,
                 'create',
-                [RequiredPermissions::class, Body::class, LocalRestAnnotation::class],
+                [RequiredPermissions::class, CustomRestAnnotation::class, Body::class, LocalRestAnnotation::class],
             ],
             'an import on the class\'s own line counts' => [
                 ImportOnTheClassLineController::class,
@@ -210,6 +229,36 @@ class DocblockAnnotationFinderTest extends TestCase
                 'show',
                 [RequiredPermissions::class],
             ],
+            'a name with a namespace keeps its arguments, as Doctrine never ignores it' => [
+                QualifiedNameController::class,
+                'withoutTheLeadingBackslash',
+                [Query::class],
+            ],
+            'a fully qualified name keeps its arguments' => [
+                QualifiedNameController::class,
+                'withTheLeadingBackslash',
+                [Query::class],
+            ],
+            'two leading backslashes, as Doctrine strips them all' => [
+                QualifiedNameController::class,
+                'withTwoLeadingBackslashes',
+                [RequiredPermissions::class],
+            ],
+            'a name continues after a separator and a space, as Doctrine joins it' => [
+                NameAcrossASeparatorController::class,
+                'spaceAfterTheSeparator',
+                [RequiredPermissions::class],
+            ],
+            'a name continues after a separator and a line break' => [
+                NameAcrossASeparatorController::class,
+                'lineBreakAfterTheSeparator',
+                [RequiredPermissions::class],
+            ],
+            'a name continues after a separator and a star' => [
+                NameAcrossASeparatorController::class,
+                'starAfterTheSeparator',
+                [RequiredPermissions::class],
+            ],
             'a class named like a tag Doctrine ignores does not hide what its parentheses hold' => [
                 IgnoredTagNameController::class,
                 'show',
@@ -244,6 +293,11 @@ class DocblockAnnotationFinderTest extends TestCase
                 StarAndQuoteBeforeAnnotationController::class,
                 'laterAfterAStar',
                 [ResponseNormalization::class, RequiredPermissions::class],
+            ],
+            'reading does not start at an "@" glued to a quote' => [
+                StarAndQuoteBeforeAnnotationController::class,
+                'firstGluedToAQuote',
+                [],
             ],
             'an "@" right after a closing quote starts an annotation, as in Doctrine' => [
                 StarAndQuoteBeforeAnnotationController::class,

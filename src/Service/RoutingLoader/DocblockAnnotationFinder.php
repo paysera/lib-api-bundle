@@ -14,11 +14,15 @@ use ReflectionMethod;
  * - the imports are the `use` statements of the class's file above the class, in the class's namespace; a method
  *   declared in a trait also gets those of the trait's file (Doctrine's PhpParser, TokenParser, getMethodImports());
  * - reading starts at the first "@" after a space, a tab or "*"; from there an annotation starts at an "@" after
- *   whitespace or "*", a quoted string is text, a name followed by "-" is not an annotation (unless the "-" starts a
- *   number), and the arguments of an annotation are skipped (Doctrine's DocParser and DocLexer);
- * - a name resolves through the imports, else relative to the namespace, else as a fully qualified name.
- * Doctrine also passes over the tag names it ignores (Target, Required, param and so on) unless they are imported or
- * written in full. This finder keeps no such list, so where it cannot tell, it reads on and reports more, never less.
+ *   whitespace, "*" or a quote, a quoted string is text, a name may continue after a "\" over whitespace and "*", a
+ *   name followed by "-" is not an annotation (unless the "-" starts a number), and the arguments of an annotation
+ *   class named through an import or with a namespace are skipped (Doctrine's DocParser and DocLexer);
+ * - a name resolves through the imports, else relative to the namespace, else as a fully qualified name; the bundle's
+ *   own annotation classes are loaded first, so a name written in another case resolves as it did once Doctrine had
+ *   loaded them.
+ * Doctrine also passes over the tag names it ignores (Target, Required, param and so on, all without a namespace)
+ * unless they are imported annotation classes. This finder keeps no such list: after such a name it reads on, so it
+ * can report a nested annotation Doctrine did not apply, which refuses the route rather than dropping options.
  *
  * @internal
  */
@@ -38,9 +42,10 @@ class DocblockAnnotationFinder
      * A quoted string, which is one token, or an "@" at the start or after whitespace, "*" or a quote, with the name
      * right after it (group 1) and, when the name is followed by "-" that does not start a number, that "-" (group 2).
      * Doctrine's lexer measures a token that starts with a quote without its quotes, so an "@" right after a quote is
-     * never glued to it.
+     * never glued to it; and its parser joins a name ending in "\" to the next one over whitespace and "*".
      */
-    private const TOKEN_PATTERN = '/' . self::STRING . '|(?<![^\s*"])@(' . self::NAME . ')(-(?![0-9]))?/iu';
+    private const TOKEN_PATTERN = '/' . self::STRING . '|(?<![^\s*"])@((?:' . self::NAME . ')(?:\\\\[\s*]*+(?:'
+        . self::NAME . '))*+)(-(?![0-9]))?/iu';
 
     /**
      * The arguments after an annotation's name: the parentheses, after any whitespace or "*", up to the matching one.
@@ -51,6 +56,11 @@ class DocblockAnnotationFinder
      * @var array<string, array<string, string>> imports by class name
      */
     private $importsByClass = [];
+
+    /**
+     * @var bool
+     */
+    private $bundleAnnotationsLoaded = false;
 
     /**
      * @return string[] class names of the bundle annotations the docblocks use, in order, each once
@@ -95,7 +105,7 @@ class DocblockAnnotationFinder
                 continue;
             }
 
-            $name = $token[1][0];
+            $name = (string)preg_replace('/[\s*]++/u', '', $token[1][0]);
             $importedName = $this->resolveImportedName($name, $imports);
             $candidates = $importedName !== null ? [$importedName] : [$namespace . '\\' . $name, $name];
             $className = $this->findClass($candidates);
@@ -105,10 +115,11 @@ class DocblockAnnotationFinder
             if (is_subclass_of($className, RestAnnotationInterface::class)) {
                 $found[] = $className;
             }
-            // Doctrine reads the arguments of an annotation class named through an import or in full, so an "@" in them
-            // is a nested annotation or text. Found another way, the class may carry a name Doctrine ignores, and then
+            // Doctrine reads the arguments of an annotation class named through an import or with a namespace, so an
+            // "@" in them is a nested annotation or text. A name without either may be one Doctrine ignores, and then
             // Doctrine reads what follows as top-level annotations: so do not skip.
-            if ($importedName !== null
+            $isNeverIgnored = $importedName !== null || strpos($name, '\\') !== false;
+            if ($isNeverIgnored
                 && $this->isAnnotationClass($className)
                 && preg_match(self::ARGUMENTS_PATTERN, $text, $arguments, 0, $offset) === 1
             ) {
@@ -126,7 +137,7 @@ class DocblockAnnotationFinder
     private function resolveImportedName(string $name, array $imports): ?string
     {
         if ($name[0] === '\\') {
-            return $name;
+            return ltrim($name, '\\');
         }
 
         $parts = explode('\\', $name, 2);
@@ -144,6 +155,7 @@ class DocblockAnnotationFinder
      */
     private function findClass(array $candidates): ?string
     {
+        $this->loadBundleAnnotations();
         foreach ($candidates as $candidate) {
             if (class_exists($candidate)) {
                 return (new ReflectionClass($candidate))->getName();
@@ -151,6 +163,21 @@ class DocblockAnnotationFinder
         }
 
         return null;
+    }
+
+    /**
+     * PHP finds a loaded class by any case of its name; an autoloader, reading a file name, may not.
+     */
+    private function loadBundleAnnotations(): void
+    {
+        if ($this->bundleAnnotationsLoaded) {
+            return;
+        }
+        $this->bundleAnnotationsLoaded = true;
+        $namespace = (new ReflectionClass(RestAnnotationInterface::class))->getNamespaceName();
+        foreach (glob(dirname(__DIR__, 2) . '/Annotation/*.php') ?: [] as $file) {
+            class_exists($namespace . '\\' . basename($file, '.php'));
+        }
     }
 
     private function isAnnotationClass(string $className): bool

@@ -27,6 +27,7 @@ namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures {
 
     /**
      * @Shared(permissions={"ROLE_CLASS"})
+     * @CustomRestAnnotation
      */
     class ChildOfAParentInAnotherNamespace extends OtherNamespace\ParentInAnotherNamespace
     {
