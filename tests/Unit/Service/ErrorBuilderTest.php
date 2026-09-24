@@ -89,6 +89,12 @@ class ErrorBuilderTest extends TestCase
                 406,
                 'Unknown request or response format',
             ],
+            'API exception with the internal server error code' => [
+                new ApiException(ApiException::INTERNAL_SERVER_ERROR),
+                'internal_server_error',
+                500,
+                'Unexpected internal system error',
+            ],
             'API exception with an unconfigured code' => [
                 new ApiException('unconfigured_code'),
                 'unconfigured_code',
