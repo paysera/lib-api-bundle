@@ -12,4 +12,11 @@ class ClassLevelCustomAnnotationController
     public function show()
     {
     }
+
+    /**
+     * @Directory
+     */
+    public function list()
+    {
+    }
 }

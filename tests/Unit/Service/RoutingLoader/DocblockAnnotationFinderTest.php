@@ -26,6 +26,7 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Controlle
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomAnnotationOnAttributeRouteController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\CustomRestAnnotation;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DirectImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Directory;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FunctionAndConstantImportsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredTagNameController;
@@ -138,6 +139,11 @@ class DocblockAnnotationFinderTest extends TestCase
                 ClassLevelCustomAnnotationController::class,
                 'show',
                 [CustomRestAnnotation::class],
+            ],
+            'a name resolves in the namespace before a PHP class of the same name' => [
+                ClassLevelCustomAnnotationController::class,
+                'list',
+                [CustomRestAnnotation::class, Directory::class],
             ],
             'each of two classes in one file reads its own namespace block' => [
                 ChildOfAParentInAnotherNamespace::class,
