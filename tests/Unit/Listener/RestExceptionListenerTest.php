@@ -29,7 +29,7 @@ class RestExceptionListenerTest extends MockeryTestCase
      * @param int $statusCode
      * @param string|null $logLevel
      */
-    public function testOnKernelException(bool $restRequest, int $statusCode = 400, string $logLevel = null)
+    public function testOnKernelException(bool $restRequest, int $statusCode = 400, ?string $logLevel = null)
     {
         $helper = Mockery::mock(RestRequestHelper::class);
         $errorBuilder = Mockery::mock(ErrorBuilderInterface::class);

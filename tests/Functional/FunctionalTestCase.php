@@ -5,6 +5,7 @@ namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\TestKernel;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
@@ -31,7 +32,12 @@ abstract class FunctionalTestCase extends TestCase
      */
     protected function setUpContainer($testCase, $commonFile = 'common.yml')
     {
-        $prefix = Kernel::MAJOR_VERSION <= 4 ? 'legacy_' : '';
+        $prefix = '';
+        if (Kernel::MAJOR_VERSION <= 4) {
+            $prefix = 'legacy_';
+        } elseif (!TestHelper::docblockRoutingSupportExists()) {
+            $prefix = 'sf7_';
+        }
         $this->kernel = new TestKernel($testCase, $prefix . $commonFile);
         $this->kernel->boot();
         return $this->kernel->getContainer();
@@ -57,9 +63,9 @@ abstract class FunctionalTestCase extends TestCase
     protected function createRequest(
         string $method,
         string $uri,
-        string $content = null,
+        ?string $content = null,
         array $headers = [],
-        string $username = null
+        ?string $username = null
     ): Request {
         $parts = parse_url($uri);
         parse_str($parts['query'] ?? '', $query);

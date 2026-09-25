@@ -43,7 +43,7 @@ class TestKernel extends Kernel
         $loader->load(__DIR__ . '/config/' . $this->configFile);
         $loader->load(__DIR__ . '/config/' . $this->commonFile);
 
-        if (TestHelper::phpAttributeSupportExists()) {
+        if (TestHelper::phpAttributeSupportExists() && TestHelper::docblockRoutingSupportExists()) {
             $loader->load(__DIR__ . '/config/attributed_common.yml');
         }
     }

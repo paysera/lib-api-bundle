@@ -26,8 +26,8 @@ class EntityValidator
     protected $propertyPathConverter;
 
     public function __construct(
-        ValidatorInterface $validator = null,
-        PropertyPathConverterInterface $propertyPathConverter = null
+        ?ValidatorInterface $validator = null,
+        ?PropertyPathConverterInterface $propertyPathConverter = null
     ) {
         $this->validator = $validator;
         $this->propertyPathConverter = $propertyPathConverter;

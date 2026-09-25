@@ -6,6 +6,7 @@ namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
 use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
 use Paysera\Bundle\ApiBundle\Attribute\RestAttributeInterface;
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use ReflectionClass;
 use ReflectionMethod;
@@ -17,6 +18,9 @@ use Symfony\Component\Routing\Route;
  */
 class RoutingAttributeLoader extends AttributeRouteControllerLoader
 {
+    private const ANNOTATION_NAMESPACE = 'Paysera\\Bundle\\ApiBundle\\Annotation\\';
+    private const ATTRIBUTE_NAMESPACE = 'Paysera\\Bundle\\ApiBundle\\Attribute\\';
+
     /**
      * @var RestRequestHelper
      */
@@ -31,6 +35,11 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
      * @var RestRequestAttributeOptionsBuilder
      */
     private $attributeOptionsBuilder;
+
+    /**
+     * @var DocblockAnnotationFinder|null
+     */
+    private $docblockAnnotationFinder;
 
     public function setRequestHelper(RestRequestHelper $restRequestHelper)
     {
@@ -59,8 +68,16 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $this->loadAttributes($route, $class, $method);
     }
 
+    /**
+     * @throws ConfigurationException
+     */
     private function loadAnnotations(Route $route, ReflectionClass $class, ReflectionMethod $method): void
     {
+        if (!property_exists($this, 'reader')) {
+            $this->refuseDocblockAnnotations($class, $method);
+            return;
+        }
+
         if (!isset($this->reader)) {
             return;
         }
@@ -86,6 +103,40 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
             $route,
             $this->annotationOptionsBuilder->buildOptions($annotations, $method)
         );
+    }
+
+    /**
+     * @throws ConfigurationException
+     */
+    private function refuseDocblockAnnotations(ReflectionClass $class, ReflectionMethod $method): void
+    {
+        if ($this->docblockAnnotationFinder === null) {
+            $this->docblockAnnotationFinder = new DocblockAnnotationFinder();
+        }
+        $annotations = $this->docblockAnnotationFinder->findBundleAnnotations($class, $method);
+        if ($annotations === []) {
+            return;
+        }
+
+        $replacements = [];
+        foreach ($annotations as $annotation) {
+            $replacements[] = strpos($annotation, self::ANNOTATION_NAMESPACE) === 0
+                ? '#[\\' . self::ATTRIBUTE_NAMESPACE . substr($annotation, strlen(self::ANNOTATION_NAMESPACE)) . ']'
+                : sprintf(
+                    'an attribute implementing \\%s in place of \\%s',
+                    RestAttributeInterface::class,
+                    $annotation
+                );
+        }
+
+        throw new ConfigurationException(sprintf(
+            '%s::%s() uses docblock annotations of paysera/lib-api-bundle (\\%s). Symfony 7 does not read docblock '
+            . 'annotations, so they would have no effect. Use the PHP attributes instead: %s.',
+            $class->getName(),
+            $method->getName(),
+            implode(', \\', $annotations),
+            implode(', ', $replacements)
+        ));
     }
 
     private function loadAttributes(Route $route, ReflectionClass $class, ReflectionMethod $method): void

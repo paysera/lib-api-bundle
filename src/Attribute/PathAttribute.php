@@ -35,8 +35,8 @@ class PathAttribute implements RestAttributeInterface
 
     public function __construct(
         array $options = [],
-        string $parameterName = null,
-        string $pathPartName = null,
+        ?string $parameterName = null,
+        ?string $pathPartName = null,
         ?string $resolverType = null,
         ?bool $resolutionMandatory = null
     ) {

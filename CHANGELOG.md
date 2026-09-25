@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0]
+### Added
+- Support for Symfony 7.4
+- Support for `psr/log` 3
+
+### Changed
+- The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
+  `symfony/http-foundation`, `symfony/http-kernel`, `symfony/property-access`, `symfony/routing` and `symfony/security-core`
+- `Configuration::getConfigTreeBuilder()` declares its `TreeBuilder` return type and `PayseraApiExtension::load()` declares
+  `void`. Breaking for subclasses that override either method without the return type: add `: TreeBuilder` or `: void` to
+  the override
+- On Symfony 7, loading a route whose controller configures it with the bundle's docblock annotations (`@Body`, `@Query`,
+  `@PathAttribute`, `@ResponseNormalization`, `@RequiredPermissions`, `@Validation`, `@BodyContentType`) fails with a
+  `ConfigurationException` that names the attributes to use instead. Symfony 7 does not read docblock annotations, so these
+  options were ignored without an error. Symfony 4.4 to 6.4 are unchanged
+- Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
+- CI runs the tests on Symfony 7 with PHP 8.2 and 8.3
+
+### Fixed
+- On Symfony 7.1 and later, `LocaleListener` picks the locale from `Accept-Language` the same way as on older Symfony
+  versions: a request asking for German (`de`) kept the default locale there
+
 ## [1.8.2]
 ### Changed
 - CI allows packages with security advisories, so Symfony 3.4 and 4.4 jobs can install dependencies with Composer 2.10

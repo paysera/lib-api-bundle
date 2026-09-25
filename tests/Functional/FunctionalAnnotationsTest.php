@@ -24,7 +24,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
     public function testAnnotatedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ) {
         $this->makeTest('annotated', $expectedResponse, $request, $extraResponseVersion);
     }
@@ -38,7 +38,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
     public function testAttributedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ) {
         $this->makeTest('attributed', $expectedResponse, $request, $extraResponseVersion);
     }
@@ -47,10 +47,13 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
         string $pathPrefix,
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ): void {
         if ($pathPrefix === 'attributed' && !TestHelper::phpAttributeSupportExists()) {
             $this->markTestSkipped('Unsupported environment');
+        }
+        if ($pathPrefix === 'annotated' && !TestHelper::docblockRoutingSupportExists()) {
+            $this->markTestSkipped('Symfony 7 reads no @Route docblocks');
         }
 
         $request->server->set(
@@ -175,6 +178,29 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     '/testBodyNormalizationWithCustomContentType',
                     'my_text',
                     ['Content-Type' => 'text/plain']
+                ),
+            ],
+            'testBodyNormalizationWithCustomContentType and no content type' => [
+                new Response(
+                    '{"error":"invalid_request","error_description":"Content-Type must be provided"}',
+                    400
+                ),
+                $this->createRequest(
+                    'POST',
+                    '/testBodyNormalizationWithCustomContentType',
+                    'my_text'
+                ),
+            ],
+            'testBodyNormalizationWithExtractedKeyValue and a body that is not JSON' => [
+                new Response(
+                    '{"error":"invalid_request","error_description":"Cannot decode request body to JSON"}',
+                    400
+                ),
+                $this->createRequest(
+                    'POST',
+                    '/testBodyNormalizationWithExtractedKeyValue',
+                    '{"key": ',
+                    ['Content-Type' => 'application/json']
                 ),
             ],
             'testBodyNormalizationWithCustomContentTypeAndJsonDecode and JSON content-type' => [

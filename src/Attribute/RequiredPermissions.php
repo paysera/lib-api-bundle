@@ -18,7 +18,7 @@ class RequiredPermissions implements RestAttributeInterface
 
     public function __construct(
         array $options = [],
-        array $permissions = null
+        ?array $permissions = null
     ) {
         $this->setPermissions($options['permissions'] ?? $permissions);
     }

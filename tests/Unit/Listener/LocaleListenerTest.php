@@ -8,10 +8,12 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Paysera\Bundle\ApiBundle\Listener\LocaleListener;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Helper\HttpKernelHelper;
+use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Throwable;
 
 class LocaleListenerTest extends MockeryTestCase
 {
@@ -24,6 +26,25 @@ class LocaleListenerTest extends MockeryTestCase
      * @param bool $rest
      */
     public function testOnKernelRequest(string $expectedLocale, array $locales, string $acceptLanguage, bool $rest)
+    {
+        $this->assertSame($expectedLocale, $this->resolveLocale($locales, $acceptLanguage, $rest));
+    }
+
+    public function testAnItemOfOnlyASemicolonIsNotALanguage()
+    {
+        try {
+            AcceptHeader::fromString(';');
+        } catch (Throwable $error) {
+            $this->markTestSkipped('This http-foundation fails on an empty Accept-Language item itself');
+        }
+
+        $this->assertSame('unchanged', $this->resolveLocale(['de'], ';', true));
+    }
+
+    /**
+     * @param string[] $locales
+     */
+    private function resolveLocale(array $locales, string $acceptLanguage, bool $rest): string
     {
         $helper = Mockery::mock(RestRequestHelper::class);
         $kernel = Mockery::mock(HttpKernelInterface::class);
@@ -42,7 +63,7 @@ class LocaleListenerTest extends MockeryTestCase
 
         $listener->onKernelRequest($event);
 
-        $this->assertSame($expectedLocale, $request->getLocale());
+        return $request->getLocale();
     }
 
     public function provider()
@@ -94,6 +115,78 @@ class LocaleListenerTest extends MockeryTestCase
                 'de',
                 ['de', 'en'],
                 'en-US,en;q=0.8, de-CH;q=0.9',
+                true,
+            ],
+            'German among other locales' => [
+                'de',
+                ['en', 'lt', 'de'],
+                'de',
+                true,
+            ],
+            'German region among other locales' => [
+                'de',
+                ['en', 'lt', 'de'],
+                'de-DE, en;q=0.5',
+                true,
+            ],
+            'primary language is not added when the header lists it' => [
+                'de',
+                ['de', 'en'],
+                'en-US, en;q=0.5, de;q=0.9',
+                true,
+            ],
+            'no match keeps the locale' => [
+                'unchanged',
+                ['en', 'lt', 'de'],
+                'fr-FR, fr;q=0.9',
+                true,
+            ],
+            'no header keeps the locale' => [
+                'unchanged',
+                ['en', 'lt', 'de'],
+                '',
+                true,
+            ],
+            'a tag without a region keeps its case, as Symfony 3.4 to 7.0 read it' => [
+                'unchanged',
+                ['de'],
+                'DE',
+                true,
+            ],
+            'a wrong-case tag does not match before a matching one' => [
+                'de',
+                ['en', 'lt', 'de'],
+                'EN,de',
+                true,
+            ],
+            'a numeric tag is not a language' => [
+                'unchanged',
+                ['de'],
+                '1',
+                true,
+            ],
+            'a numeric tag next to a language' => [
+                'de',
+                ['de'],
+                'de, 1',
+                true,
+            ],
+            'a language registered with the i- prefix' => [
+                'cherokee',
+                ['en', 'cherokee'],
+                'i-cherokee',
+                true,
+            ],
+            'a malformed item is not a language' => [
+                'unchanged',
+                ['de'],
+                "'",
+                true,
+            ],
+            'a malformed item next to a language' => [
+                'de',
+                ['de'],
+                "de, '",
                 true,
             ],
         ];

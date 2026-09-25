@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Listener;
 
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
+use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -42,15 +43,53 @@ class LocaleListener
         }
     }
 
-    private function resolveFromHeaders(Request $request)
+    private function resolveFromHeaders(Request $request): ?string
     {
-        $defaultLocale = 'default';
-        $preferredLanguage = $request->getPreferredLanguage(array_merge([$defaultLocale], $this->locales));
+        $languages = $this->readLanguages($request);
+        $candidates = [];
+        foreach ($languages as $language) {
+            $candidates[] = $language;
+            $separatorPosition = strpos($language, '_');
+            if ($separatorPosition === false) {
+                continue;
+            }
+            $primaryLanguage = substr($language, 0, $separatorPosition);
+            if (!in_array($primaryLanguage, $languages, true)) {
+                $candidates[] = $primaryLanguage;
+            }
+        }
 
-        if ($preferredLanguage !== null && $preferredLanguage !== $defaultLocale) {
-            return $preferredLanguage;
+        foreach ($candidates as $candidate) {
+            if (in_array($candidate, $this->locales, true)) {
+                return $candidate;
+            }
         }
 
         return null;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function readLanguages(Request $request): array
+    {
+        $languages = [];
+        foreach (AcceptHeader::fromString($request->headers->get('Accept-Language'))->all() as $item) {
+            $language = (string)$item->getValue();
+            if (strpos($language, '-') !== false) {
+                $codes = explode('-', $language);
+                if ($codes[0] === 'i') {
+                    $language = $codes[1];
+                } else {
+                    $language = strtolower($codes[0]);
+                    for ($i = 1, $count = count($codes); $i < $count; $i++) {
+                        $language .= '_' . strtoupper($codes[$i]);
+                    }
+                }
+            }
+            $languages[] = $language;
+        }
+
+        return $languages;
     }
 }

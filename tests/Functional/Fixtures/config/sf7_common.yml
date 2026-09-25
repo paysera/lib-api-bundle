@@ -1,0 +1,17 @@
+framework:
+    router:
+        resource: '%kernel.project_dir%/tests/Functional/Fixtures/config/sf7_routing.yml'
+    validation:
+        email_validation_mode: html5
+
+security:
+    firewalls:
+        config:
+            pattern: ^/(config)/
+            security: false
+        main:
+            http_basic: ~
+            stateless: true
+    password_hashers:
+        Symfony\Component\Security\Core\User\InMemoryUser:
+            algorithm: plaintext
