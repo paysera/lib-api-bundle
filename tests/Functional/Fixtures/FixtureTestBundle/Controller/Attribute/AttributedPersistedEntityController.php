@@ -9,10 +9,6 @@ use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * PersistedEntityController with attributes: it serves the same paths on Symfony 7, which no longer reads @Route
- * docblocks. Below Symfony 7 the docblock controller is imported first and serves the paths.
- */
 class AttributedPersistedEntityController
 {
     #[Route(path: '/persisted-entities/{identifier}', methods: ['GET'])]

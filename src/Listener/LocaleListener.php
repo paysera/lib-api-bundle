@@ -43,14 +43,6 @@ class LocaleListener
         }
     }
 
-    /**
-     * The first language of Accept-Language, in the client's order of preference, that is a configured locale; a
-     * regional variant (de_CH) also offers its primary language (de) unless the header lists that language itself.
-     *
-     * This is the rule Request::getPreferredLanguage() applied up to Symfony 7.0. Symfony 7.1 changed it, and passing a
-     * placeholder for "no match" stopped working there ("default" starts with "de"), so the listener applies the rule
-     * itself on every Symfony line, to a header it reads itself (readLanguages()).
-     */
     private function resolveFromHeaders(Request $request): ?string
     {
         $languages = $this->readLanguages($request);
@@ -77,22 +69,16 @@ class LocaleListener
     }
 
     /**
-     * The Accept-Language tags in the client's order of preference, written the way Request::getLanguages() wrote them
-     * up to Symfony 7.0: "de-CH" becomes "de_CH", and a tag without a region keeps its case. Symfony 7.1 changed that
-     * formatting too, so the listener writes the tags this way itself, on every Symfony line.
-     *
      * @return string[]
      */
     private function readLanguages(Request $request): array
     {
         $languages = [];
         foreach (AcceptHeader::fromString($request->headers->get('Accept-Language'))->all() as $item) {
-            // http-foundation 3.4 gives null or false for a malformed item, such as ";" or a lone quote
             $language = (string)$item->getValue();
             if (strpos($language, '-') !== false) {
                 $codes = explode('-', $language);
                 if ($codes[0] === 'i') {
-                    // a language registered with the i- prefix, such as i-cherokee
                     $language = $codes[1];
                 } else {
                     $language = strtolower($codes[0]);

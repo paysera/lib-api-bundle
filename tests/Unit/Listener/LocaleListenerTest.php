@@ -35,8 +35,6 @@ class LocaleListenerTest extends MockeryTestCase
         try {
             AcceptHeader::fromString(';');
         } catch (Throwable $error) {
-            // http-foundation 4.4 fails on an empty item itself (a notice or warning, then a TypeError), with 1.8.2
-            // as well; keyed on the parser, not on a version, because http-kernel and http-foundation can differ
             $this->markTestSkipped('This http-foundation fails on an empty Accept-Language item itself');
         }
 

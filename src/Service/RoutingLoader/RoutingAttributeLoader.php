@@ -69,7 +69,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     }
 
     /**
-     * @throws ConfigurationException on Symfony 7 and later when the controller uses the bundle's docblock annotations
+     * @throws ConfigurationException
      */
     private function loadAnnotations(Route $route, ReflectionClass $class, ReflectionMethod $method): void
     {
@@ -106,9 +106,6 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     }
 
     /**
-     * Symfony 7 gives the route loader no annotation reader, so these options would be ignored without a word — an
-     * endpoint would lose its required permissions. Fail at route loading instead and name the attributes to use.
-     *
      * @throws ConfigurationException
      */
     private function refuseDocblockAnnotations(ReflectionClass $class, ReflectionMethod $method): void

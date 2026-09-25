@@ -46,39 +46,47 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         $this->attributeOptionsBuilder = Mockery::mock(RestRequestAttributeOptionsBuilder::class);
     }
 
-    public function testRefusesTheBundleDocblockAnnotationsWhereSymfonyReadsNone()
-    {
+    /**
+     * @dataProvider refusedControllerDataProvider
+     */
+    public function testRefusesTheBundleDocblockAnnotationsWhereSymfonyReadsNone(
+        string $controllerClass,
+        string $expectedMessage
+    ) {
         $this->skipUnlessTheRouteLoaderHasNoAnnotationReader();
         $loader = $this->createLoader();
         $this->requestHelper->shouldNotReceive('setOptionsForRoute');
 
         try {
-            $loader->load(DocblockOptionsOnAttributeRouteController::class);
+            $loader->load($controllerClass);
             $this->fail('The route with the bundle\'s docblock annotations was loaded without them');
         } catch (ConfigurationException $exception) {
-            $this->assertSame(
+            $this->assertSame($expectedMessage, $exception->getMessage());
+        }
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function refusedControllerDataProvider(): array
+    {
+        return [
+            'a bundle annotation, with the attribute to use' => [
+                DocblockOptionsOnAttributeRouteController::class,
                 DocblockOptionsOnAttributeRouteController::class . '::show() uses docblock annotations of '
                 . 'paysera/lib-api-bundle (\\' . RequiredPermissions::class . '). Symfony 7 does not read docblock '
                 . 'annotations, so they would have no effect. Use the PHP attributes instead: '
                 . '#[\\Paysera\\Bundle\\ApiBundle\\Attribute\\RequiredPermissions].',
-                $exception->getMessage()
-            );
-        }
-    }
-
-    public function testNamesTheAttributeInterfaceForAnApplicationsOwnAnnotation()
-    {
-        $this->skipUnlessTheRouteLoaderHasNoAnnotationReader();
-        $loader = $this->createLoader();
-
-        $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage(
-            'Use the PHP attributes instead: an attribute implementing '
-            . '\\Paysera\\Bundle\\ApiBundle\\Attribute\\RestAttributeInterface in place of \\'
-            . CustomRestAnnotation::class . '.'
-        );
-
-        $loader->load(CustomAnnotationOnAttributeRouteController::class);
+            ],
+            'an application\'s own annotation, with the attribute interface to implement' => [
+                CustomAnnotationOnAttributeRouteController::class,
+                CustomAnnotationOnAttributeRouteController::class . '::show() uses docblock annotations of '
+                . 'paysera/lib-api-bundle (\\' . CustomRestAnnotation::class . '). Symfony 7 does not read docblock '
+                . 'annotations, so they would have no effect. Use the PHP attributes instead: an attribute '
+                . 'implementing \\Paysera\\Bundle\\ApiBundle\\Attribute\\RestAttributeInterface in place of \\'
+                . CustomRestAnnotation::class . '.',
+            ],
+        ];
     }
 
     public function testLoadsTheBundleAttributesWhereSymfonyReadsNoDocblocks()
@@ -96,11 +104,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
 
     public function testAppliesTheBundleDocblockAnnotationsThroughTheReaderBeforeSymfony7()
     {
-        if (!class_exists(AttributeRouteControllerLoader::class)
-            || !property_exists(AttributeRouteControllerLoader::class, 'reader')
-        ) {
-            $this->markTestSkipped('Needs Symfony 6.4: the attribute route loader with an annotation reader');
-        }
+        $this->skipUnlessTheRouteLoaderHasAnAnnotationReader();
         $loader = $this->createLoader(new AnnotationReader());
         $options = new RestRequestOptions();
         $this->annotationOptionsBuilder
@@ -120,11 +124,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
 
     public function testIgnoresTheBundleDocblockAnnotationsWhereTheApplicationDisabledAnnotationsBeforeSymfony7()
     {
-        if (!class_exists(AttributeRouteControllerLoader::class)
-            || !property_exists(AttributeRouteControllerLoader::class, 'reader')
-        ) {
-            $this->markTestSkipped('Needs Symfony 6.4: the attribute route loader with an annotation reader property');
-        }
+        $this->skipUnlessTheRouteLoaderHasAnAnnotationReader();
         $loader = $this->createLoader();
         $this->annotationOptionsBuilder->shouldNotReceive('buildOptions');
         $this->requestHelper->shouldNotReceive('setOptionsForRoute');
@@ -132,6 +132,15 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         $routes = $loader->load(DocblockOptionsOnAttributeRouteController::class);
 
         $this->assertCount(1, $routes);
+    }
+
+    private function skipUnlessTheRouteLoaderHasAnAnnotationReader()
+    {
+        if (!class_exists(AttributeRouteControllerLoader::class)
+            || !property_exists(AttributeRouteControllerLoader::class, 'reader')
+        ) {
+            $this->markTestSkipped('Needs Symfony 6.4: the attribute route loader with an annotation reader property');
+        }
     }
 
     private function skipUnlessTheRouteLoaderHasNoAnnotationReader()

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service;
 
+use Paysera\Bundle\ApiBundle\Entity\Error;
 use Paysera\Bundle\ApiBundle\Entity\Violation;
 use Paysera\Bundle\ApiBundle\Exception\ApiException;
 use Paysera\Bundle\ApiBundle\Service\ErrorBuilder;
@@ -27,10 +28,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundE
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Throwable;
 
-/**
- * The error every REST endpoint answers with, for each kind of exception, built by the bundle's own
- * paysera_api.error_builder service definition (Resources/config/services.xml) with the error codes it configures.
- */
 class ErrorBuilderTest extends TestCase
 {
     /**
@@ -45,8 +42,16 @@ class ErrorBuilderTest extends TestCase
         $error = $this->createConfiguredErrorBuilder()->createErrorFromException($exception);
 
         $this->assertSame(
-            [$expectedCode, $expectedStatusCode, $expectedMessage],
-            [$error->getCode(), $error->getStatusCode(), $error->getMessage()]
+            [
+                'code' => $expectedCode,
+                'statusCode' => $expectedStatusCode,
+                'uri' => null,
+                'message' => $expectedMessage,
+                'properties' => null,
+                'data' => null,
+                'violations' => [],
+            ],
+            $this->readError($error)
         );
     }
 
@@ -208,8 +213,16 @@ class ErrorBuilderTest extends TestCase
         $error = $this->createConfiguredErrorBuilder()->createErrorFromException($exception);
 
         $this->assertSame(
-            [['amount' => 'Too large'], ['limit' => 100], [$violation]],
-            [$error->getProperties(), $error->getData(), $error->getViolations()]
+            [
+                'code' => 'custom_code',
+                'statusCode' => 400,
+                'uri' => null,
+                'message' => null,
+                'properties' => ['amount' => 'Too large'],
+                'data' => ['limit' => 100],
+                'violations' => [$violation],
+            ],
+            $this->readError($error)
         );
     }
 
@@ -220,5 +233,18 @@ class ErrorBuilderTest extends TestCase
         $loader->load('services.xml');
 
         return $container->get('paysera_api.error_builder');
+    }
+
+    private function readError(Error $error): array
+    {
+        return [
+            'code' => $error->getCode(),
+            'statusCode' => $error->getStatusCode(),
+            'uri' => $error->getUri(),
+            'message' => $error->getMessage(),
+            'properties' => $error->getProperties(),
+            'data' => $error->getData(),
+            'violations' => $error->getViolations(),
+        ];
     }
 }

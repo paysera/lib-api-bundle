@@ -12,10 +12,6 @@ use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Reposit
 use Paysera\Pagination\Entity\Pager;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * PagedQueryController with attributes: it serves the same path on Symfony 7, which no longer reads @Route docblocks.
- * Below Symfony 7 the docblock controller is imported first and serves the path.
- */
 class AttributedPagedQueryController
 {
     private $entityManager;

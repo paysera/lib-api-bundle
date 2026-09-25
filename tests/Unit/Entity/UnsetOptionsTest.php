@@ -11,51 +11,77 @@ use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-/**
- * Reading an option that was never set fails with a message that says what to check first.
- */
 class UnsetOptionsTest extends TestCase
 {
     /**
      * @dataProvider unsetOptionDataProvider
      */
-    public function testReadingAnUnsetOptionFails($options, string $getter, string $expectedMessage)
+    public function testReadingAnUnsetOptionFails(callable $readOption, string $expectedMessage)
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage($expectedMessage);
 
-        $options->$getter();
+        $readOption();
     }
 
     /**
-     * @return array<int, array{0: object, 1: string, 2: string}>
+     * @return array<string, array{0: callable, 1: string}>
      */
     public static function unsetOptionDataProvider(): array
     {
         return [
-            [new PathAttributeResolverOptions(), 'getParameterName', 'parameterName was not set'],
-            [new PathAttributeResolverOptions(), 'getPathPartName', 'pathPartName was not set'],
-            [new PathAttributeResolverOptions(), 'getPathAttributeResolverType', 'pathAttributeResolverType was not set'],
-            [new QueryResolverOptions(), 'getParameterName', 'parameterName was not set'],
-            [new QueryResolverOptions(), 'getDenormalizationType', 'denormalizationType was not set'],
-            [
-                (new QueryResolverOptions())->setValidationOptions(null),
-                'getValidationOptions',
+            'path attribute parameter name' => [
+                function () {
+                    (new PathAttributeResolverOptions())->getParameterName();
+                },
+                'parameterName was not set',
+            ],
+            'path attribute path part name' => [
+                function () {
+                    (new PathAttributeResolverOptions())->getPathPartName();
+                },
+                'pathPartName was not set',
+            ],
+            'path attribute resolver type' => [
+                function () {
+                    (new PathAttributeResolverOptions())->getPathAttributeResolverType();
+                },
+                'pathAttributeResolverType was not set',
+            ],
+            'query parameter name' => [
+                function () {
+                    (new QueryResolverOptions())->getParameterName();
+                },
+                'parameterName was not set',
+            ],
+            'query denormalization type' => [
+                function () {
+                    (new QueryResolverOptions())->getDenormalizationType();
+                },
+                'denormalizationType was not set',
+            ],
+            'query validation options after they were set to null' => [
+                function () {
+                    (new QueryResolverOptions())->setValidationOptions(null)->getValidationOptions();
+                },
                 'No validationOptions available, call isValidationNeeded beforehand',
             ],
-            [
-                new RestRequestOptions(),
-                'getBodyDenormalizationType',
+            'body denormalization type' => [
+                function () {
+                    (new RestRequestOptions())->getBodyDenormalizationType();
+                },
                 'No bodyDenormalizationType available, call hasBodyDenormalization beforehand',
             ],
-            [
-                new RestRequestOptions(),
-                'getBodyParameterName',
+            'body parameter name' => [
+                function () {
+                    (new RestRequestOptions())->getBodyParameterName();
+                },
                 'No bodyParameterName available, call hasBodyDenormalization beforehand',
             ],
-            [
-                (new RestRequestOptions())->disableBodyValidation(),
-                'getBodyValidationOptions',
+            'body validation options after validation was disabled' => [
+                function () {
+                    (new RestRequestOptions())->disableBodyValidation()->getBodyValidationOptions();
+                },
                 'No bodyValidationOptions available, call isBodyValidationNeeded beforehand',
             ],
         ];

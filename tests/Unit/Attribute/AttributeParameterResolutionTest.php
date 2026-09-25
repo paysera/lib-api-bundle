@@ -7,20 +7,23 @@ namespace Paysera\Bundle\ApiBundle\Tests\Unit\Attribute;
 use Paysera\Bundle\ApiBundle\Attribute\Body;
 use Paysera\Bundle\ApiBundle\Attribute\PathAttribute;
 use Paysera\Bundle\ApiBundle\Attribute\Query;
+use Paysera\Bundle\ApiBundle\Entity\PathAttributeResolverOptions;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\ReflectionMethodWrapper;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
-/**
- * What the attributes take from the controller method's signature and what they take from their own arguments.
- */
 class AttributeParameterResolutionTest extends TestCase
 {
-    public function testPathAttributeCannotGuessTheTypeOfAnUntypedParameter()
+    /**
+     * @dataProvider untypedParameterAttributeDataProvider
+     *
+     * @param array<string, string> $attributeOptions
+     */
+    public function testCannotGuessTheTypeOfAnUntypedParameter(string $attributeClass, array $attributeOptions)
     {
-        $attribute = new PathAttribute(['parameterName' => 'item', 'pathPartName' => 'id']);
+        $attribute = new $attributeClass($attributeOptions);
 
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Denormalization type could not be guessed for $item in ');
@@ -28,14 +31,15 @@ class AttributeParameterResolutionTest extends TestCase
         $attribute->apply(new RestRequestOptions(), $this->wrapUntypedAction());
     }
 
-    public function testQueryCannotGuessTheTypeOfAnUntypedParameter()
+    /**
+     * @return array<string, array{0: string, 1: array<string, string>}>
+     */
+    public static function untypedParameterAttributeDataProvider(): array
     {
-        $attribute = new Query(['parameterName' => 'item']);
-
-        $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage('Denormalization type could not be guessed for $item in ');
-
-        $attribute->apply(new RestRequestOptions(), $this->wrapUntypedAction());
+        return [
+            'path attribute' => [PathAttribute::class, ['parameterName' => 'item', 'pathPartName' => 'id']],
+            'query' => [Query::class, ['parameterName' => 'item']],
+        ];
     }
 
     public function testExplicitArgumentsWinOverTheSignature()
@@ -54,15 +58,19 @@ class AttributeParameterResolutionTest extends TestCase
             'optional' => true,
         ]))->apply($options, $this->wrapUntypedAction());
 
-        $pathAttributeOptions = $options->getPathAttributeResolverOptionsList()[0];
-        $this->assertSame(
-            ['custom_resolver', false, true],
-            [
-                $pathAttributeOptions->getPathAttributeResolverType(),
-                $pathAttributeOptions->isResolutionMandatory(),
-                $options->isBodyOptional(),
-            ]
-        );
+        $expectedOptions = (new RestRequestOptions())
+            ->addPathAttributeResolverOptions(
+                (new PathAttributeResolverOptions())
+                    ->setParameterName('item')
+                    ->setPathPartName('id')
+                    ->setPathAttributeResolverType('custom_resolver')
+                    ->setResolutionMandatory(false)
+            )
+            ->setBodyParameterName('item')
+            ->setBodyDenormalizationType('custom_type')
+            ->setBodyOptional(true)
+        ;
+        $this->assertEquals($expectedOptions, $options);
     }
 
     /**

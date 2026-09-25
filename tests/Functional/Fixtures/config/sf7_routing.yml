@@ -1,5 +1,3 @@
-# Symfony 7 reads no docblock annotations: the controllers routed by @Route docblocks are not imported here, their
-# attribute twins in Controller/Attribute/ are.
 paysera_fixture_test:
     resource: "@PayseraFixtureTestBundle/Resources/config/explicit_routing.xml"
     prefix:   /

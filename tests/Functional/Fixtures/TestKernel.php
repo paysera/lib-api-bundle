@@ -43,7 +43,6 @@ class TestKernel extends Kernel
         $loader->load(__DIR__ . '/config/' . $this->configFile);
         $loader->load(__DIR__ . '/config/' . $this->commonFile);
 
-        // Symfony 7 gets its routes from its own common file (sf7_common.yml): no @Route docblock imports
         if (TestHelper::phpAttributeSupportExists() && TestHelper::docblockRoutingSupportExists()) {
             $loader->load(__DIR__ . '/config/attributed_common.yml');
         }
