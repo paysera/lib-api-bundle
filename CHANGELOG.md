@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.0]
+## [2.0.0]
 ### Added
 - Support for Symfony 7.4
 - Support for `psr/log` 3
@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `PayseraApiExtension` extends `Symfony\Component\DependencyInjection\Extension\Extension` instead of HttpKernel's
   `Extension`, which is internal since Symfony 7.1. Breaking for subclasses that call `addAnnotatedClassesToCompile()`
   or `getAnnotatedClassesToCompile()`, which only HttpKernel's `Extension` has: drop the calls
+- `Configuration` is marked `@final`, so Symfony's `DebugClassLoader` reports classes that extend it
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
 - Breaking where no annotation reader is available: the route load fails with a `ConfigurationException` when OPcache
   runs with `opcache.save_comments=0` for the current SAPI, as Doctrine's annotation reader requires, also in
