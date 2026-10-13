@@ -399,12 +399,12 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         $autoload = dirname((new ReflectionClass(ClassLoader::class))->getFileName(), 2) . '/autoload.php';
         $command = array_merge([PHP_BINARY], $ini, [__DIR__ . '/Fixtures/load-routes.php', $autoload]);
         exec(implode(' ', array_map('escapeshellarg', $command)) . ' 2>&1', $lines);
-        $output = implode("\n", $lines);
+        $output = (string)end($lines);
         if ($output === 'no opcache') {
             $this->markTestSkipped('This PHP has no OPcache to strip docblocks');
         }
 
-        $this->assertSame($expectedOutput, $output);
+        $this->assertSame($expectedOutput, $output, implode("\n", $lines));
     }
 
     public static function loadWithoutAnnotationReaderUnderOpcacheDataProvider(): array
