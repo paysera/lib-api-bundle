@@ -42,7 +42,7 @@ class LocaleListenerTest extends MockeryTestCase
     }
 
     /**
-     * @param string[] $locales
+     * @param array<int|string> $locales
      */
     private function resolveLocale(array $locales, string $acceptLanguage, bool $rest): string
     {
@@ -168,6 +168,12 @@ class LocaleListenerTest extends MockeryTestCase
             'a numeric tag next to a language' => [
                 'de',
                 ['de'],
+                'de, 1',
+                true,
+            ],
+            'a locale configured as a number' => [
+                '1',
+                [1],
                 'de, 1',
                 true,
             ],

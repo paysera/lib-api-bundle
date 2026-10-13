@@ -22,7 +22,7 @@ class LocaleListener
         array $locales
     ) {
         $this->requestHelper = $requestHelper;
-        $this->locales = $locales;
+        $this->locales = array_map('strval', $locales);
     }
 
     /**
