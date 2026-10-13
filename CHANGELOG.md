@@ -10,10 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for `psr/log` 3
 - Where no annotation reader is available (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with
   FrameworkBundle 6.4 and `symfony/routing` 7), the bundle reads its own docblock annotations on `#[Route]` methods and
-  their classes with Doctrine's `DocParser`. Names resolve only through the use statements that point into
-  `Paysera\Bundle\ApiBundle\Annotation` or a namespace above it, of the declaring class and of every trait it uses, so
-  unknown tags and other libraries' imported annotations are ignored. As with Doctrine's annotation reader, PHP must
-  keep docblocks (`opcache.save_comments=1`)
+  their classes with Doctrine's `DocParser`. A class docblock resolves names through the use statements of the class, a
+  method docblock through those of the class declaring the method and of the trait that declares it, also when that
+  trait is used by another trait or the method is aliased. An imported name is read as an annotation only when it
+  points into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries' imported annotations are
+  ignored; an application's own annotation that implements `RestAnnotationInterface` is read only when written with its
+  fully qualified name. Imported classes and interfaces resolve in annotation arguments (`Roles::ADMIN`,
+  `UserDto::class`). A fully qualified tag resolves as with Doctrine's annotation reader: a class that does not exist,
+  or an annotation on a target it does not allow, fails the route load with Doctrine's error
 
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
@@ -27,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Extension`, which is internal since Symfony 7.1. Breaking for subclasses that call `addAnnotatedClassesToCompile()`
   or `getAnnotatedClassesToCompile()`, which only HttpKernel's `Extension` has: drop the calls
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
+- Breaking where no annotation reader is available: the route load fails with a `ConfigurationException` when OPcache
+  runs with `opcache.save_comments=0` for the current SAPI, as Doctrine's annotation reader requires, also in
+  applications that use no docblock annotations
+- Breaking where no annotation reader is available: the route load fails with a `ConfigurationException` when a tag
+  written as the short name of one of the bundle's annotations (`@RequiredPermissions`) does not resolve to that
+  annotation, because its use statement is missing or names another class, and when a namespace alias of the bundle's
+  annotations is used where only another trait of the controller imports it. A namespace alias that nothing imports
+  (`@Rest\RequiredPermissions` without `use … as Rest`) is still ignored
 - CI runs the tests on PHP 8.4, on Symfony 7 with PHP 8.2 to 8.4, and with lowest dependencies
 
 ### Fixed
@@ -36,7 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - On Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7, the
-  bundle's docblock annotations, `@RequiredPermissions` among them, were ignored without an error; they are now applied
+  bundle's docblock annotations, `@RequiredPermissions` among them, were ignored without an error; they are now applied,
+  and the cases listed under Changed fail the route load instead
 
 ## [1.8.2]
 ### Changed

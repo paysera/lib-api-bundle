@@ -660,10 +660,16 @@ attribute of the same name (`Paysera\Bundle\ApiBundle\Attribute\*`, read on Symf
 routes themselves need `#[Route]` with `type: attribute` imports, because Symfony 7 reads no `@Route` docblocks. The
 bundle's docblock annotations keep working on such routes: where no annotation reader is available (on Symfony 7, on
 Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7), the bundle reads
-the docblocks of the controller class and of the routed method with Doctrine's `DocParser`. Names resolve only through the
-use statements that point into `Paysera\Bundle\ApiBundle\Annotation` or a namespace above it, of the class declaring the
-method and of every trait it uses, so unknown tags and other libraries' imported annotations are ignored. As with
-Doctrine's annotation reader, PHP must keep docblocks (`opcache.save_comments=1`).
+the docblocks of the controller class and of the routed method with Doctrine's `DocParser`. Names resolve through the
+use statements of the class, and for a method also those of the trait that declares it. An imported name is read as an
+annotation only when it points into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries'
+imported annotations are ignored; write your own annotations that implement `RestAnnotationInterface` with their fully
+qualified name, or use attributes. Class names and constants in the arguments resolve through imported classes and
+interfaces, or when fully qualified. Loading the routes fails when a tag written as the short name of one of the
+bundle's annotations does not resolve to it (import it), and when OPcache runs with `opcache.save_comments=0`: as
+Doctrine's annotation reader, the bundle needs `opcache.save_comments=1`. A tag written through a namespace alias that
+is not imported is ignored. A fully qualified tag of a class that does not exist, or an annotation on a target it does
+not allow, fails with Doctrine's error, as with Doctrine's annotation reader.
 The attributes take the same options, passed by name:
 `@RequiredPermissions(permissions={"ROLE_ADMIN"})` becomes `#[RequiredPermissions(permissions: ['ROLE_ADMIN'])]`.
 
