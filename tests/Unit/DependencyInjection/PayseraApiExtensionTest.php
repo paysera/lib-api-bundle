@@ -59,6 +59,13 @@ class PayseraApiExtensionTest extends TestCase
         ]);
         $withoutLocaleListener = $definitions;
         unset($withoutLocaleListener['paysera_api.listener.locale']);
+        $withDocblockAnnotationsTurnedOff = $withoutLocaleListener;
+        if (isset($withDocblockAnnotationsTurnedOff['paysera_api.loader.attribute'])) {
+            $withDocblockAnnotationsTurnedOff['paysera_api.loader.attribute']['calls'][] = [
+                'setDocblockAnnotationsEnabled',
+                [false],
+            ];
+        }
         $pagination = [
             'paysera_api.pagination.default_total_count_strategy' => 'optional',
             'paysera_api.pagination.maximum_offset' => 1000,
@@ -71,6 +78,19 @@ class PayseraApiExtensionTest extends TestCase
                 [],
                 [
                     'definitions' => $withoutLocaleListener,
+                    'aliases' => [
+                        'paysera_api.validation.property_path_converter' => [
+                            'id' => 'paysera_api.camel_case_to_snake_case_converter',
+                            'public' => false,
+                        ],
+                    ],
+                    'parameters' => ['paysera_api.locales' => []] + $pagination,
+                ],
+            ],
+            'docblock annotations turned off' => [
+                [['docblock_annotations' => false]],
+                [
+                    'definitions' => $withDocblockAnnotationsTurnedOff,
                     'aliases' => [
                         'paysera_api.validation.property_path_converter' => [
                             'id' => 'paysera_api.camel_case_to_snake_case_converter',

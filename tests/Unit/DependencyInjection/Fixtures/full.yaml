@@ -1,5 +1,6 @@
 paysera_api:
     locales: ['en', 'lt', 'lv']
+    docblock_annotations: false
     validation:
         property_path_converter: your_service_id
     path_attribute_resolvers:

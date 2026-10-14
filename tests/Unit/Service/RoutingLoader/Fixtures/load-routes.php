@@ -25,6 +25,9 @@ $loader->setRestRequestAnnotationOptionsBuilder(
 $loader->setRestRequestAttributeOptionsBuilder(
     new RestRequestAttributeOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class))
 );
+if (($argv[2] ?? null) === 'attributes-only') {
+    $loader->setDocblockAnnotationsEnabled(false);
+}
 
 try {
     foreach ($loader->load(DocblockOptionsOnAttributeRouteController::class)->all() as $route) {

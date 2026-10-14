@@ -55,6 +55,11 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     private $attributeOptionsBuilder;
 
     /**
+     * @var bool
+     */
+    private $docblockAnnotationsEnabled = true;
+
+    /**
      * @var DocParser|null
      */
     private $docParser;
@@ -84,6 +89,11 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $this->attributeOptionsBuilder = $attributeOptionsBuilder;
     }
 
+    public function setDocblockAnnotationsEnabled(bool $docblockAnnotationsEnabled)
+    {
+        $this->docblockAnnotationsEnabled = $docblockAnnotationsEnabled;
+    }
+
     protected function configureRoute(
         Route $route,
         ReflectionClass $class,
@@ -92,7 +102,9 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     ): void {
         parent::configureRoute($route, $class, $method, $annot);
 
-        $this->loadAnnotations($route, $class, $method);
+        if ($this->docblockAnnotationsEnabled) {
+            $this->loadAnnotations($route, $class, $method);
+        }
         $this->loadAttributes($route, $class, $method);
     }
 

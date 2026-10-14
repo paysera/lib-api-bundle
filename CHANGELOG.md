@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for Symfony 7.4
 - Support for `psr/log` 3
+- `docblock_annotations` option (default `true`), on Symfony 6.4 and later: with `false`, the bundle reads only its
+  attributes and none of its docblock annotations, on `@Route` routes too, so the bundle itself no longer needs
+  `opcache.save_comments`; Symfony's annotation reader still needs it where `framework.annotations` is enabled. Before
+  Symfony 6.4 the option has no effect
 - Where no annotation reader is available (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with
   FrameworkBundle 6.4 and `symfony/routing` 7), the bundle reads its own docblock annotations on `#[Route]` methods and
   their classes with Doctrine's `DocParser`. A class docblock resolves names through the use statements of the class, a
@@ -34,7 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
 - Breaking where no annotation reader is available: the route load fails with a `ConfigurationException` when OPcache
   runs with `opcache.save_comments=0` for the current SAPI, as Doctrine's annotation reader requires, also in
-  applications that use no docblock annotations
+  applications that use no docblock annotations; set `docblock_annotations: false` (Symfony 6.4 and later) where only
+  attributes are used
 - Breaking where no annotation reader is available: the route load fails with a `ConfigurationException` when a tag
   written as the short name of one of the bundle's annotations (`@RequiredPermissions`) does not resolve to that
   annotation, because its use statement is missing or names another class, and when a namespace alias of the bundle's
@@ -49,8 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - On Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7, the
-  bundle's docblock annotations, `@RequiredPermissions` among them, were ignored without an error; they are now applied,
-  and the cases listed under Changed fail the route load instead
+  bundle's docblock annotations, `@RequiredPermissions` among them, were ignored without an error; they are now applied
+  unless `docblock_annotations` is `false`, and the cases listed under Changed fail the route load instead
 
 ## [1.8.2]
 ### Changed

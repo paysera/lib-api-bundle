@@ -21,6 +21,7 @@ use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBu
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAttributeLoader;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasAndBareDuplicateController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedTraitMethodController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\BundleAnnotationNextToUnrelatedTagsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\BundleAnnotationOnUnroutedMethodController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAliasDocblockController;
@@ -232,7 +233,10 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         );
     }
 
-    public function testLoadWithAnnotationReader(): void
+    /**
+     * @dataProvider loadWithAnnotationReaderDataProvider
+     */
+    public function testLoadWithAnnotationReader(bool $docblockAnnotationsEnabled, ?RestRequestOptions $expected): void
     {
         if (!property_exists(AttributeClassLoader::class, 'reader')) {
             $this->markTestSkipped('Symfony 7 passes no annotation reader to the route loader');
@@ -244,14 +248,50 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         $reader->shouldReceive('getMethodAnnotations')->andReturn([
             new RequiredPermissions(['permissions' => ['ROLE_ADMIN']]),
         ]);
+        $loader = $this->createLoader($reader);
+        $loader->setDocblockAnnotationsEnabled($docblockAnnotationsEnabled);
 
         $this->assertEquals(
-            [
-                NoBundleAnnotationController::class . '::show' => (new RestRequestOptions())
-                    ->setRequiredPermissions(['ROLE_ADMIN']),
-            ],
-            $this->loadOptions($this->createLoader($reader), NoBundleAnnotationController::class)
+            [NoBundleAnnotationController::class . '::show' => $expected],
+            $this->loadOptions($loader, NoBundleAnnotationController::class)
         );
+    }
+
+    public static function loadWithAnnotationReaderDataProvider(): array
+    {
+        return [
+            'docblock annotations on' => [true, (new RestRequestOptions())->setRequiredPermissions(['ROLE_ADMIN'])],
+            'docblock annotations off' => [false, null],
+        ];
+    }
+
+    /**
+     * @dataProvider loadWithDocblockAnnotationsTurnedOffDataProvider
+     * @param array<string, RestRequestOptions|null> $expectedOptions
+     */
+    public function testLoadWithDocblockAnnotationsTurnedOff(string $controller, array $expectedOptions): void
+    {
+        $loader = $this->createLoader();
+        $loader->setDocblockAnnotationsEnabled(false);
+
+        $this->assertEquals($expectedOptions, $this->loadOptions($loader, $controller));
+    }
+
+    public static function loadWithDocblockAnnotationsTurnedOffDataProvider(): array
+    {
+        return [
+            'docblock annotation' => [
+                DocblockOptionsOnAttributeRouteController::class,
+                [DocblockOptionsOnAttributeRouteController::class . '::show' => null],
+            ],
+            'attribute' => [
+                AttributeOptionsController::class,
+                [
+                    AttributeOptionsController::class . '::show' => (new RestRequestOptions())
+                        ->setRequiredPermissions(['ROLE_ADMIN']),
+                ],
+            ],
+        ];
     }
 
     /**
@@ -393,11 +433,15 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
     /**
      * @dataProvider loadWithoutAnnotationReaderUnderOpcacheDataProvider
      * @param string[] $ini
+     * @param string[] $arguments
      */
-    public function testLoadWithoutAnnotationReaderUnderOpcache(array $ini, string $expectedOutput): void
-    {
+    public function testLoadWithoutAnnotationReaderUnderOpcache(
+        array $ini,
+        string $expectedOutput,
+        array $arguments = []
+    ): void {
         $autoload = dirname((new ReflectionClass(ClassLoader::class))->getFileName(), 2) . '/autoload.php';
-        $command = array_merge([PHP_BINARY], $ini, [__DIR__ . '/Fixtures/load-routes.php', $autoload]);
+        $command = array_merge([PHP_BINARY], $ini, [__DIR__ . '/Fixtures/load-routes.php', $autoload], $arguments);
         exec(implode(' ', array_map('escapeshellarg', $command)) . ' 2>&1', $lines);
         $output = (string)end($lines);
         if ($output === 'no opcache') {
@@ -420,6 +464,18 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                     'opcache.file_update_protection=0',
                 ],
                 ConfigurationException::class,
+            ],
+            'docblocks stripped with docblock annotations turned off' => [
+                [
+                    '-d',
+                    'opcache.enable_cli=1',
+                    '-d',
+                    'opcache.save_comments=0',
+                    '-d',
+                    'opcache.file_update_protection=0',
+                ],
+                'null',
+                ['attributes-only'],
             ],
             'docblocks kept' => [
                 [

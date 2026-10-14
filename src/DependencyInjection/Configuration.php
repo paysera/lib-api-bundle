@@ -23,6 +23,7 @@ class Configuration implements ConfigurationInterface
 
         $children = $rootNode->children();
         $children->arrayNode('locales')->defaultValue([])->prototype('scalar');
+        $children->booleanNode('docblock_annotations')->defaultTrue();
 
         /** @var ArrayNodeDefinition $findDenormalizersNode */
         $findDenormalizersNode = $children

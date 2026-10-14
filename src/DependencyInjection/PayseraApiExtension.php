@@ -66,7 +66,7 @@ class PayseraApiExtension extends Extension
             $config['validation']['property_path_converter']
                 ?? new Alias('paysera_api.camel_case_to_snake_case_converter', false)
         );
-        $container->addDefinitions($this->createRoutingLoaderDefinitions());
+        $container->addDefinitions($this->createRoutingLoaderDefinitions($config['docblock_annotations']));
 
         $container->setParameter('paysera_api.locales', $config['locales']);
 
@@ -234,7 +234,7 @@ class PayseraApiExtension extends Extension
     /**
      * @return array<string, Definition>
      */
-    private function createRoutingLoaderDefinitions(): array
+    private function createRoutingLoaderDefinitions(bool $docblockAnnotations): array
     {
         $restRequestHelper = new Reference('paysera_api.rest_request_helper');
         $annotationOptionsBuilder = new Reference('paysera_api.annotations.options_builder');
@@ -249,17 +249,21 @@ class PayseraApiExtension extends Extension
             ];
         }
 
-        return [
-            'paysera_api.loader.attribute' => (new ChildDefinition('routing.loader.attribute'))
-                ->setClass(RoutingAttributeLoader::class)
-                ->setDecoratedService('routing.loader.attribute')
-                ->addMethodCall('setRequestHelper', [$restRequestHelper])
-                ->addMethodCall('setRestRequestAnnotationOptionsBuilder', [$annotationOptionsBuilder])
-                ->addMethodCall(
-                    'setRestRequestAttributeOptionsBuilder',
-                    [new Reference('paysera_api.attributes.options_builder')]
-                ),
-        ];
+        $attributeLoader = (new ChildDefinition('routing.loader.attribute'))
+            ->setClass(RoutingAttributeLoader::class)
+            ->setDecoratedService('routing.loader.attribute')
+            ->addMethodCall('setRequestHelper', [$restRequestHelper])
+            ->addMethodCall('setRestRequestAnnotationOptionsBuilder', [$annotationOptionsBuilder])
+            ->addMethodCall(
+                'setRestRequestAttributeOptionsBuilder',
+                [new Reference('paysera_api.attributes.options_builder')]
+            )
+        ;
+        if (!$docblockAnnotations) {
+            $attributeLoader->addMethodCall('setDocblockAnnotationsEnabled', [false]);
+        }
+
+        return ['paysera_api.loader.attribute' => $attributeLoader];
     }
 
     private function buildPathAttributeResolverDefinition(string $className, string $field): Definition
