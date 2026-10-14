@@ -49,12 +49,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   names is written through a namespace alias and resolves to no class (`@Rest\RequiredPermissions` without `use … as
   Rest`, or with `Rest` imported for another namespace). The message names the class a use statement resolves the short
   name to
+- `LocaleListener` reads the `Accept-Language` tags with the installed Symfony's `Request::getLanguages()` and compares
+  them with the configured locales ignoring letter case, then sets the locale as configured: `DE` or `zh-hant-tw` now
+  matches a configured `de` or `zh_Hant_TW`, where Symfony 3.4 to 7.0 matched only the exact case. From Symfony 7.1,
+  `getLanguages()` drops a numeric region or a variant and returns an `x-` tag, or an `i-` tag with fewer than five
+  letters, unchanged, so there `es-419` no longer matches a configured `es_419`, nor `i-ami` a configured `ami`
 - CI runs the tests on PHP 8.4, on Symfony 7 with PHP 8.2 to 8.4, and with lowest dependencies
 
 ### Fixed
-- On Symfony 7.1 and later, `LocaleListener` picks the locale from `Accept-Language` the same way as on older Symfony
-  versions: there a request for `de-DE`, and from Symfony 7.3 also one for `de`, kept the default locale, because `de`
-  matched the internal `default` placeholder
+- On Symfony 7.1 and later, a request for `de-DE`, and from Symfony 7.3 also one for `de`, kept the default locale,
+  because `LocaleListener` matched `de` against an internal `default` placeholder
 
 ### Security
 - On Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7, the

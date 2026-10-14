@@ -8,6 +8,7 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Paysera\Bundle\ApiBundle\Listener\LocaleListener;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Helper\HttpKernelHelper;
+use ReflectionClass;
 use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -68,6 +69,8 @@ class LocaleListenerTest extends MockeryTestCase
 
     public function provider()
     {
+        $tagsFormattedBySymfony = (new ReflectionClass(Request::class))->hasMethod('formatLocale');
+
         return [
             [
                 'unchanged',
@@ -147,16 +150,34 @@ class LocaleListenerTest extends MockeryTestCase
                 '',
                 true,
             ],
-            'a tag without a region keeps its case, as Symfony 3.4 to 7.0 read it' => [
-                'unchanged',
+            'a tag in another letter case matches the configured locale' => [
+                'de',
                 ['de'],
                 'DE',
                 true,
             ],
-            'a wrong-case tag does not match before a matching one' => [
-                'de',
+            'a tag in another letter case keeps its priority' => [
+                'en',
                 ['en', 'lt', 'de'],
                 'EN,de',
+                true,
+            ],
+            'a tag with a script matches the configured locale in any letter case' => [
+                'zh_Hant_TW',
+                ['en', 'zh_Hant_TW'],
+                'zh-hant-tw',
+                true,
+            ],
+            'a tag with a region matches a locale configured in another letter case' => [
+                'de_DE',
+                ['de_DE'],
+                'de-de',
+                true,
+            ],
+            'the primary language of a tag in another letter case' => [
+                'de',
+                ['de'],
+                'DE-CH',
                 true,
             ],
             'a numeric tag is not a language' => [
@@ -181,6 +202,12 @@ class LocaleListenerTest extends MockeryTestCase
                 'cherokee',
                 ['en', 'cherokee'],
                 'i-cherokee',
+                true,
+            ],
+            'a tag with a numeric region, which Symfony 7.1 and later reads without the region' => [
+                $tagsFormattedBySymfony ? 'unchanged' : 'es_419',
+                ['es_419'],
+                'es-419',
                 true,
             ],
             'a malformed item is not a language' => [
