@@ -28,6 +28,7 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAlia
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAliasImportedByTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAndActionDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAnnotationOnInheritedRouteController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassConstantNamedLikeAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassDocblockWithTraitImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassImportingForNestedTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassImportingForTraitController;
@@ -39,10 +40,15 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQual
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportedConstantsDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\InheritedDocblockOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MethodAnnotationOnClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MiscasedAliasForTagAndReferenceController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MiscasedImportDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingBundleSubNamespaceImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspelledImportDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasForTagAndReferenceController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasNamedLikeAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasPathReferencesDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasReferencesDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedTraitDocblockOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBundleAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAnnotationImportDocblockController;
@@ -51,7 +57,10 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibr
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionUsingAnnotatedTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionWithTraitImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ParentNamespaceAliasDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SameNamespaceReferencesDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SelfConstantDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SplitNameDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TagStartingWithAnnotationNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TagsOnlyDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitAliasCollidingWithClassAliasController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitDocblockOptionsController;
@@ -180,6 +189,54 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                         ->setRequiredPermissions(['ROLE_ADMIN'])
                         ->setResponseNormalizationType(RestRequestOptions::class),
                 ],
+            ],
+            'class names relative to the namespace of the controller in the arguments' => [
+                SameNamespaceReferencesDocblockController::class,
+                [
+                    SameNamespaceReferencesDocblockController::class . '::show' => (new RestRequestOptions())
+                        ->setRequiredPermissions(['ROLE_ADMIN'])
+                        ->setResponseNormalizationType(NoBundleAnnotationController::class),
+                ],
+            ],
+            'class name through a namespace alias in the arguments' => [
+                NamespaceAliasReferencesDocblockController::class,
+                [NamespaceAliasReferencesDocblockController::class . '::show' => $adminOnly],
+            ],
+            'class name through a namespace alias and several namespace segments in the arguments' => [
+                NamespaceAliasPathReferencesDocblockController::class,
+                [NamespaceAliasPathReferencesDocblockController::class . '::show' => $adminOnly],
+            ],
+            'alias also used for a tag of another library: tag ignored, class name kept as written' => [
+                NamespaceAliasForTagAndReferenceController::class,
+                [
+                    NamespaceAliasForTagAndReferenceController::class . '::show' => (new RestRequestOptions())
+                        ->setRequiredPermissions(['ROLE_ADMIN'])
+                        ->setResponseNormalizationType('Lib\\SameNamespaceAnnotationController'),
+                ],
+            ],
+            'alias also used for a miscased tag of another library: tag ignored, class name kept as written' => [
+                MiscasedAliasForTagAndReferenceController::class,
+                [
+                    MiscasedAliasForTagAndReferenceController::class . '::show' => (new RestRequestOptions())
+                        ->setRequiredPermissions(['ROLE_ADMIN'])
+                        ->setResponseNormalizationType('Lib\\SameNamespaceAnnotationController'),
+                ],
+            ],
+            'constant of an imported class named like an annotation of the bundle' => [
+                ClassConstantNamedLikeAnnotationController::class,
+                [ClassConstantNamedLikeAnnotationController::class . '::show' => $adminOnly],
+            ],
+            'class name through a namespace alias named like an annotation of the bundle' => [
+                NamespaceAliasNamedLikeAnnotationController::class,
+                [NamespaceAliasNamedLikeAnnotationController::class . '::show' => $adminOnly],
+            ],
+            'namespace alias named like an annotation of the bundle, next to a longer tag starting with that name' => [
+                TagStartingWithAnnotationNameController::class,
+                [TagStartingWithAnnotationNameController::class . '::show' => $adminOnly],
+            ],
+            'constant of the controller through self' => [
+                SelfConstantDocblockController::class,
+                [SelfConstantDocblockController::class . '::show' => $adminOnly],
             ],
             'annotation of the bundle next to tags that Doctrine rejects' => [
                 BundleAnnotationNextToUnrelatedTagsController::class,

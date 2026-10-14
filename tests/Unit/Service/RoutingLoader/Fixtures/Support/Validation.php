@@ -6,4 +6,5 @@ namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Sup
 
 class Validation
 {
+    public const ROLE = 'ROLE_ADMIN';
 }

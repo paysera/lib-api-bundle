@@ -19,9 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   trait is used by another trait or the method is aliased. An imported name is read as an annotation only when it
   points into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries' imported annotations are
   ignored; an application's own annotation that implements `RestAnnotationInterface` is read only when written with its
-  fully qualified name. Imported classes and interfaces resolve in annotation arguments (`Roles::ADMIN`,
-  `UserDto::class`). A fully qualified tag resolves as with Doctrine's annotation reader: a class that does not exist,
-  or an annotation on a target it does not allow, fails the route load with Doctrine's error
+  fully qualified name. Class names in annotation arguments (`Roles::ADMIN`, `UserDto::class`) resolve as with
+  Doctrine's annotation reader: imported, through `self`, relative to the controller's namespace, or through a
+  namespace alias, unless the same docblock also writes that name as a tag. A fully qualified tag resolves as with
+  Doctrine's annotation reader: a class that does not exist, or an annotation on a target it does not allow, fails the
+  route load with Doctrine's error
 
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,

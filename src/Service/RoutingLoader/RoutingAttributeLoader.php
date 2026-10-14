@@ -204,11 +204,17 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $this->docParser->setTarget($target);
 
         $useStatements = $this->getImports($class, $method);
-        $imports = $this->getResolvableImports($useStatements, $docComment, $class->getNamespaceName());
+        $imports = $this->getResolvableImports($useStatements, $docComment, $class);
         $this->docParser->setImports($imports);
         $annotations = $this->docParser->parse($docComment, $context);
 
-        $unresolvedImports = $this->getUnresolvedAnnotationImports($useStatements, $class);
+        $unresolvedImports = array_filter(
+            $this->getUnresolvedAnnotationImports($useStatements, $class),
+            static function (string $alias) use ($docComment): bool {
+                return preg_match('/@' . preg_quote($alias, '/') . '(?!\w)/i', $docComment) === 1;
+            },
+            ARRAY_FILTER_USE_KEY
+        );
         if ($unresolvedImports !== []) {
             $this->docParser->setImports(array_merge($imports, $unresolvedImports));
             $this->refuseUnresolvedAnnotations($context, $annotations, $this->docParser->parse($docComment, $context));
@@ -221,21 +227,34 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
      * @param array<string, string> $useStatements
      * @return array<string, string>
      */
-    private function getResolvableImports(array $useStatements, string $docComment, string $namespace): array
+    private function getResolvableImports(array $useStatements, string $docComment, ReflectionClass $class): array
     {
-        $imports = [];
+        $namespace = $class->getNamespaceName();
+        $imports = ['self' => $class->getName()];
         foreach ($useStatements as $alias => $name) {
             if (
                 $this->isInAnnotationNamespace($name)
-                || (
-                    stripos($docComment, $alias) !== false
-                    && (class_exists($name) || interface_exists($name))
-                    && !$this->isAnnotationClass($name)
-                )
+                || (stripos($docComment, $alias) !== false && $this->isNonAnnotationClass($name))
             ) {
                 $imports[$alias] = $name;
             }
         }
+
+        preg_match_all('/(?<![\w\\\\$])([a-z_]\w*)((?:\\\\\w+)*)::/i', $docComment, $references, PREG_SET_ORDER);
+        foreach ($references as [, $name, $path]) {
+            $alias = strtolower($name);
+            if (isset($imports[$alias])) {
+                continue;
+            }
+            $prefix = $useStatements[$alias] ?? ltrim($namespace . '\\' . $name, '\\');
+            if (
+                $this->isNonAnnotationClass($prefix . $path)
+                && ($path === '' || stripos($docComment, '@' . $name . '\\') === false)
+            ) {
+                $imports[$alias] = $prefix;
+            }
+        }
+
         if ($this->isInAnnotationNamespace($namespace)) {
             $imports['__NAMESPACE__'] = $namespace;
         }
@@ -273,6 +292,11 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         }
 
         return $imports;
+    }
+
+    private function isNonAnnotationClass(string $name): bool
+    {
+        return (class_exists($name) || interface_exists($name)) && !$this->isAnnotationClass($name);
     }
 
     private function isAnnotationClass(string $name): bool
