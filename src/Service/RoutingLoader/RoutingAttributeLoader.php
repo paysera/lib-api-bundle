@@ -217,8 +217,14 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         );
         if ($unresolvedImports !== []) {
             $this->docParser->setImports(array_merge($imports, $unresolvedImports));
-            $this->refuseUnresolvedAnnotations($context, $annotations, $this->docParser->parse($docComment, $context));
+            $this->refuseUnresolvedAnnotations(
+                $context,
+                $useStatements,
+                $annotations,
+                $this->docParser->parse($docComment, $context)
+            );
         }
+        $this->refuseUnresolvedAliasedAnnotations($context, $docComment, $useStatements, $class->getNamespaceName());
 
         return $annotations;
     }
@@ -255,11 +261,63 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
             }
         }
 
+        foreach ($this->getTags($docComment) as [$name, $path]) {
+            $alias = strtolower($name);
+            $prefix = $useStatements[$alias] ?? ltrim($namespace . '\\' . $name, '\\');
+            if (!isset($imports[$alias]) && $this->isRestAnnotationClass($prefix . $path)) {
+                $imports[$alias] = $prefix;
+            }
+        }
+
         if ($this->isInAnnotationNamespace($namespace)) {
             $imports['__NAMESPACE__'] = $namespace;
         }
 
         return $imports;
+    }
+
+    /**
+     * @return array<array{string, string}> first name and the rest of each tag that is not fully qualified
+     */
+    private function getTags(string $docComment): array
+    {
+        preg_match_all('/(?<![\w\\\\@])@([a-z_]\w*)((?:\\\\\w+)*)/i', $docComment, $tags, PREG_SET_ORDER);
+
+        return array_map(static function (array $tag): array {
+            return [$tag[1], $tag[2]];
+        }, $tags);
+    }
+
+    /**
+     * @param array<string, string> $useStatements
+     */
+    private function refuseUnresolvedAliasedAnnotations(
+        string $context,
+        string $docComment,
+        array $useStatements,
+        string $namespace
+    ): void {
+        $shortNames = array_map(static function (string $annotation): string {
+            return strtolower(substr($annotation, strlen(self::ANNOTATION_NAMESPACE)));
+        }, self::ANNOTATIONS);
+        foreach ($this->getTags($docComment) as [$name, $path]) {
+            $lastName = strtolower(substr((string)strrchr($path, '\\'), 1));
+            if (!in_array($lastName, $shortNames, true)) {
+                continue;
+            }
+            $alias = strtolower($name);
+            $candidates = isset($useStatements[$alias])
+                ? [$useStatements[$alias] . $path]
+                : [ltrim($namespace . '\\' . $name . $path, '\\'), $name . $path];
+            if (count(array_filter($candidates, 'class_exists')) === 0) {
+                throw new ConfigurationException(sprintf(
+                    'The annotation "@%s" in %s does not resolve to a class, so it would be ignored: import it from %s',
+                    $name . $path,
+                    $context,
+                    rtrim(self::ANNOTATION_NAMESPACE, '\\')
+                ));
+            }
+        }
     }
 
     /**
@@ -294,6 +352,11 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         return $imports;
     }
 
+    private function isRestAnnotationClass(string $name): bool
+    {
+        return $this->isAnnotationClass($name) && is_subclass_of($name, RestAnnotationInterface::class);
+    }
+
     private function isNonAnnotationClass(string $name): bool
     {
         return (class_exists($name) || interface_exists($name)) && !$this->isAnnotationClass($name);
@@ -306,11 +369,13 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     }
 
     /**
+     * @param array<string, string> $useStatements
      * @param object[] $annotations
      * @param object[] $annotationsWithUnresolved
      */
     private function refuseUnresolvedAnnotations(
         string $context,
+        array $useStatements,
         array $annotations,
         array $annotationsWithUnresolved
     ): void {
@@ -318,12 +383,22 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         foreach ($annotationsWithUnresolved as $annotation) {
             $class = get_class($annotation);
             if (($counts[$class] ?? 0) === 0) {
-                throw new ConfigurationException(sprintf(
-                    'The annotation "@%s" in %s does not resolve to a class, so it would be ignored: import %s',
-                    substr($class, strlen(self::ANNOTATION_NAMESPACE)),
-                    $context,
-                    $class
-                ));
+                $name = substr($class, strlen(self::ANNOTATION_NAMESPACE));
+                $import = $useStatements[strtolower($name)] ?? '';
+                throw new ConfigurationException(class_exists($import) || interface_exists($import)
+                    ? sprintf(
+                        'The annotation "@%s" in %s resolves to %s, not to the annotation %s, so it would be ignored',
+                        $name,
+                        $context,
+                        $import,
+                        $class
+                    )
+                    : sprintf(
+                        'The annotation "@%s" in %s does not resolve to a class, so it would be ignored: import %s',
+                        $name,
+                        $context,
+                        $class
+                    ));
             }
             $counts[$class]--;
         }

@@ -49,6 +49,7 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Namespace
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasNamedLikeAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasPathReferencesDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasReferencesDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasWithoutAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedTraitDocblockOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBundleAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAnnotationImportDocblockController;
@@ -56,10 +57,17 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibr
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibraryDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionUsingAnnotatedTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionWithTraitImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationFullyQualifiedController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationImportedController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationInControllerNamespaceController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationRelativeController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationThroughNamespaceAliasController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ParentNamespaceAliasDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\RelativeForeignAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SameNamespaceReferencesDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SelfConstantDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SplitNameDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Support\Validation;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TagStartingWithAnnotationNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TagsOnlyDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitAliasCollidingWithClassAliasController;
@@ -67,6 +75,10 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitDocb
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitsInTwoNamespacesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TwoTraitsInOneFileController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedAnnotationDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedForeignNamespaceAliasController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedNamespaceAliasController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedNamespaceAliasOnClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnqualifiedGlobalAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnrelatedDocblockTagsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnusedBundleImportController;
 use ReflectionClass;
@@ -97,6 +109,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
     public static function loadWithoutAnnotationReaderDataProvider(): array
     {
         $adminOnly = (new RestRequestOptions())->setRequiredPermissions(['ROLE_ADMIN']);
+        $auditorOnly = (new RestRequestOptions())->setRequiredPermissions(['ROLE_AUDITOR']);
 
         return [
             'short name' => [
@@ -237,6 +250,38 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             'constant of the controller through self' => [
                 SelfConstantDocblockController::class,
                 [SelfConstantDocblockController::class . '::show' => $adminOnly],
+            ],
+            'own annotation of the application, imported' => [
+                OwnAnnotationImportedController::class,
+                [OwnAnnotationImportedController::class . '::show' => $auditorOnly],
+            ],
+            'own annotation of the application, in the namespace of the controller' => [
+                OwnAnnotationInControllerNamespaceController::class,
+                [OwnAnnotationInControllerNamespaceController::class . '::show' => $auditorOnly],
+            ],
+            'own annotation of the application, relative to the namespace of the controller' => [
+                OwnAnnotationRelativeController::class,
+                [OwnAnnotationRelativeController::class . '::show' => $auditorOnly],
+            ],
+            'own annotation of the application, through a namespace alias' => [
+                OwnAnnotationThroughNamespaceAliasController::class,
+                [OwnAnnotationThroughNamespaceAliasController::class . '::show' => $auditorOnly],
+            ],
+            'own annotation of the application, fully qualified' => [
+                OwnAnnotationFullyQualifiedController::class,
+                [OwnAnnotationFullyQualifiedController::class . '::show' => $auditorOnly],
+            ],
+            'tag of another library through a namespace alias that nothing imports' => [
+                UnimportedForeignNamespaceAliasController::class,
+                [UnimportedForeignNamespaceAliasController::class . '::show' => $adminOnly],
+            ],
+            'annotation of another library relative to the controller namespace, named like one of the bundle' => [
+                RelativeForeignAnnotationController::class,
+                [RelativeForeignAnnotationController::class . '::show' => $adminOnly],
+            ],
+            'annotation of the bundle by its full name without the leading backslash' => [
+                UnqualifiedGlobalAnnotationController::class,
+                [UnqualifiedGlobalAnnotationController::class . '::show' => $adminOnly],
             ],
             'annotation of the bundle next to tags that Doctrine rejects' => [
                 BundleAnnotationNextToUnrelatedTagsController::class,
@@ -468,8 +513,31 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 [],
                 NonAnnotationImportDocblockController::class,
                 ConfigurationException::class,
-                'The annotation "@Validation" in method '
-                . NonAnnotationImportDocblockController::class . '::show() does not resolve to a class',
+                'The annotation "@Validation" in method ' . NonAnnotationImportDocblockController::class
+                . '::show() resolves to ' . Validation::class . ', not to the annotation '
+                . 'Paysera\\Bundle\\ApiBundle\\Annotation\\Validation',
+            ],
+            'namespace alias of the bundle that nothing imports' => [
+                [],
+                UnimportedNamespaceAliasController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermissions" in method ' . UnimportedNamespaceAliasController::class
+                . '::show() does not resolve to a class, so it would be ignored: import it from '
+                . 'Paysera\\Bundle\\ApiBundle\\Annotation',
+            ],
+            'namespace alias of the bundle that nothing imports, on the class' => [
+                [],
+                UnimportedNamespaceAliasOnClassController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermissions" in class '
+                . UnimportedNamespaceAliasOnClassController::class . ' does not resolve to a class',
+            ],
+            'namespace alias imported for a namespace without that annotation' => [
+                [],
+                NamespaceAliasWithoutAnnotationController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermissions" in method '
+                . NamespaceAliasWithoutAnnotationController::class . '::show() does not resolve to a class',
             ],
             'annotation of the bundle on a target it does not allow' => [
                 [],

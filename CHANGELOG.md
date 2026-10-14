@@ -16,14 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   FrameworkBundle 6.4 and `symfony/routing` 7), the bundle reads its own docblock annotations on `#[Route]` methods and
   their classes with Doctrine's `DocParser`. A class docblock resolves names through the use statements of the class, a
   method docblock through those of the class declaring the method and of the trait that declares it, also when that
-  trait is used by another trait or the method is aliased. An imported name is read as an annotation only when it
-  points into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries' imported annotations are
-  ignored; an application's own annotation that implements `RestAnnotationInterface` is read only when written with its
-  fully qualified name. Class names in annotation arguments (`Roles::ADMIN`, `UserDto::class`) resolve as with
-  Doctrine's annotation reader: imported, through `self`, relative to the controller's namespace, or through a
-  namespace alias, unless the same docblock also writes that name as a tag. A fully qualified tag resolves as with
-  Doctrine's annotation reader: a class that does not exist, or an annotation on a target it does not allow, fails the
-  route load with Doctrine's error
+  trait is used by another trait or the method is aliased. An imported name is read as an annotation only when it points
+  into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries' imported annotations are ignored. An
+  application's own annotation that implements `RestAnnotationInterface` is read as with Doctrine's annotation reader:
+  imported, in the controller's namespace or relative to it, through a namespace alias, or fully qualified. Class names
+  in annotation arguments (`Roles::ADMIN`, `UserDto::class`) resolve as with Doctrine's annotation reader: imported,
+  through `self`, relative to the controller's namespace, or through a namespace alias, unless the same docblock also
+  writes that name as a tag. A fully qualified tag resolves as with Doctrine's annotation reader: a class that does not
+  exist, or an annotation on a target it does not allow, fails the route load with Doctrine's error
 
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
@@ -45,8 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Breaking where no annotation reader is available: the route load fails with a `ConfigurationException` when a tag
   written as the short name of one of the bundle's annotations (`@RequiredPermissions`) does not resolve to that
   annotation, because its use statement is missing or names another class, and when a namespace alias of the bundle's
-  annotations is used where only another trait of the controller imports it. A namespace alias that nothing imports
-  (`@Rest\RequiredPermissions` without `use … as Rest`) is still ignored
+  annotations is used where only another trait of the controller imports it, and when a tag ending in one of those short
+  names is written through a namespace alias and resolves to no class (`@Rest\RequiredPermissions` without `use … as
+  Rest`, or with `Rest` imported for another namespace). The message names the class a use statement resolves the short
+  name to
 - CI runs the tests on PHP 8.4, on Symfony 7 with PHP 8.2 to 8.4, and with lowest dependencies
 
 ### Fixed

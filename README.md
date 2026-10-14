@@ -664,17 +664,19 @@ Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 
 reads the docblocks of the controller class and of the routed method with Doctrine's `DocParser`. Names resolve through
 the use statements of the class, and for a method also those of the trait that declares it. An imported name is read as
 an annotation only when it points into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries'
-imported annotations are ignored; write your own annotations that implement `RestAnnotationInterface` with their fully
-qualified name, or use attributes. Class names and constants in the arguments resolve as with Doctrine's annotation
-reader: imported, through `self`, relative to the controller's namespace, or through a namespace alias, unless the same
-docblock also writes that name as a tag. Loading the routes fails when a tag written as the short name of one of the
-bundle's annotations does not resolve to it (import it), and when OPcache runs with `opcache.save_comments=0`: as
-Doctrine's annotation reader, the bundle needs `opcache.save_comments=1`. On Symfony 6.4 and later, an application that
-uses only the attributes can set `docblock_annotations: false`: the bundle then reads none of its docblock annotations,
-on `@Route` routes either, and no docblock. Symfony's own annotation reader still needs `opcache.save_comments` where
-`framework.annotations` is enabled. Before Symfony 6.4 the option has no effect. A tag written through a namespace alias
-that is not imported is ignored. A fully qualified tag of a class that does not exist, or an annotation on a target it
-does not allow, fails with Doctrine's error, as with Doctrine's annotation reader.
+imported annotations are ignored. Your own annotations that implement `RestAnnotationInterface` are read as with
+Doctrine's annotation reader: imported, in the controller's namespace or relative to it, through a namespace alias, or
+fully qualified. Class names and constants in the arguments resolve as with Doctrine's annotation reader: imported,
+through `self`, relative to the controller's namespace, or through a namespace alias, unless the same docblock also
+writes that name as a tag. Loading the routes fails when a tag written as the short name of one of the bundle's
+annotations does not resolve to it (import it), when a tag ending in one of those short names is written through a
+namespace alias and resolves to no class (`@Rest\RequiredPermissions` without `use … as Rest`), and when OPcache runs
+with `opcache.save_comments=0`: as Doctrine's annotation reader, the bundle needs `opcache.save_comments=1`. On Symfony
+6.4 and later, an application that uses only the attributes can set `docblock_annotations: false`: the bundle then reads
+none of its docblock annotations, on `@Route` routes either, and no docblock. Symfony's own annotation reader still
+needs `opcache.save_comments` where `framework.annotations` is enabled. Before Symfony 6.4 the option has no effect. A
+fully qualified tag of a class that does not exist, or an annotation on a target it does not allow, fails with
+Doctrine's error, as with Doctrine's annotation reader.
 The attributes take the same options, passed by name:
 `@RequiredPermissions(permissions={"ROLE_ADMIN"})` becomes `#[RequiredPermissions(permissions: ['ROLE_ADMIN'])]`.
 
