@@ -14,6 +14,8 @@ use Paysera\Bundle\ApiBundle\Service\RoutingLoader\ReflectionMethodWrapper;
  */
 class AuditAccess implements RestAnnotationInterface
 {
+    public const ROLE = 'ROLE_ADMIN';
+
     public function isSeveralSupported(): bool
     {
         return false;

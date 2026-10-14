@@ -19,11 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   trait is used by another trait or the method is aliased. An imported name is read as an annotation only when it points
   into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries' imported annotations are ignored. An
   application's own annotation that implements `RestAnnotationInterface` is read as with Doctrine's annotation reader:
-  imported, in the controller's namespace or relative to it, through a namespace alias, or fully qualified. Class names
-  in annotation arguments (`Roles::ADMIN`, `UserDto::class`) resolve as with Doctrine's annotation reader: imported,
-  through `self`, relative to the controller's namespace, or through a namespace alias, unless the same docblock also
-  writes that name as a tag. A fully qualified tag resolves as with Doctrine's annotation reader: a class that does not
-  exist, or an annotation on a target it does not allow, fails the route load with Doctrine's error
+  imported, in the controller's namespace or relative to it, through a namespace alias, or fully qualified; one that
+  resolves to no class, such as a forgotten import, is ignored like an unknown tag. Class names in annotation arguments
+  (`Roles::ADMIN`, `UserDto::class`) resolve as with Doctrine's annotation reader: imported, through `self`, relative to
+  the controller's namespace, or through a namespace alias, unless the same docblock also writes that name as a tag.
 
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
@@ -47,8 +46,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   annotation, because its use statement is missing or names another class, and when a namespace alias of the bundle's
   annotations is used where only another trait of the controller imports it, and when a tag ending in one of those short
   names is written through a namespace alias and resolves to no class (`@Rest\RequiredPermissions` without `use … as
-  Rest`, or with `Rest` imported for another namespace). The message names the class a use statement resolves the short
-  name to
+  Rest`, or with `Rest` imported for another namespace), when a tag resolves into `Paysera\Bundle\ApiBundle\Annotation`
+  to a class that does not exist (an import of `…\Annotation\RequiredPermission`), when a nested annotation of the
+  bundle does not resolve, when a tag of the bundle or an application's own annotation is written with a doubled
+  backslash, when a tag of the bundle spells its class in another letter case, and when two tags with the same first
+  name resolve in different namespaces. Tags are read as Doctrine's lexer reads them, from the first tag on, also when a
+  name continues on the next line. The message names the class a use statement resolves the short name to, or says that
+  the import differs in letter case. `@IgnoreAnnotation` does not exempt the bundle's annotations. A fully qualified tag
+  resolves as with Doctrine's annotation reader, so a class that does not exist, or an annotation on a target it does
+  not allow, fails the route load with Doctrine's error. Any other tag that resolves to no class, such as a bare
+  `@RequiredPermission` with no import, is ignored like an unknown tag
 - `LocaleListener` reads the `Accept-Language` tags with the installed Symfony's `Request::getLanguages()` and compares
   them with the configured locales ignoring letter case, then sets the locale as configured: `DE` or `zh-hant-tw` now
   matches a configured `de` or `zh_Hant_TW`, where Symfony 3.4 to 7.0 matched only the exact case. From Symfony 7.1,
@@ -63,7 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - On Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7, the
   bundle's docblock annotations, `@RequiredPermissions` among them, were ignored without an error; they are now applied
-  unless `docblock_annotations` is `false`, and the cases listed under Changed fail the route load instead
+  unless `docblock_annotations` is `false`, and the cases listed under Changed fail the route load instead; any other
+  tag that resolves to no class is still ignored like an unknown tag
 
 ## [1.8.2]
 ### Changed

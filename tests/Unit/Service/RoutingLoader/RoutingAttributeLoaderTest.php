@@ -10,6 +10,7 @@ use Doctrine\Common\Annotations\Reader;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions;
+use Paysera\Bundle\ApiBundle\Annotation\Validation as ValidationAnnotation;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\NamespaceRelativeDocblockController;
@@ -21,6 +22,8 @@ use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBu
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAttributeLoader;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasAndBareDuplicateController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedTraitMethodController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AnnotationClassConstantController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AnnotationClassNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\BundleAnnotationNextToUnrelatedTagsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\BundleAnnotationOnUnroutedMethodController;
@@ -35,14 +38,26 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassImpo
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassNotImportingForTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsOnAttributeRouteController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DoubleBackslashDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DoubledBackslashAliasController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FirstNameSharedController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ForeignAnnotationClassConstantController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ForeignAnnotationTagAndClassNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedDoubledBackslashController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedMissingClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredUnimportedAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportedConstantsDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\InheritedDocblockOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MethodAnnotationOnClassController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MiscasedAliasForTagAndReferenceController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MiscasedAliasMisspelledController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MiscasedAliasTagController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MiscasedFirstNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MiscasedImportDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingBundleSubNamespaceImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspelledBundleAliasController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspelledBundleImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspelledFullyQualifiedController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspelledImportDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasForTagAndReferenceController;
@@ -50,24 +65,35 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Namespace
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasPathReferencesDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasReferencesDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasWithoutAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedBlameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedTraitDocblockOptionsController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedUnimportedAliasController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedUnimportedAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBundleAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAnnotationImportDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibrary\SameNamespaceAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibraryDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionUsingAnnotatedTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionWithTraitImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationDoubledBackslashController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationFullyQualifiedController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationImportedController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationInControllerNamespaceController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationRelativeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnAnnotationThroughNamespaceAliasController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ParentNamespaceAliasDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ProseWithAliasTagController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\QuoteBeforeAliasController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\QuoteBeforeOwnAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\QuotedTagNameAndReferenceController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\RelativeForeignAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SameNamespaceReferencesDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SelfConstantDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SplitMisspelledAliasController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SplitNameDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Support\AuditAccess;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Support\Validation;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SyntaxErrorNextToUnimportedController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TagStartingWithAnnotationNameController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TagsOnlyDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitAliasCollidingWithClassAliasController;
@@ -78,6 +104,8 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Unimporte
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedForeignNamespaceAliasController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedNamespaceAliasController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedNamespaceAliasOnClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedSpacedAliasController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedSplitAliasController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnqualifiedGlobalAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnrelatedDocblockTagsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnusedBundleImportController;
@@ -271,7 +299,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 OwnAnnotationFullyQualifiedController::class,
                 [OwnAnnotationFullyQualifiedController::class . '::show' => $auditorOnly],
             ],
-            'tag of another library through a namespace alias that nothing imports' => [
+            'tag of another library through an alias nothing imports: ignored, Doctrine\'s reader fails' => [
                 UnimportedForeignNamespaceAliasController::class,
                 [UnimportedForeignNamespaceAliasController::class . '::show' => $adminOnly],
             ],
@@ -279,9 +307,43 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 RelativeForeignAnnotationController::class,
                 [RelativeForeignAnnotationController::class . '::show' => $adminOnly],
             ],
+            'a double quote in the summary does not hide the tags after it' => [
+                QuoteBeforeOwnAnnotationController::class,
+                [QuoteBeforeOwnAnnotationController::class . '::show' => $auditorOnly],
+            ],
+            'a tag name inside quotes does not stop a class name in the arguments from resolving' => [
+                QuotedTagNameAndReferenceController::class,
+                [QuotedTagNameAndReferenceController::class . '::show' => $adminOnly],
+            ],
+            'an @ inside prose is not a tag, as Doctrine\'s lexer reads it' => [
+                ProseWithAliasTagController::class,
+                [ProseWithAliasTagController::class . '::show' => $adminOnly],
+            ],
             'annotation of the bundle by its full name without the leading backslash' => [
                 UnqualifiedGlobalAnnotationController::class,
                 [UnqualifiedGlobalAnnotationController::class . '::show' => $adminOnly],
+            ],
+            'constant of an imported annotation class of the application in the arguments' => [
+                AnnotationClassConstantController::class,
+                [AnnotationClassConstantController::class . '::show' => $adminOnly],
+            ],
+            'constant of an imported annotation class of another library in the arguments' => [
+                ForeignAnnotationClassConstantController::class,
+                [ForeignAnnotationClassConstantController::class . '::show' => $adminOnly],
+            ],
+            'annotation class of another library also written as a tag: tag ignored, class name kept as written' => [
+                ForeignAnnotationTagAndClassNameController::class,
+                [
+                    ForeignAnnotationTagAndClassNameController::class . '::show' => (new RestRequestOptions())
+                        ->setResponseNormalizationType('LibraryQuery'),
+                ],
+            ],
+            'class name of an imported annotation class in the arguments' => [
+                AnnotationClassNameController::class,
+                [
+                    AnnotationClassNameController::class . '::show' => (new RestRequestOptions())
+                        ->setResponseNormalizationType(AuditAccess::class),
+                ],
             ],
             'annotation of the bundle next to tags that Doctrine rejects' => [
                 BundleAnnotationNextToUnrelatedTagsController::class,
@@ -515,7 +577,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 ConfigurationException::class,
                 'The annotation "@Validation" in method ' . NonAnnotationImportDocblockController::class
                 . '::show() resolves to ' . Validation::class . ', not to the annotation '
-                . 'Paysera\\Bundle\\ApiBundle\\Annotation\\Validation',
+                . ValidationAnnotation::class,
             ],
             'namespace alias of the bundle that nothing imports' => [
                 [],
@@ -538,6 +600,121 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 ConfigurationException::class,
                 'The annotation "@Rest\\RequiredPermissions" in method '
                 . NamespaceAliasWithoutAnnotationController::class . '::show() does not resolve to a class',
+            ],
+            'import of a class of the bundle that does not exist' => [
+                [],
+                MisspelledBundleImportController::class,
+                ConfigurationException::class,
+                'The annotation "@RequiredPermission" in method ' . MisspelledBundleImportController::class
+                . '::show() does not resolve to a class, so it would be ignored: import it from '
+                . 'Paysera\\Bundle\\ApiBundle\\Annotation',
+            ],
+            'fully qualified tag naming a class of the bundle that does not exist, with Doctrine\'s error' => [
+                [],
+                MisspelledFullyQualifiedController::class,
+                AnnotationException::class,
+                'The annotation "@Paysera\\Bundle\\ApiBundle\\Annotation\\RequiredPermission" in method '
+                . MisspelledFullyQualifiedController::class . '::show() does not exist, or could not be auto-loaded.',
+            ],
+            'namespace alias of the bundle naming a class that does not exist' => [
+                [],
+                MisspelledBundleAliasController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermission" in method '
+                . MisspelledBundleAliasController::class . '::show() does not resolve to a class',
+            ],
+            'IgnoreAnnotation does not exempt an annotation of the bundle that is not imported, the load fails' => [
+                [],
+                IgnoredUnimportedAnnotationController::class,
+                ConfigurationException::class,
+                'The annotation "@RequiredPermissions" in method '
+                . IgnoredUnimportedAnnotationController::class . '::show() does not resolve to a class',
+            ],
+            'namespace alias of the bundle in another letter case, naming a class that does not exist' => [
+                [],
+                MiscasedAliasMisspelledController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermission" in method '
+                . MiscasedAliasMisspelledController::class . '::show() does not resolve to a class',
+            ],
+            'namespace alias that nothing imports, after a double quote in the summary' => [
+                [],
+                QuoteBeforeAliasController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermissions" in method '
+                . QuoteBeforeAliasController::class . '::show() does not resolve to a class',
+            ],
+            'annotation of the bundle by its full name, the first name in another letter case' => [
+                [],
+                MiscasedFirstNameController::class,
+                ConfigurationException::class,
+                'The annotation "@paysera\\Bundle\\ApiBundle\\Annotation\\RequiredPermissions" in method '
+                . MiscasedFirstNameController::class . '::show() is written in another letter case: write it as '
+                . RequiredPermissions::class,
+            ],
+            'namespace alias that nothing imports, split across lines' => [
+                [],
+                UnimportedSplitAliasController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermissions" in method '
+                . UnimportedSplitAliasController::class . '::show() does not resolve to a class',
+            ],
+            'namespace alias that nothing imports, with a space after the backslash' => [
+                [],
+                UnimportedSpacedAliasController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermissions" in method '
+                . UnimportedSpacedAliasController::class . '::show() does not resolve to a class',
+            ],
+            'namespace alias of the bundle naming a class that does not exist, split across lines' => [
+                [],
+                SplitMisspelledAliasController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\RequiredPermission" in method '
+                . SplitMisspelledAliasController::class . '::show() does not resolve to a class',
+            ],
+            'annotation of the bundle written through its alias in another letter case' => [
+                [],
+                MiscasedAliasTagController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\requiredPermissions" in method ' . MiscasedAliasTagController::class
+                . '::show() is written in another letter case: write it as ' . RequiredPermissions::class,
+            ],
+            'two tags with the same first name resolving to different namespaces' => [
+                [],
+                FirstNameSharedController::class,
+                ConfigurationException::class,
+                'The annotations "@Paysera\\Audited" and '
+                . '"@Paysera\\Bundle\\ApiBundle\\Annotation\\RequiredPermissions" in method '
+                . FirstNameSharedController::class . '::show() start with the same name but resolve in '
+                . 'different namespaces: write one of them fully qualified',
+            ],
+            'nested annotation that is not imported, next to a namespace alias named like an annotation' => [
+                [],
+                NestedBlameController::class,
+                ConfigurationException::class,
+                'The annotation "@Validation" in method ' . NestedBlameController::class
+                . '::show() does not resolve to a class, so it would be ignored: import ' . ValidationAnnotation::class,
+            ],
+            'nested annotation of the bundle that is not imported' => [
+                [],
+                NestedUnimportedAnnotationController::class,
+                ConfigurationException::class,
+                'The annotation "@Validation" in method ' . NestedUnimportedAnnotationController::class
+                . '::show() does not resolve to a class, so it would be ignored: import ' . ValidationAnnotation::class,
+            ],
+            'nested annotation through a namespace alias that nothing imports' => [
+                [],
+                NestedUnimportedAliasController::class,
+                ConfigurationException::class,
+                'The annotation "@Rest\\Validation" in method '
+                . NestedUnimportedAliasController::class . '::show() does not resolve to a class',
+            ],
+            'syntax error next to an annotation of the bundle that is not imported: Doctrine\'s error is kept' => [
+                [],
+                SyntaxErrorNextToUnimportedController::class,
+                AnnotationException::class,
+                '[Syntax Error]',
             ],
             'annotation of the bundle on a target it does not allow' => [
                 [],
@@ -565,15 +742,63 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         string $expectedOutput,
         array $arguments = []
     ): void {
-        $autoload = dirname((new ReflectionClass(ClassLoader::class))->getFileName(), 2) . '/autoload.php';
-        $command = array_merge([PHP_BINARY], $ini, [__DIR__ . '/Fixtures/load-routes.php', $autoload], $arguments);
-        exec(implode(' ', array_map('escapeshellarg', $command)) . ' 2>&1', $lines);
+        $lines = $this->runFixtureScript($ini, 'load-routes.php', $arguments);
         $output = (string)end($lines);
         if ($output === 'no opcache') {
             $this->markTestSkipped('This PHP has no OPcache to strip docblocks');
         }
 
         $this->assertSame($expectedOutput, $output, implode("\n", $lines));
+    }
+
+    /**
+     * @dataProvider loadWithoutAnnotationReaderInFreshProcessDataProvider
+     */
+    public function testLoadWithoutAnnotationReaderInFreshProcess(string $controller, string $expectedOutput): void
+    {
+        if (file_exists(strtoupper(__FILE__)) && file_exists(strtolower(__FILE__))) {
+            $this->markTestSkipped('On a case-insensitive filesystem a miscased import autoloads');
+        }
+
+        $lines = $this->runFixtureScript([], 'load-controller.php', [$controller]);
+
+        $this->assertSame($expectedOutput, (string)end($lines), implode("\n", $lines));
+    }
+
+    public static function loadWithoutAnnotationReaderInFreshProcessDataProvider(): array
+    {
+        return [
+            'tag of the bundle written with a doubled backslash, which Doctrine\'s parser cannot load' => [
+                DoubledBackslashAliasController::class,
+                ConfigurationException::class . ': The annotation "@Rest\\\\RequiredPermissions" in method '
+                . DoubledBackslashAliasController::class . '::show() is written with a doubled backslash: write one',
+            ],
+            'annotation of the bundle through its alias in another letter case, not loaded yet' => [
+                MiscasedAliasTagController::class,
+                ConfigurationException::class . ': The annotation "@Rest\\requiredPermissions" in method '
+                . MiscasedAliasTagController::class . '::show() is written in another letter case: write it as '
+                . RequiredPermissions::class,
+            ],
+            'own annotation written with a doubled backslash, which Doctrine\'s parser cannot load' => [
+                OwnAnnotationDoubledBackslashController::class,
+                ConfigurationException::class . ': The annotation "@Own\\\\AuditAccess" in method '
+                . OwnAnnotationDoubledBackslashController::class
+                . '::show() is written with a doubled backslash: write one',
+            ],
+            'fully qualified tag of the bundle with a doubled backslash, after the class is loaded' => [
+                FullyQualifiedDoubledBackslashController::class,
+                ConfigurationException::class . ': The annotation "@\\Paysera\\Bundle\\ApiBundle\\Annotation\\\\'
+                . 'RequiredPermissions" in method ' . FullyQualifiedDoubledBackslashController::class
+                . '::show() is written with a doubled backslash: write one',
+            ],
+            'miscased import of an annotation of the bundle that the process has not loaded yet' => [
+                MiscasedImportDocblockController::class,
+                ConfigurationException::class . ': The annotation "@RequiredPermissions" in method '
+                . MiscasedImportDocblockController::class . '::show() is imported in another letter case '
+                . '(Paysera\\Bundle\\ApiBundle\\annotation\\RequiredPermissions): import '
+                . RequiredPermissions::class . ' so it autoloads',
+            ],
+        ];
     }
 
     public static function loadWithoutAnnotationReaderUnderOpcacheDataProvider(): array
@@ -633,6 +858,20 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 ConfigurationException::class,
             ],
         ];
+    }
+
+    /**
+     * @param string[] $ini
+     * @param string[] $arguments
+     * @return string[] the lines the script printed, standard error included
+     */
+    private function runFixtureScript(array $ini, string $script, array $arguments): array
+    {
+        $autoload = dirname((new ReflectionClass(ClassLoader::class))->getFileName(), 2) . '/autoload.php';
+        $command = array_merge([PHP_BINARY], $ini, [__DIR__ . '/Fixtures/' . $script, $autoload], $arguments);
+        exec(implode(' ', array_map('escapeshellarg', $command)) . ' 2>&1', $lines);
+
+        return $lines;
     }
 
     private function createLoader(?Reader $reader = null): RoutingAttributeLoader

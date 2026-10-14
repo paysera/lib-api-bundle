@@ -10,6 +10,8 @@ namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Oth
  */
 class Query
 {
+    public const ROLE = 'ROLE_ADMIN';
+
     /**
      * @var string
      */
