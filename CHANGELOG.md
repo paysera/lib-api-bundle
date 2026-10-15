@@ -49,13 +49,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Rest`, or with `Rest` imported for another namespace), when a tag resolves into `Paysera\Bundle\ApiBundle\Annotation`
   to a class that does not exist (an import of `…\Annotation\RequiredPermission`), when a nested annotation of the
   bundle does not resolve, when a tag of the bundle or an application's own annotation is written with a doubled
-  backslash, when a tag of the bundle spells its class in another letter case, and when two tags with the same first
-  name resolve in different namespaces. Tags are read as Doctrine's lexer reads them, from the first tag on, also when a
-  name continues on the next line. The message names the class a use statement resolves the short name to, or says that
-  the import differs in letter case. `@IgnoreAnnotation` does not exempt the bundle's annotations. A fully qualified tag
-  resolves as with Doctrine's annotation reader, so a class that does not exist, or an annotation on a target it does
-  not allow, fails the route load with Doctrine's error. Any other tag that resolves to no class, such as a bare
-  `@RequiredPermission` with no import, is ignored like an unknown tag
+  backslash, has whitespace before a backslash inside its name (`@Rest \RequiredPermissions`) or has a colon in its
+  name (`@RequiredPermissions:admin`), when a tag names `Paysera\Bundle\ApiBundle\Annotation` itself through an import
+  (`@Rest RequiredPermissions`), when a tag of the bundle that is not fully qualified spells its class in another letter
+  case, and when two tags with the same first name resolve in different namespaces. Tags are found with Doctrine's own
+  lexer, as its parser finds them. The message names the
+  class a use statement resolves the short name to, or says that the import differs in letter case; an import of one of
+  the bundle's annotations in another letter case fails while the annotation's class is not loaded and applies once it
+  is, as with Doctrine's annotation reader. `@IgnoreAnnotation` does not exempt the bundle's annotations. A fully
+  qualified tag resolves as with Doctrine's annotation reader, so a class that does not exist, or an annotation on a
+  target it does not allow, fails the route load with Doctrine's error. Any other tag that resolves to no class, such as
+  a bare `@RequiredPermission` with no import, is ignored like an unknown tag
 - `LocaleListener` reads the `Accept-Language` tags with the installed Symfony's `Request::getLanguages()` and compares
   them with the configured locales ignoring letter case, then sets the locale as configured: `DE` or `zh-hant-tw` now
   matches a configured `de` or `zh_Hant_TW`, where Symfony 3.4 to 7.0 matched only the exact case. From Symfony 7.1,

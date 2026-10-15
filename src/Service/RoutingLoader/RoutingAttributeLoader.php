@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
+use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\Common\Annotations\Annotation\Target;
 use Doctrine\Common\Annotations\AnnotationException;
 use Doctrine\Common\Annotations\DocParser;
+use Doctrine\Common\Annotations\ImplicitlyIgnoredAnnotationNames;
 use Doctrine\Common\Annotations\PhpParser;
 use Paysera\Bundle\ApiBundle\Annotation\Body;
 use Paysera\Bundle\ApiBundle\Annotation\BodyContentType;
@@ -74,6 +76,21 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
      * @var array<string, object[]>
      */
     private $docblockAnnotations = [];
+
+    /**
+     * @var DocblockTagReader|null
+     */
+    private $tagReader;
+
+    /**
+     * @var DocParser|null
+     */
+    private $ignoreAnnotationParser;
+
+    /**
+     * @var array<string, array<string, bool>>
+     */
+    private $ignoredNames = [];
 
     public function setRequestHelper(RestRequestHelper $restRequestHelper)
     {
@@ -205,21 +222,43 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $this->docParser->setTarget($target);
 
         $useStatements = $this->getImports($class, $method);
-        $imports = $this->getResolvableImports($useStatements, $docComment, $class);
+        $namespace = $class->getNamespaceName();
+        $ignoredNames = $this->getIgnoredNames($class);
+        if ($this->tagReader === null) {
+            $this->tagReader = new DocblockTagReader();
+        }
+        $tags = $this->tagReader->read(
+            $docComment,
+            function (string $name, string $path) use ($useStatements, $namespace, $ignoredNames): bool {
+                $resolved = $this->findTagClass($name, $path, $useStatements, $namespace, $ignoredNames);
+
+                return $resolved !== null && $this->isAnnotationClass($resolved);
+            }
+        );
+        $imports = $this->getResolvableImports($useStatements, $docComment, $tags, $class);
+        $writtenNames = array_map(static function (array $tag): string {
+            return strtolower($tag[0]);
+        }, $this->getUnqualifiedTags($tags));
         $unresolvedImports = array_filter(
             $this->getUnresolvedAnnotationImports($useStatements, $class),
-            static function (string $alias) use ($docComment): bool {
-                return preg_match('/@' . preg_quote($alias, '/') . '(?!\w)/i', $docComment) === 1;
+            static function (string $alias) use ($writtenNames): bool {
+                return in_array($alias, $writtenNames, true);
             },
             ARRAY_FILTER_USE_KEY
         );
-        $namespace = $class->getNamespaceName();
-        $this->refuseDoubledBackslashes($context, $docComment, $useStatements, $namespace);
+        $this->refuseDoubledBackslashes($context, $tags, $useStatements, $namespace);
         $this->docParser->setImports($imports);
         try {
             $annotations = $this->docParser->parse($docComment, $context);
         } catch (AnnotationException $exception) {
-            $this->refuseUnresolvedAliasedAnnotations($context, $docComment, $useStatements, $imports, $namespace);
+            $this->refuseUnresolvedAliasedAnnotations(
+                $context,
+                $tags,
+                $useStatements,
+                $imports,
+                $namespace,
+                $ignoredNames
+            );
             $this->refuseUnresolvedNestedAnnotation($context, $docComment, $imports, $unresolvedImports);
             throw $exception;
         }
@@ -233,17 +272,22 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
                 $this->docParser->parse($docComment, $context)
             );
         }
-        $this->refuseUnresolvedAliasedAnnotations($context, $docComment, $useStatements, $imports, $namespace);
+        $this->refuseUnresolvedAliasedAnnotations($context, $tags, $useStatements, $imports, $namespace, $ignoredNames);
 
         return $annotations;
     }
 
     /**
      * @param array<string, string> $useStatements
+     * @param array<array{string, string, string, bool, string}> $tags
      * @return array<string, string>
      */
-    private function getResolvableImports(array $useStatements, string $docComment, ReflectionClass $class): array
-    {
+    private function getResolvableImports(
+        array $useStatements,
+        string $docComment,
+        array $tags,
+        ReflectionClass $class
+    ): array {
         $namespace = $class->getNamespaceName();
         $imports = ['self' => $class->getName()];
         foreach ($useStatements as $alias => $name) {
@@ -256,7 +300,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         }
 
         preg_match_all('/(?<![\w\\\\$])([a-z_]\w*)((?:\\\\\w+)*)::/i', $docComment, $references, PREG_SET_ORDER);
-        $tags = $this->getTags($docComment);
+        $unqualifiedTags = $this->getUnqualifiedTags($tags);
         foreach ($references as [, $name, $path]) {
             $alias = strtolower($name);
             if (isset($imports[$alias])) {
@@ -265,14 +309,14 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
             $prefix = $useStatements[$alias] ?? ltrim($namespace . '\\' . $name, '\\');
             $reference = $prefix . $path;
             $writtenAsTag = $path === ''
-                ? $this->isAnnotationClass($reference) && $this->isWrittenAsTag($tags, $name, false)
-                : $this->isWrittenAsTag($tags, $name, true);
+                ? $this->isAnnotationClass($reference) && $this->isWrittenAsTag($unqualifiedTags, $name, false)
+                : $this->isWrittenAsTag($unqualifiedTags, $name, true);
             if ((class_exists($reference) || interface_exists($reference)) && !$writtenAsTag) {
                 $imports[$alias] = $prefix;
             }
         }
 
-        foreach ($tags as [$name, $path]) {
+        foreach ($unqualifiedTags as [$name, $path]) {
             $alias = strtolower($name);
             $prefix = $useStatements[$alias] ?? ltrim($namespace . '\\' . $name, '\\');
             if (!isset($imports[$alias]) && $this->isRestAnnotationClass($prefix . $path)) {
@@ -288,7 +332,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     }
 
     /**
-     * @param array<array{string, string, string}> $tags
+     * @param array<array{string, string, string, string}> $tags
      */
     private function isWrittenAsTag(array $tags, string $name, bool $withPath): bool
     {
@@ -302,68 +346,39 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     }
 
     /**
-     * @return array<array{string, string, string}> the tags that are not fully qualified, as readTags() returns them
+     * @param array<array{string, string, string, bool, string}> $tags
+     * @return array<array{string, string, string, string}> the tags that are not fully qualified
      */
-    private function getTags(string $docComment): array
+    private function getUnqualifiedTags(array $tags): array
     {
-        $tags = [];
-        foreach ($this->readTags($docComment) as [$name, $path, $written, $fullyQualified]) {
+        $unqualified = [];
+        foreach ($tags as [$name, $path, $written, $fullyQualified, $continuation]) {
             if (!$fullyQualified) {
-                $tags[] = [$name, $path, $written];
+                $unqualified[] = [$name, $path, $written, $continuation];
             }
         }
 
-        return $tags;
+        return $unqualified;
     }
 
     /**
-     * Tags as Doctrine's lexer reads them: from the first tag on, not inside a double-quoted string, an @ after
-     * whitespace, *, or a value's =, comma or {, and a name joined across a backslash and a line break.
-     *
-     * @return array<array{string, string, string, bool}> for each tag: its first name, the rest of its name with single
-     *     backslashes, that rest as written, and whether it is fully qualified
-     */
-    private function readTags(string $docComment): array
-    {
-        if (preg_match('/(?<![^ \t*])@/', $docComment, $first, PREG_OFFSET_CAPTURE) !== 1) {
-            return [];
-        }
-        $withoutStrings = (string)preg_replace('/"(?:""|[^"])*+"/', '""', substr($docComment, $first[0][1]));
-        preg_match_all(
-            '/(?<![^\s*=,{])@(\\\\*)([a-z_]\w*)((?:\\\\+[\s*]*\w+)*)/i',
-            $withoutStrings,
-            $tags,
-            PREG_SET_ORDER
-        );
-
-        return array_map(static function (array $tag): array {
-            $written = (string)preg_replace('/[\s*]+/', '', $tag[3]);
-
-            return [$tag[2], (string)preg_replace('/\\\\+/', '\\\\', $written), $written, $tag[1] !== ''];
-        }, $tags);
-    }
-
-    /**
+     * @param array<array{string, string, string, bool, string}> $tags
      * @param array<string, string> $useStatements
      */
     private function refuseDoubledBackslashes(
         string $context,
-        string $docComment,
+        array $tags,
         array $useStatements,
         string $namespace
     ): void {
-        foreach ($this->readTags($docComment) as [$name, $path, $written, $fullyQualified]) {
+        foreach ($tags as [$name, $path, $written, $fullyQualified]) {
             if ($written === $path) {
                 continue;
             }
             $candidates = $fullyQualified
                 ? [$name . $path]
                 : $this->getTagCandidates($name, $path, $useStatements, $namespace);
-            $resolved = array_values(array_filter($candidates, 'class_exists'));
-            if (
-                $this->isBundleTag($path, $candidates)
-                || ($resolved !== [] && $this->isRestAnnotationClass($resolved[0]))
-            ) {
+            if ($this->isBundleOrOwnAnnotation($path, $candidates)) {
                 throw new ConfigurationException(sprintf(
                     'The annotation "@%s" in %s is written with a doubled backslash: write one',
                     ($fullyQualified ? '\\' : '') . $name . $written,
@@ -382,7 +397,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $alias = strtolower($name);
 
         return isset($useStatements[$alias])
-            ? [$useStatements[$alias] . $path]
+            ? [ltrim($useStatements[$alias], '\\') . $path]
             : [ltrim($namespace . '\\' . $name . $path, '\\'), $name . $path];
     }
 
@@ -391,10 +406,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
      */
     private function isBundleTag(string $path, array $candidates): bool
     {
-        $shortNames = array_map(static function (string $annotation): string {
-            return strtolower(substr($annotation, strlen(self::ANNOTATION_NAMESPACE)));
-        }, self::ANNOTATIONS);
-        if (in_array(strtolower(substr((string)strrchr($path, '\\'), 1)), $shortNames, true)) {
+        if (in_array(strtolower(substr((string)strrchr($path, '\\'), 1)), $this->getShortNames(), true)) {
             return true;
         }
         foreach ($candidates as $candidate) {
@@ -404,6 +416,94 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         }
 
         return false;
+    }
+
+    /**
+     * @param string[] $candidates
+     */
+    private function isBundleOrOwnAnnotation(string $path, array $candidates): bool
+    {
+        $resolved = array_values(array_filter($candidates, 'class_exists'));
+
+        return $this->isBundleTag($path, $candidates)
+            || ($resolved !== [] && $this->isRestAnnotationClass($resolved[0]));
+    }
+
+    /**
+     * @param array<string, string> $useStatements
+     * @param array<string, bool> $ignoredNames
+     */
+    private function findTagClass(
+        string $name,
+        string $path,
+        array $useStatements,
+        string $namespace,
+        array $ignoredNames
+    ): ?string {
+        if ($this->isIgnoredName($name, $path, $useStatements, $ignoredNames)) {
+            return null;
+        }
+        $resolved = array_values(array_filter(
+            $this->getTagCandidates($name, $path, $useStatements, $namespace),
+            'class_exists'
+        ));
+
+        return $resolved[0] ?? null;
+    }
+
+    /**
+     * @param array<string, string> $useStatements
+     * @param array<string, bool> $ignoredNames
+     */
+    private function isIgnoredName(string $name, string $path, array $useStatements, array $ignoredNames): bool
+    {
+        return !isset($useStatements[strtolower($name)]) && isset($ignoredNames[$name . $path]);
+    }
+
+    /**
+     * @return array<string, bool> the names Doctrine's annotation reader ignores in the class's docblocks: the
+     *     implicitly ignored ones and those its docblock names with @IgnoreAnnotation
+     */
+    private function getIgnoredNames(ReflectionClass $class): array
+    {
+        $name = $class->getName();
+        if (!isset($this->ignoredNames[$name])) {
+            if ($this->ignoreAnnotationParser === null) {
+                $this->ignoreAnnotationParser = new DocParser();
+                $this->ignoreAnnotationParser->setImports(['ignoreannotation' => IgnoreAnnotation::class]);
+                $this->ignoreAnnotationParser->setIgnoreNotImportedAnnotations(true);
+                $this->ignoreAnnotationParser->setIgnoredAnnotationNames(ImplicitlyIgnoredAnnotationNames::LIST);
+            }
+            $ignoredNames = ImplicitlyIgnoredAnnotationNames::LIST;
+            $docComment = (string)$class->getDocComment();
+            try {
+                $annotations = stripos($docComment, 'IgnoreAnnotation') === false
+                    ? []
+                    : $this->ignoreAnnotationParser->parse($docComment, 'class ' . $name);
+            } catch (AnnotationException $exception) {
+                $annotations = [];
+            }
+            foreach ($annotations as $annotation) {
+                if ($annotation instanceof IgnoreAnnotation) {
+                    foreach ($annotation->names as $ignoredName) {
+                        $ignoredNames[$ignoredName] = true;
+                    }
+                }
+            }
+            $this->ignoredNames[$name] = $ignoredNames;
+        }
+
+        return $this->ignoredNames[$name];
+    }
+
+    /**
+     * @return string[] the short names of the bundle's annotations, in lower case
+     */
+    private function getShortNames(): array
+    {
+        return array_map(static function (string $annotation): string {
+            return strtolower(substr($annotation, strlen(self::ANNOTATION_NAMESPACE)));
+        }, self::ANNOTATIONS);
     }
 
     /**
@@ -436,29 +536,57 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     }
 
     /**
+     * @param array<array{string, string, string, bool, string}> $tags
      * @param array<string, string> $useStatements
      * @param array<string, string> $imports
+     * @param array<string, bool> $ignoredNames
      */
     private function refuseUnresolvedAliasedAnnotations(
         string $context,
-        string $docComment,
+        array $tags,
         array $useStatements,
         array $imports,
-        string $namespace
+        string $namespace,
+        array $ignoredNames
     ): void {
-        $tags = $this->getTags($docComment);
-        foreach ($tags as [$name, $path]) {
+        $unqualifiedTags = $this->getUnqualifiedTags($tags);
+        foreach ($unqualifiedTags as [$name, $path, , $continuation]) {
+            $this->refuseWhitespaceInName(
+                $context,
+                [$name, $path, $continuation],
+                $useStatements,
+                $namespace,
+                $ignoredNames
+            );
+            $this->refuseColonInName($context, $name, $path, $useStatements, $namespace);
+            $this->refuseAnnotationNamespace($context, $name, $path, $useStatements, $namespace);
             $candidates = $this->getTagCandidates($name, $path, $useStatements, $namespace);
             $resolved = array_values(array_filter($candidates, 'class_exists'));
             if ($resolved !== [] && $path !== '' && $this->isRestAnnotationClass($resolved[0])) {
                 $declared = (new ReflectionClass($resolved[0]))->getName();
-                if ($declared !== ltrim($resolved[0], '\\')) {
+                $candidate = ltrim($resolved[0], '\\');
+                if (
+                    $declared !== $candidate
+                    && strcasecmp($declared, $candidate) === 0
+                    && $this->findImportInAnotherLetterCase($name, $path, $useStatements, $declared) === null
+                ) {
                     throw $this->createLetterCaseException($context, $name . $path, $declared);
                 }
-                $this->refuseSharedFirstName($context, $tags, $name, $path, $imports, $resolved[0]);
+                $this->refuseSharedFirstName($context, $unqualifiedTags, $name, $path, $imports, $resolved[0]);
             }
             if ($resolved === [] && $this->isBundleTag($path, $candidates)) {
                 $annotation = $this->findAnnotationInAnotherLetterCase($candidates);
+                $import = $annotation === null
+                    ? null
+                    : $this->findImportInAnotherLetterCase($name, $path, $useStatements, $annotation);
+                if ($import !== null) {
+                    throw $this->createImportLetterCaseException(
+                        $context,
+                        $name . $path,
+                        $import,
+                        substr($annotation, 0, strlen($annotation) - strlen($path))
+                    );
+                }
                 if ($annotation !== null) {
                     throw $this->createLetterCaseException($context, $name . $path, $annotation);
                 }
@@ -470,6 +598,108 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
                 ));
             }
         }
+    }
+
+    /**
+     * @param array{string, string, string} $tag its first name, the rest of its name, and the rest of a name that
+     *     whitespace splits before a backslash
+     * @param array<string, string> $useStatements
+     * @param array<string, bool> $ignoredNames
+     */
+    private function refuseWhitespaceInName(
+        string $context,
+        array $tag,
+        array $useStatements,
+        string $namespace,
+        array $ignoredNames
+    ): void {
+        [$name, $path, $continuation] = $tag;
+        if (
+            $continuation === ''
+            || $this->isIgnoredName($name, $path, $useStatements, $ignoredNames)
+            || $this->findTagClass($name, $path, $useStatements, $namespace, $ignoredNames) !== null
+        ) {
+            return;
+        }
+        $joined = $path . (string)preg_replace('/\\\\+/', '\\\\', $continuation);
+        $candidates = $this->getTagCandidates($name, $joined, $useStatements, $namespace);
+        if ($this->isBundleOrOwnAnnotation($joined, $candidates)) {
+            throw new ConfigurationException(sprintf(
+                'The annotation "@%s %s" in %s has whitespace inside its name: remove it',
+                $name . $path,
+                $continuation,
+                $context
+            ));
+        }
+    }
+
+    /**
+     * @param array<string, string> $useStatements
+     */
+    private function refuseAnnotationNamespace(
+        string $context,
+        string $name,
+        string $path,
+        array $useStatements,
+        string $namespace
+    ): void {
+        foreach ($this->getTagCandidates($name, $path, $useStatements, $namespace) as $candidate) {
+            if (strcasecmp($candidate, rtrim(self::ANNOTATION_NAMESPACE, '\\')) === 0) {
+                throw new ConfigurationException(sprintf(
+                    'The annotation "@%s" in %s names the namespace %s, not one of its annotations',
+                    $name . $path,
+                    $context,
+                    $candidate
+                ));
+            }
+        }
+    }
+
+    /**
+     * @param array<string, string> $useStatements
+     */
+    private function refuseColonInName(
+        string $context,
+        string $name,
+        string $path,
+        array $useStatements,
+        string $namespace
+    ): void {
+        if (strpos($name . $path, ':') === false) {
+            return;
+        }
+        $segments = (array)preg_split('/[:\\\\]+/', $name . $path, -1, PREG_SPLIT_NO_EMPTY);
+        if (
+            array_intersect(array_map('strtolower', $segments), $this->getShortNames()) !== []
+            || $this->hasRestAnnotationPrefix($segments, $useStatements, $namespace)
+        ) {
+            throw new ConfigurationException(sprintf(
+                'The annotation "@%s" in %s does not resolve to a class, so it would be ignored:'
+                . ' a class name has no colon',
+                $name . $path,
+                $context
+            ));
+        }
+    }
+
+    /**
+     * @param string[] $segments the parts of a tag's name between its colons and backslashes
+     * @param array<string, string> $useStatements
+     */
+    private function hasRestAnnotationPrefix(array $segments, array $useStatements, string $namespace): bool
+    {
+        for ($count = 1; $count <= count($segments); $count++) {
+            $path = $count > 1 ? '\\' . implode('\\', array_slice($segments, 1, $count - 1)) : '';
+            $resolved = array_values(array_filter(
+                $this->getTagCandidates($segments[0], $path, $useStatements, $namespace),
+                'class_exists'
+            ));
+            if ($resolved !== [] && $this->isRestAnnotationClass($resolved[0])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -488,6 +718,39 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         return null;
     }
 
+    /**
+     * @param array<string, string> $useStatements
+     * @return string|null the use statement, when it alone spells the class in another letter case
+     */
+    private function findImportInAnotherLetterCase(
+        string $name,
+        string $path,
+        array $useStatements,
+        string $class
+    ): ?string {
+        $import = $useStatements[strtolower($name)] ?? null;
+        if ($import === null || ($path !== '' && substr($class, -strlen($path)) !== $path)) {
+            return null;
+        }
+
+        return $import;
+    }
+
+    private function createImportLetterCaseException(
+        string $context,
+        string $tag,
+        string $import,
+        string $class
+    ): ConfigurationException {
+        return new ConfigurationException(sprintf(
+            'The annotation "@%s" in %s is imported in another letter case (%s): import %s so it autoloads',
+            $tag,
+            $context,
+            $import,
+            $class
+        ));
+    }
+
     private function createLetterCaseException(string $context, string $tag, string $class): ConfigurationException
     {
         return new ConfigurationException(sprintf(
@@ -499,7 +762,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     }
 
     /**
-     * @param array<array{string, string, string}> $tags
+     * @param array<array{string, string, string, string}> $tags
      * @param array<string, string> $imports
      */
     private function refuseSharedFirstName(
@@ -511,7 +774,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         string $class
     ): void {
         $alias = strtolower($name);
-        if (!isset($imports[$alias]) || strcasecmp($imports[$alias] . $path, $class) === 0) {
+        if (!isset($imports[$alias]) || strcasecmp(ltrim($imports[$alias], '\\') . $path, $class) === 0) {
             return;
         }
         foreach ($tags as [$otherName, $otherPath]) {
@@ -592,10 +855,10 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
             if (($counts[$class] ?? 0) === 0) {
                 $name = substr($class, strlen(self::ANNOTATION_NAMESPACE));
                 $import = $useStatements[strtolower($name)] ?? '';
-                if (strcasecmp($import, $class) === 0) {
-                    $message = 'The annotation "@%1$s" in %2$s is imported in another letter case (%3$s):'
-                        . ' import %4$s so it autoloads';
-                } elseif (class_exists($import) || interface_exists($import)) {
+                if (strcasecmp(ltrim($import, '\\'), $class) === 0) {
+                    throw $this->createImportLetterCaseException($context, $name, $import, $class);
+                }
+                if (class_exists($import) || interface_exists($import)) {
                     $message = 'The annotation "@%1$s" in %2$s resolves to %3$s, not to the annotation %4$s,'
                         . ' so it would be ignored';
                 } else {

@@ -673,12 +673,17 @@ fails when a tag written as the short name of one of the bundle's annotations do
 tag ending in one of those short names is written through a namespace alias and resolves to no class
 (`@Rest\RequiredPermissions` without `use … as Rest`), when a tag resolves into `Paysera\Bundle\ApiBundle\Annotation` to
 a class that does not exist, also inside another annotation, when a tag of the bundle or one of your own annotations is
-written with a doubled backslash, when a tag of the bundle spells its class in another letter case, when two tags with
-the same first name resolve in different namespaces (write one of them fully qualified), and when OPcache runs with
-`opcache.save_comments=0`: as Doctrine's annotation reader, the bundle needs `opcache.save_comments=1`. On Symfony 6.4
-and later, an application that uses only the attributes can set `docblock_annotations: false`: the bundle then reads
-none of its docblock annotations, on `@Route` routes either, and no docblock. Symfony's own annotation reader still
-needs `opcache.save_comments` where `framework.annotations` is enabled. Before Symfony 6.4 the option has no effect. A
+written with a doubled backslash, has whitespace before a backslash inside its name (`@Rest \RequiredPermissions`) or
+has a colon in its name (`@RequiredPermissions:admin`), when a tag names `Paysera\Bundle\ApiBundle\Annotation` itself
+through an import (`@Rest RequiredPermissions`), when a tag of the bundle that is not fully qualified spells its class
+in another letter case (an import of one of the bundle's annotations in another letter case fails only while the class
+is not loaded, as with Doctrine's annotation reader), when two tags with the same first name resolve in different
+namespaces (write one of them fully qualified), and when OPcache runs with `opcache.save_comments=0`: as Doctrine's
+annotation reader, the bundle needs `opcache.save_comments=1`. Tags are found with Doctrine's own lexer, as its parser
+finds them. On Symfony 6.4 and later, an application that uses only the attributes can set
+`docblock_annotations: false`: the bundle then reads none of its docblock annotations, on `@Route` routes either, and
+no docblock. Symfony's own annotation reader still needs `opcache.save_comments` where `framework.annotations` is
+enabled. Before Symfony 6.4 the option has no effect. A
 fully qualified tag of a class that does not exist, or an annotation on a target it does not allow, fails with
 Doctrine's error, as with Doctrine's annotation reader. `@IgnoreAnnotation` does not exempt the bundle's annotations:
 one written without its import still fails the route load.
