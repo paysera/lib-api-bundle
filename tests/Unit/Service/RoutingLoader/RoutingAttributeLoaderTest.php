@@ -11,6 +11,7 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions;
 use Paysera\Bundle\ApiBundle\Entity\RestRequestOptions;
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsRegistry;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
@@ -19,7 +20,9 @@ use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBu
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAttributeLoader;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAndActionDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassDocblockAndMethodAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsOnAttributeRouteController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MethodDocblockAndAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBundleAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitDocblockOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedAnnotationDocblockController;
@@ -110,6 +113,18 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 'The annotation "@note" in method ' . UnimportedNoteTagController::class
                 . '::show() was never imported',
             ],
+            'annotation on the class and attribute on the action' => [
+                ClassDocblockAndMethodAttributeController::class,
+                ConfigurationException::class,
+                'The route of method ' . ClassDocblockAndMethodAttributeController::class . '::update() is configured'
+                . ' with both docblock annotations and attributes of the bundle',
+            ],
+            'annotation and attribute on the action' => [
+                MethodDocblockAndAttributeController::class,
+                ConfigurationException::class,
+                'The route of method ' . MethodDocblockAndAttributeController::class . '::show() is configured'
+                . ' with both docblock annotations and attributes of the bundle',
+            ],
         ];
     }
 
@@ -149,6 +164,33 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
     }
 
     /**
+     * @dataProvider loadWithAnnotationReaderDataProvider
+     */
+    public function testLoadWithAnnotationReaderFailsOnMixedRoute(bool $docblockAnnotationsEnabled): void
+    {
+        if (!property_exists(AttributeClassLoader::class, 'reader')) {
+            $this->markTestSkipped('Symfony 7 passes no annotation reader to the route loader');
+        }
+
+        $reader = Mockery::mock(Reader::class);
+        $reader->shouldReceive('getClassAnnotation')->andReturn(null);
+        $reader->shouldReceive('getClassAnnotations')->andReturn([]);
+        $reader->shouldReceive('getMethodAnnotations')->andReturn([
+            new RequiredPermissions(['permissions' => ['ROLE_USER']]),
+        ]);
+        $loader = $this->createLoader($reader);
+        $loader->setDocblockAnnotationsEnabled($docblockAnnotationsEnabled);
+
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage(
+            'The route of method ' . AttributeOptionsController::class . '::show() is configured'
+            . ' with both docblock annotations and attributes of the bundle'
+        );
+
+        $loader->load(AttributeOptionsController::class);
+    }
+
+    /**
      * @dataProvider loadWithoutAnnotationReaderByDefaultDataProvider
      * @param array<string, RestRequestOptions|null> $expectedOptions
      */
@@ -170,6 +212,13 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 AttributeOptionsController::class,
                 [
                     AttributeOptionsController::class . '::show' => (new RestRequestOptions())
+                        ->setRequiredPermissions(['ROLE_ADMIN']),
+                ],
+            ],
+            'docblock annotation and attribute on the action: only the attribute is read' => [
+                MethodDocblockAndAttributeController::class,
+                [
+                    MethodDocblockAndAttributeController::class . '::show' => (new RestRequestOptions())
                         ->setRequiredPermissions(['ROLE_ADMIN']),
                 ],
             ],

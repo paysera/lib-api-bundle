@@ -8,6 +8,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\Reader;
 use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
 use Paysera\Bundle\ApiBundle\Attribute\RestAttributeInterface;
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use ReflectionClass;
 use ReflectionMethod;
@@ -72,15 +73,38 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     ): void {
         parent::configureRoute($route, $class, $method, $annot);
 
-        $this->loadAnnotations($route, $class, $method);
-        $this->loadAttributes($route, $class, $method);
+        $annotations = $this->getRestAnnotations($class, $method);
+        $attributes = $this->getRestAttributes($class, $method);
+        if ($annotations !== [] && $attributes !== []) {
+            throw new ConfigurationException(sprintf(
+                'The route of method %s::%s() is configured with both docblock annotations and attributes of the'
+                . ' bundle, on the method or its class: use one of them',
+                $class->getName(),
+                $method->getName()
+            ));
+        }
+
+        if ($annotations !== []) {
+            $this->restRequestHelper->setOptionsForRoute(
+                $route,
+                $this->annotationOptionsBuilder->buildOptions($annotations, $method)
+            );
+        } elseif ($attributes !== []) {
+            $this->restRequestHelper->setOptionsForRoute(
+                $route,
+                $this->attributeOptionsBuilder->buildOptions($attributes, $method)
+            );
+        }
     }
 
-    private function loadAnnotations(Route $route, ReflectionClass $class, ReflectionMethod $method): void
+    /**
+     * @return RestAnnotationInterface[]
+     */
+    private function getRestAnnotations(ReflectionClass $class, ReflectionMethod $method): array
     {
         $reader = $this->getAnnotationReader();
         if ($reader === null) {
-            return;
+            return [];
         }
 
         $annotations = [];
@@ -96,14 +120,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
             }
         }
 
-        if ($annotations === []) {
-            return;
-        }
-
-        $this->restRequestHelper->setOptionsForRoute(
-            $route,
-            $this->annotationOptionsBuilder->buildOptions($annotations, $method)
-        );
+        return $annotations;
     }
 
     private function getAnnotationReader(): ?Reader
@@ -123,7 +140,10 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         return $this->annotationReader;
     }
 
-    private function loadAttributes(Route $route, ReflectionClass $class, ReflectionMethod $method): void
+    /**
+     * @return RestAttributeInterface[]
+     */
+    private function getRestAttributes(ReflectionClass $class, ReflectionMethod $method): array
     {
         $attributes = array_merge($class->getAttributes(), $method->getAttributes());
 
@@ -136,13 +156,6 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
             }
         }
 
-        if ($restAttributes === []) {
-            return;
-        }
-
-        $this->restRequestHelper->setOptionsForRoute(
-            $route,
-            $this->attributeOptionsBuilder->buildOptions($restAttributes, $method)
-        );
+        return $restAttributes;
     }
 }

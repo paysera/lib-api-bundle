@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
   `symfony/http-foundation`, `symfony/http-kernel`, `symfony/property-access`, `symfony/routing` and `symfony/security-core`
-- `doctrine/annotations` is required at 1.14.4 or 2.0.2 and later, the first releases whose `AnnotationReader` refuses to
-  run with `opcache.save_comments=0` instead of reading the stripped docblocks as empty
+- `doctrine/annotations` is required at 1.14.4 or 2.0.2 and later, the first releases whose `AnnotationReader` refuses
+  to run with `opcache.save_comments=0` instead of reading the stripped docblocks as empty
 - `Configuration::getConfigTreeBuilder()` declares its `TreeBuilder` return type. Breaking for subclasses that override it
   without the return type: add `: TreeBuilder` to the override
 - The services are registered by `PayseraApiExtension` instead of the XML files in `Resources/config`, which are
@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7), the bundle's docblock
   annotations, `@RequiredPermissions` among them, are ignored without an error unless `docblock_annotations` is `true`,
   as 1.x ignored them on Symfony 6.4: an application that keeps them there must set the option
+- Breaking: a route configured with both the bundle's docblock annotations and its attributes, on the action or on its
+  class, fails to load with a `ConfigurationException`. Before, the attributes replaced all of the docblock options, so
+  `#[Body]` on an action dropped the `@RequiredPermissions` of its class; configure each route with one of them
 
 ## [1.8.2]
 ### Changed
