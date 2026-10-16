@@ -659,34 +659,15 @@ cursor and iterating this way until we have `"has_previous": false` is a reliabl
 Every option below exists as a docblock annotation (`Paysera\Bundle\ApiBundle\Annotation\*`) and, since 1.8.0, as a PHP
 attribute of the same name (`Paysera\Bundle\ApiBundle\Attribute\*`, read on Symfony 6.4 and later). On Symfony 7 the
 routes themselves need `#[Route]` with `type: attribute` imports, because Symfony 7 reads no `@Route` docblocks. The
-bundle's docblock annotations keep working on such routes: where no annotation reader is available (on Symfony 7, on
-Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7), the bundle
-reads the docblocks of the controller class and of the routed method with Doctrine's `DocParser`. Names resolve through
-the use statements of the class, and for a method also those of the trait that declares it. An imported name is read as
-an annotation only when it points into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries'
-imported annotations are ignored. Your own annotations that implement `RestAnnotationInterface` are read as with
-Doctrine's annotation reader: imported, in the controller's namespace or relative to it, through a namespace alias, or
-fully qualified; one written without its import is ignored like any unknown tag. Class names and constants in the
-arguments resolve as with Doctrine's annotation reader: imported, through `self`, relative to the controller's
-namespace, or through a namespace alias, unless the same docblock also writes that name as a tag. Loading the routes
-fails when a tag written as the short name of one of the bundle's annotations does not resolve to it (import it), when a
-tag ending in one of those short names is written through a namespace alias and resolves to no class
-(`@Rest\RequiredPermissions` without `use … as Rest`), when a tag resolves into `Paysera\Bundle\ApiBundle\Annotation` to
-a class that does not exist, also inside another annotation, when a tag of the bundle or one of your own annotations is
-written with a doubled backslash, has whitespace before a backslash inside its name (`@Rest \RequiredPermissions`) or
-has a colon in its name (`@RequiredPermissions:admin`), when a tag names `Paysera\Bundle\ApiBundle\Annotation` itself
-through an import (`@Rest RequiredPermissions`), when a tag of the bundle that is not fully qualified spells its class
-in another letter case (an import of one of the bundle's annotations in another letter case fails only while the class
-is not loaded, as with Doctrine's annotation reader), when two tags with the same first name resolve in different
-namespaces (write one of them fully qualified), and when OPcache runs with `opcache.save_comments=0`: as Doctrine's
-annotation reader, the bundle needs `opcache.save_comments=1`. Tags are found with Doctrine's own lexer, as its parser
-finds them. On Symfony 6.4 and later, an application that uses only the attributes can set
-`docblock_annotations: false`: the bundle then reads none of its docblock annotations, on `@Route` routes either, and
-no docblock. Symfony's own annotation reader still needs `opcache.save_comments` where `framework.annotations` is
-enabled. Before Symfony 6.4 the option has no effect. A
-fully qualified tag of a class that does not exist, or an annotation on a target it does not allow, fails with
-Doctrine's error, as with Doctrine's annotation reader. `@IgnoreAnnotation` does not exempt the bundle's annotations:
-one written without its import still fails the route load.
+bundle reads its docblock annotations with the annotation reader Symfony passes to the route loader. Where Symfony
+passes none (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and
+`symfony/routing` 7), the bundle reads the docblocks of each `#[Route]` action and of its class with Doctrine's
+`AnnotationReader`, as Symfony 6.4 does: loading the routes fails on a docblock tag it cannot resolve, such as one that
+is neither imported nor ignored (list it with `@IgnoreAnnotation`), and when OPcache runs with
+`opcache.save_comments=0`. On Symfony 6.4 and later, an application that uses only the attributes can set
+`docblock_annotations: false`: the bundle then reads none of its docblock annotations, on `@Route` routes either.
+Symfony's own annotation reader still needs `opcache.save_comments` where `framework.annotations` is enabled. Before
+Symfony 6.4 the option has no effect.
 The attributes take the same options, passed by name:
 `@RequiredPermissions(permissions={"ROLE_ADMIN"})` becomes `#[RequiredPermissions(permissions: ['ROLE_ADMIN'])]`.
 

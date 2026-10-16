@@ -4,19 +4,16 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures;
 
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibrary\Query;
+use Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions;
 use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * @SomeCustomTag
- */
-class UnrelatedDocblockTagsController
+class UnimportedNoteTagController
 {
     /**
+     * @RequiredPermissions(permissions={"ROLE_ADMIN"})
      * @note kept for older clients
-     * @Query(parameterName={"filter"})
      */
-    #[Route('/unrelated-tags', methods: ['GET'])]
+    #[Route('/unimported-note-tag', methods: ['GET'])]
     public function show()
     {
     }

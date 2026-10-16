@@ -13,16 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `opcache.save_comments`; Symfony's annotation reader still needs it where `framework.annotations` is enabled. Before
   Symfony 6.4 the option has no effect
 - Where no annotation reader is available (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with
-  FrameworkBundle 6.4 and `symfony/routing` 7), the bundle reads its own docblock annotations on `#[Route]` methods and
-  their classes with Doctrine's `DocParser`. A class docblock resolves names through the use statements of the class, a
-  method docblock through those of the class declaring the method and of the trait that declares it, also when that
-  trait is used by another trait or the method is aliased. An imported name is read as an annotation only when it points
-  into `Paysera\Bundle\ApiBundle\Annotation`, so unknown tags and other libraries' imported annotations are ignored. An
-  application's own annotation that implements `RestAnnotationInterface` is read as with Doctrine's annotation reader:
-  imported, in the controller's namespace or relative to it, through a namespace alias, or fully qualified; one that
-  resolves to no class, such as a forgotten import, is ignored like an unknown tag. Class names in annotation arguments
-  (`Roles::ADMIN`, `UserDto::class`) resolve as with Doctrine's annotation reader: imported, through `self`, relative to
-  the controller's namespace, or through a namespace alias, unless the same docblock also writes that name as a tag.
+  FrameworkBundle 6.4 and `symfony/routing` 7), the bundle reads the docblock annotations of `#[Route]` actions and of
+  their classes with Doctrine's `AnnotationReader`, as Symfony's annotation reader reads them on Symfony 6.4
 
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
@@ -39,29 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or `getAnnotatedClassesToCompile()`, which only HttpKernel's `Extension` has: drop the calls
 - `Configuration` is marked `@final`, so Symfony's `DebugClassLoader` reports classes that extend it
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
-- Breaking where no annotation reader is available: the route load fails with a `ConfigurationException` when OPcache
-  runs with `opcache.save_comments=0` for the current SAPI, as Doctrine's annotation reader requires, also in
-  applications that use no docblock annotations; set `docblock_annotations: false` (Symfony 6.4 and later) where only
-  attributes are used
-- Breaking where no annotation reader is available: the route load fails with a `ConfigurationException` when a tag
-  written as the short name of one of the bundle's annotations (`@RequiredPermissions`) does not resolve to that
-  annotation, because its use statement is missing or names another class, and when a namespace alias of the bundle's
-  annotations is used where only another trait of the controller imports it, and when a tag ending in one of those short
-  names is written through a namespace alias and resolves to no class (`@Rest\RequiredPermissions` without `use … as
-  Rest`, or with `Rest` imported for another namespace), when a tag resolves into `Paysera\Bundle\ApiBundle\Annotation`
-  to a class that does not exist (an import of `…\Annotation\RequiredPermission`), when a nested annotation of the
-  bundle does not resolve, when a tag of the bundle or an application's own annotation is written with a doubled
-  backslash, has whitespace before a backslash inside its name (`@Rest \RequiredPermissions`) or has a colon in its
-  name (`@RequiredPermissions:admin`), when a tag names `Paysera\Bundle\ApiBundle\Annotation` itself through an import
-  (`@Rest RequiredPermissions`), when a tag of the bundle that is not fully qualified spells its class in another letter
-  case, and when two tags with the same first name resolve in different namespaces. Tags are found with Doctrine's own
-  lexer, as its parser finds them. The message names the
-  class a use statement resolves the short name to, or says that the import differs in letter case; an import of one of
-  the bundle's annotations in another letter case fails while the annotation's class is not loaded and applies once it
-  is, as with Doctrine's annotation reader. `@IgnoreAnnotation` does not exempt the bundle's annotations. A fully
-  qualified tag resolves as with Doctrine's annotation reader, so a class that does not exist, or an annotation on a
-  target it does not allow, fails the route load with Doctrine's error. Any other tag that resolves to no class, such as
-  a bare `@RequiredPermission` with no import, is ignored like an unknown tag
+- Breaking where no annotation reader is available: the route load fails where Doctrine's `AnnotationReader` fails, as
+  on Symfony 6.4 with `framework.annotations` enabled: on a docblock tag it cannot resolve, such as one that is neither
+  imported nor ignored (`@note`; list it with `@IgnoreAnnotation`), and when OPcache is loaded with
+  `opcache.save_comments=0`, also in applications that use no docblock annotations; set `docblock_annotations: false`
+  (Symfony 6.4 and later) where only attributes are used
 - `LocaleListener` reads the `Accept-Language` tags with the installed Symfony's `Request::getLanguages()` and compares
   them with the configured locales ignoring letter case, then sets the locale as configured: `DE` or `zh-hant-tw` now
   matches a configured `de` or `zh_Hant_TW`, where Symfony 3.4 to 7.0 matched only the exact case. From Symfony 7.1,
@@ -75,9 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - On Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7, the
-  bundle's docblock annotations, `@RequiredPermissions` among them, were ignored without an error; they are now applied
-  unless `docblock_annotations` is `false`, and the cases listed under Changed fail the route load instead; any other
-  tag that resolves to no class is still ignored like an unknown tag
+  bundle's docblock annotations, `@RequiredPermissions` among them, were ignored without an error; they are now read
+  with Doctrine's `AnnotationReader` unless `docblock_annotations` is `false`
 
 ## [1.8.2]
 ### Changed
