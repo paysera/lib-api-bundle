@@ -8,13 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for Symfony 7.4
 - Support for `psr/log` 3
-- `docblock_annotations` option (default `true`), on Symfony 6.4 and later: with `false`, the bundle reads only its
-  attributes and none of its docblock annotations, on `@Route` routes too, so the bundle itself no longer needs
-  `opcache.save_comments`; Symfony's annotation reader still needs it where `framework.annotations` is enabled. Before
-  Symfony 6.4 the option has no effect
-- Where no annotation reader is available (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with
-  FrameworkBundle 6.4 and `symfony/routing` 7), the bundle reads the docblock annotations of `#[Route]` actions and of
-  their classes with Doctrine's `AnnotationReader`, as Symfony's annotation reader reads them on Symfony 6.4
+- `docblock_annotations` option (default `false`) for setups where Symfony passes no annotation reader to the route
+  loader (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and
+  `symfony/routing` 7): `true` reads the docblock annotations of `#[Route]` actions and of their classes with Doctrine's
+  `AnnotationReader`, as Symfony's annotation reader reads them on Symfony 6.4, so the route load fails where that
+  reader fails: on a docblock tag it cannot resolve, such as one that is neither imported nor ignored (`@note`; list it
+  with `@IgnoreAnnotation`), and when OPcache is loaded with `opcache.save_comments=0`; `false` reads only attributes.
+  Where Symfony passes its annotation reader, the bundle reads its docblock annotations with it, as before, whatever the
+  option says
 
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
@@ -31,11 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or `getAnnotatedClassesToCompile()`, which only HttpKernel's `Extension` has: drop the calls
 - `Configuration` is marked `@final`, so Symfony's `DebugClassLoader` reports classes that extend it
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
-- Breaking where no annotation reader is available: the route load fails where Doctrine's `AnnotationReader` fails, as
-  on Symfony 6.4 with `framework.annotations` enabled: on a docblock tag it cannot resolve, such as one that is neither
-  imported nor ignored (`@note`; list it with `@IgnoreAnnotation`), and when OPcache is loaded with
-  `opcache.save_comments=0`, also in applications that use no docblock annotations; set `docblock_annotations: false`
-  (Symfony 6.4 and later) where only attributes are used
 - `LocaleListener` reads the `Accept-Language` tags with the installed Symfony's `Request::getLanguages()` and compares
   them with the configured locales ignoring letter case, then sets the locale as configured: `DE` or `zh-hant-tw` now
   matches a configured `de` or `zh_Hant_TW`, where Symfony 3.4 to 7.0 matched only the exact case. From Symfony 7.1,
@@ -48,9 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   because `LocaleListener` matched `de` against an internal `default` placeholder
 
 ### Security
-- On Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7, the
-  bundle's docblock annotations, `@RequiredPermissions` among them, were ignored without an error; they are now read
-  with Doctrine's `AnnotationReader` unless `docblock_annotations` is `false`
+- Where Symfony passes no annotation reader to the route loader (on Symfony 7, on Symfony 6.4 with
+  `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7), the bundle's docblock
+  annotations, `@RequiredPermissions` among them, are ignored without an error unless `docblock_annotations` is `true`,
+  as 1.x ignored them on Symfony 6.4: an application that keeps them there must set the option
 
 ## [1.8.2]
 ### Changed

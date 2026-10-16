@@ -37,7 +37,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     /**
      * @var bool
      */
-    private $docblockAnnotationsEnabled = true;
+    private $docblockAnnotationsEnabled = false;
 
     /**
      * @var AnnotationReader|null
@@ -72,15 +72,16 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     ): void {
         parent::configureRoute($route, $class, $method, $annot);
 
-        if ($this->docblockAnnotationsEnabled) {
-            $this->loadAnnotations($route, $class, $method);
-        }
+        $this->loadAnnotations($route, $class, $method);
         $this->loadAttributes($route, $class, $method);
     }
 
     private function loadAnnotations(Route $route, ReflectionClass $class, ReflectionMethod $method): void
     {
         $reader = $this->getAnnotationReader();
+        if ($reader === null) {
+            return;
+        }
 
         $annotations = [];
         foreach ($reader->getClassAnnotations($class) as $annotation) {
@@ -105,10 +106,14 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         );
     }
 
-    private function getAnnotationReader(): Reader
+    private function getAnnotationReader(): ?Reader
     {
         if (isset($this->reader)) {
             return $this->reader;
+        }
+
+        if (!$this->docblockAnnotationsEnabled) {
+            return null;
         }
 
         if ($this->annotationReader === null) {

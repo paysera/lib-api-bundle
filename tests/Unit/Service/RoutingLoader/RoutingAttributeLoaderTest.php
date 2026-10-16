@@ -107,7 +107,8 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             'tag that is not imported and not an annotation, refused as by Doctrine\'s reader' => [
                 UnimportedNoteTagController::class,
                 AnnotationException::class,
-                'The annotation "@note" in method ' . UnimportedNoteTagController::class . '::show() was never imported',
+                'The annotation "@note" in method ' . UnimportedNoteTagController::class
+                . '::show() was never imported',
             ],
         ];
     }
@@ -115,7 +116,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
     /**
      * @dataProvider loadWithAnnotationReaderDataProvider
      */
-    public function testLoadWithAnnotationReader(bool $docblockAnnotationsEnabled, ?RestRequestOptions $expected): void
+    public function testLoadWithAnnotationReader(bool $docblockAnnotationsEnabled): void
     {
         if (!property_exists(AttributeClassLoader::class, 'reader')) {
             $this->markTestSkipped('Symfony 7 passes no annotation reader to the route loader');
@@ -131,7 +132,10 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         $loader->setDocblockAnnotationsEnabled($docblockAnnotationsEnabled);
 
         $this->assertEquals(
-            [NoBundleAnnotationController::class . '::show' => $expected],
+            [
+                NoBundleAnnotationController::class . '::show' => (new RestRequestOptions())
+                    ->setRequiredPermissions(['ROLE_ADMIN']),
+            ],
             $this->loadOptions($loader, NoBundleAnnotationController::class)
         );
     }
@@ -139,24 +143,23 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
     public static function loadWithAnnotationReaderDataProvider(): array
     {
         return [
-            'docblock annotations on' => [true, (new RestRequestOptions())->setRequiredPermissions(['ROLE_ADMIN'])],
-            'docblock annotations off' => [false, null],
+            'docblock annotations on' => [true],
+            'docblock annotations off, which applies only where no reader is injected' => [false],
         ];
     }
 
     /**
-     * @dataProvider loadWithDocblockAnnotationsTurnedOffDataProvider
+     * @dataProvider loadWithoutAnnotationReaderByDefaultDataProvider
      * @param array<string, RestRequestOptions|null> $expectedOptions
      */
-    public function testLoadWithDocblockAnnotationsTurnedOff(string $controller, array $expectedOptions): void
-    {
-        $loader = $this->createLoader();
-        $loader->setDocblockAnnotationsEnabled(false);
-
-        $this->assertEquals($expectedOptions, $this->loadOptions($loader, $controller));
+    public function testLoadWithoutAnnotationReaderReadsOnlyAttributesByDefault(
+        string $controller,
+        array $expectedOptions
+    ): void {
+        $this->assertEquals($expectedOptions, $this->loadOptions($this->createLoader(), $controller));
     }
 
-    public static function loadWithDocblockAnnotationsTurnedOffDataProvider(): array
+    public static function loadWithoutAnnotationReaderByDefaultDataProvider(): array
     {
         return [
             'docblock annotation' => [
@@ -181,7 +184,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
     public function testLoadWithoutAnnotationReaderUnderOpcache(
         array $ini,
         string $expectedOutput,
-        array $arguments = []
+        array $arguments
     ): void {
         $lines = $this->runFixtureScript($ini, 'load-routes.php', $arguments);
         $output = (string)end($lines);
@@ -204,16 +207,17 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         ];
 
         return [
-            'docblocks stripped: Doctrine\'s reader refuses to run' => [
+            'attributes only, docblocks stripped, default configuration' => [
+                $docblocksStripped,
+                '["ROLE_ADMIN"]',
+                [AttributeOptionsController::class],
+            ],
+            'docblock annotations on, docblocks stripped: Doctrine\'s reader refuses to run' => [
                 $docblocksStripped,
                 AnnotationException::class,
+                [DocblockOptionsOnAttributeRouteController::class, 'docblock-annotations'],
             ],
-            'docblocks stripped with docblock annotations turned off' => [
-                $docblocksStripped,
-                'null',
-                ['attributes-only'],
-            ],
-            'docblocks kept' => [
+            'docblock annotations on, docblocks kept' => [
                 [
                     '-d',
                     'opcache.enable_cli=1',
@@ -223,10 +227,12 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                     'opcache.file_update_protection=0',
                 ],
                 '["ROLE_ADMIN"]',
+                [DocblockOptionsOnAttributeRouteController::class, 'docblock-annotations'],
             ],
-            'save_comments off with OPcache off for the command line: Doctrine\'s reader refuses as well' => [
+            'docblock annotations on, save_comments off with OPcache off for the command line: refused as well' => [
                 ['-d', 'opcache.enable_cli=0', '-d', 'opcache.save_comments=0'],
                 AnnotationException::class,
+                [DocblockOptionsOnAttributeRouteController::class, 'docblock-annotations'],
             ],
         ];
     }

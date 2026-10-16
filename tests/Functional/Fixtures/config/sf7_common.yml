@@ -4,6 +4,9 @@ framework:
     validation:
         email_validation_mode: html5
 
+paysera_api:
+    docblock_annotations: true
+
 security:
     firewalls:
         config:

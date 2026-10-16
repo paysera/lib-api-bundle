@@ -8,7 +8,6 @@ use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAttributeLoader;
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsOnAttributeRouteController;
 
 require $argv[1];
 
@@ -25,12 +24,12 @@ $loader->setRestRequestAnnotationOptionsBuilder(
 $loader->setRestRequestAttributeOptionsBuilder(
     new RestRequestAttributeOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class))
 );
-if (($argv[2] ?? null) === 'attributes-only') {
-    $loader->setDocblockAnnotationsEnabled(false);
+if (($argv[3] ?? null) === 'docblock-annotations') {
+    $loader->setDocblockAnnotationsEnabled(true);
 }
 
 try {
-    foreach ($loader->load(DocblockOptionsOnAttributeRouteController::class)->all() as $route) {
+    foreach ($loader->load($argv[2])->all() as $route) {
         $options = unserialize($route->getDefault(RestRequestHelper::SERIALIZED_REST_OPTIONS_KEY) ?? 'N;');
         echo json_encode($options === null ? null : $options->getRequiredPermissions());
     }

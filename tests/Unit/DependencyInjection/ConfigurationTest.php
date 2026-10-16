@@ -52,7 +52,7 @@ class ConfigurationTest extends TestCase
             'Parses full structure' => [
                 [
                     'locales' => ['en', 'lt', 'lv'],
-                    'docblock_annotations' => false,
+                    'docblock_annotations' => true,
                     'validation' => [
                         'property_path_converter' => 'your_service_id',
                     ],
@@ -76,7 +76,7 @@ class ConfigurationTest extends TestCase
             'Parses empty' => [
                 [
                     'locales' => [],
-                    'docblock_annotations' => true,
+                    'docblock_annotations' => false,
                     'validation' => [
                         'property_path_converter' => null,
                     ],

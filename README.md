@@ -52,7 +52,7 @@ new PayseraApiBundle(),
 ```yaml
 paysera_api:
     locales: ['en', 'lt', 'lv']        # Optional list of accepted locales
-    docblock_annotations: true         # Optional (Symfony 6.4+); false reads only attributes, no docblock annotations
+    docblock_annotations: false        # Optional; true reads docblock annotations where Symfony passes no reader
     validation:
         property_path_converter: your_service_id    # Optional service ID to use for property path converter
     path_attribute_resolvers:          # Registered path attribute resolvers. See below for more information
@@ -661,13 +661,11 @@ attribute of the same name (`Paysera\Bundle\ApiBundle\Attribute\*`, read on Symf
 routes themselves need `#[Route]` with `type: attribute` imports, because Symfony 7 reads no `@Route` docblocks. The
 bundle reads its docblock annotations with the annotation reader Symfony passes to the route loader. Where Symfony
 passes none (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and
-`symfony/routing` 7), the bundle reads the docblocks of each `#[Route]` action and of its class with Doctrine's
-`AnnotationReader`, as Symfony 6.4 does: loading the routes fails on a docblock tag it cannot resolve, such as one that
-is neither imported nor ignored (list it with `@IgnoreAnnotation`), and when OPcache runs with
-`opcache.save_comments=0`. On Symfony 6.4 and later, an application that uses only the attributes can set
-`docblock_annotations: false`: the bundle then reads none of its docblock annotations, on `@Route` routes either.
-Symfony's own annotation reader still needs `opcache.save_comments` where `framework.annotations` is enabled. Before
-Symfony 6.4 the option has no effect.
+`symfony/routing` 7), the bundle reads only the attributes, and ignores its docblock annotations, `@RequiredPermissions`
+among them, unless `docblock_annotations` is `true`. With `true`, it reads the docblocks of each `#[Route]` action and
+of its class with Doctrine's `AnnotationReader`, as Symfony 6.4 does: loading the routes fails on a docblock tag it
+cannot resolve, such as one that is neither imported nor ignored (list it with `@IgnoreAnnotation`), and when OPcache
+runs with `opcache.save_comments=0`. Where Symfony passes its annotation reader, the option has no effect.
 The attributes take the same options, passed by name:
 `@RequiredPermissions(permissions={"ROLE_ADMIN"})` becomes `#[RequiredPermissions(permissions: ['ROLE_ADMIN'])]`.
 
