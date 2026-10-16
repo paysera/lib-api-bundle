@@ -44,28 +44,8 @@ class LocaleListener
 
     private function resolveFromHeaders(Request $request): ?string
     {
-        $languages = array_map('strtolower', $request->getLanguages());
-        $candidates = [];
-        foreach ($languages as $language) {
-            $candidates[] = $language;
-            $separatorPosition = strpos($language, '_');
-            if ($separatorPosition === false) {
-                continue;
-            }
-            $primaryLanguage = substr($language, 0, $separatorPosition);
-            if (!in_array($primaryLanguage, $languages, true)) {
-                $candidates[] = $primaryLanguage;
-            }
-        }
+        $locale = (string)$request->getPreferredLanguage(array_merge([''], $this->locales));
 
-        foreach ($candidates as $candidate) {
-            foreach ($this->locales as $locale) {
-                if (strtolower($locale) === $candidate) {
-                    return $locale;
-                }
-            }
-        }
-
-        return null;
+        return $locale === '' ? null : $locale;
     }
 }

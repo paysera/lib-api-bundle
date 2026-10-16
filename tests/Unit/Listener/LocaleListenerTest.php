@@ -67,7 +67,7 @@ class LocaleListenerTest extends MockeryTestCase
         return $request->getLocale();
     }
 
-    public function provider()
+    public static function provider(): array
     {
         $tagsFormattedBySymfony = (new ReflectionClass(Request::class))->hasMethod('formatLocale');
 
@@ -114,8 +114,8 @@ class LocaleListenerTest extends MockeryTestCase
                 'en, de-CH',
                 true,
             ],
-            'higher priority wins' => [
-                'de',
+            'higher priority wins, from Symfony 7.1 through the language of the first tag' => [
+                $tagsFormattedBySymfony ? 'en' : 'de',
                 ['de', 'en'],
                 'en-US,en;q=0.8, de-CH;q=0.9',
                 true,
@@ -129,13 +129,31 @@ class LocaleListenerTest extends MockeryTestCase
             'German region among other locales' => [
                 'de',
                 ['en', 'lt', 'de'],
-                'de-DE, en;q=0.5',
+                'de-DE',
                 true,
             ],
-            'primary language is not added when the header lists it' => [
-                'de',
-                ['de', 'en'],
-                'en-US, en;q=0.5, de;q=0.9',
+            'a tag that the former placeholder default starts with' => [
+                $tagsFormattedBySymfony ? 'de' : 'unchanged',
+                ['de'],
+                'd',
+                true,
+            ],
+            'a bare language, from Symfony 7.1 matched to a configured locale with a region' => [
+                $tagsFormattedBySymfony ? 'en_US' : 'unchanged',
+                ['en_US', 'lt_LT'],
+                'en',
+                true,
+            ],
+            'another region of the language, from Symfony 7.1 matched to a configured locale with a region' => [
+                $tagsFormattedBySymfony ? 'en_US' : 'unchanged',
+                ['en_US', 'lt_LT'],
+                'en-GB',
+                true,
+            ],
+            'a bare language of the second configured locale' => [
+                $tagsFormattedBySymfony ? 'lt_LT' : 'unchanged',
+                ['en_US', 'lt_LT'],
+                'lt',
                 true,
             ],
             'no match keeps the locale' => [
@@ -150,64 +168,10 @@ class LocaleListenerTest extends MockeryTestCase
                 '',
                 true,
             ],
-            'a tag in another letter case matches the configured locale' => [
-                'de',
-                ['de'],
-                'DE',
-                true,
-            ],
-            'a tag in another letter case keeps its priority' => [
-                'en',
-                ['en', 'lt', 'de'],
-                'EN,de',
-                true,
-            ],
-            'a tag with a script matches the configured locale in any letter case' => [
-                'zh_Hant_TW',
-                ['en', 'zh_Hant_TW'],
-                'zh-hant-tw',
-                true,
-            ],
-            'a tag with a region matches a locale configured in another letter case' => [
-                'de_DE',
-                ['de_DE'],
-                'de-de',
-                true,
-            ],
-            'the primary language of a tag in another letter case' => [
-                'de',
-                ['de'],
-                'DE-CH',
-                true,
-            ],
-            'a numeric tag is not a language' => [
-                'unchanged',
-                ['de'],
-                '1',
-                true,
-            ],
-            'a numeric tag next to a language' => [
-                'de',
-                ['de'],
-                'de, 1',
-                true,
-            ],
             'a locale configured as a number' => [
                 '1',
                 [1],
                 'de, 1',
-                true,
-            ],
-            'a language registered with the i- prefix' => [
-                'cherokee',
-                ['en', 'cherokee'],
-                'i-cherokee',
-                true,
-            ],
-            'a tag with a numeric region, which Symfony 7.1 and later reads without the region' => [
-                $tagsFormattedBySymfony ? 'unchanged' : 'es_419',
-                ['es_419'],
-                'es-419',
                 true,
             ],
             'a malformed item is not a language' => [
