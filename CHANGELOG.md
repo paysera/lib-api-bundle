@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
   `symfony/http-foundation`, `symfony/http-kernel`, `symfony/property-access`, `symfony/routing` and `symfony/security-core`
+- `doctrine/annotations` is required at 1.14.4 or 2.0.2 and later, the first releases whose `AnnotationReader` refuses to
+  run with `opcache.save_comments=0` instead of reading the stripped docblocks as empty
 - `Configuration::getConfigTreeBuilder()` declares its `TreeBuilder` return type. Breaking for subclasses that override it
   without the return type: add `: TreeBuilder` to the override
 - The services are registered by `PayseraApiExtension` instead of the XML files in `Resources/config`, which are
