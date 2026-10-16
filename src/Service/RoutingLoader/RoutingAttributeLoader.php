@@ -36,9 +36,9 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
     private $attributeOptionsBuilder;
 
     /**
-     * @var bool
+     * @var bool|null
      */
-    private $docblockAnnotationsEnabled = false;
+    private $docblockAnnotationsEnabled;
 
     /**
      * @var AnnotationReader|null
@@ -60,7 +60,7 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $this->attributeOptionsBuilder = $attributeOptionsBuilder;
     }
 
-    public function setDocblockAnnotationsEnabled(bool $docblockAnnotationsEnabled)
+    public function setDocblockAnnotationsEnabled(bool $docblockAnnotationsEnabled): void
     {
         $this->docblockAnnotationsEnabled = $docblockAnnotationsEnabled;
     }

@@ -665,9 +665,9 @@ passes none (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled,
 among them, unless `docblock_annotations` is `true`. With `true`, it reads the docblocks of each `#[Route]` action and
 of its class with Doctrine's `AnnotationReader`, as Symfony 6.4 does: loading the routes fails on a docblock tag it
 cannot resolve, such as one that is neither imported nor ignored (list it with `@IgnoreAnnotation`), and when OPcache
-runs with `opcache.save_comments=0`. Where Symfony passes its annotation reader, the option has no effect. A route
-configured with both docblock annotations and attributes of the bundle, on the action or on its class, fails to load:
-configure it with one of them.
+is loaded with `opcache.save_comments=0`. Where Symfony passes its annotation reader, the option has no effect. Where
+the bundle reads docblock annotations, a route configured with both docblock annotations and attributes of the bundle,
+on the action or on its class, fails to load: configure it with one of them.
 The attributes take the same options, passed by name:
 `@RequiredPermissions(permissions={"ROLE_ADMIN"})` becomes `#[RequiredPermissions(permissions: ['ROLE_ADMIN'])]`.
 

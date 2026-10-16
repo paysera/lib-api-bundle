@@ -11,9 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docblock_annotations` option (default `false`) for setups where Symfony passes no annotation reader to the route
   loader (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and
   `symfony/routing` 7): `true` reads the docblock annotations of `#[Route]` actions and of their classes with Doctrine's
-  `AnnotationReader`, as Symfony's annotation reader reads them on Symfony 6.4, so the route load fails where that
-  reader fails: on a docblock tag it cannot resolve, such as one that is neither imported nor ignored (`@note`; list it
-  with `@IgnoreAnnotation`), and when OPcache is loaded with `opcache.save_comments=0`; `false` reads only attributes.
+  `AnnotationReader`, so the route load fails where that reader fails: on a docblock tag it cannot resolve, such as one
+  that is neither imported nor ignored (`@note`; list it with `@IgnoreAnnotation`), and when OPcache is loaded with
+  `opcache.save_comments=0`; `false` reads only attributes.
   Where Symfony passes its annotation reader, the bundle reads its docblock annotations with it, as before, whatever the
   option says
 
@@ -35,17 +35,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI runs the tests on PHP 8.4, on Symfony 7 with PHP 8.2 to 8.4, and with lowest dependencies
 
 ### Fixed
-- On Symfony 7.1 and later, `LocaleListener` kept the default locale for a tag that its internal `default` placeholder
-  starts with, such as `de-DE` and, from Symfony 7.3, `de`
+- On Symfony 7.1 and later, `LocaleListener` kept the default locale when the language of a tag is the start of its
+  internal `default` placeholder, which Symfony then matched first: `de-DE` with `de` configured, and from Symfony 7.3
+  also `de`
 
 ### Security
 - Where Symfony passes no annotation reader to the route loader (on Symfony 7, on Symfony 6.4 with
   `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7), the bundle's docblock
   annotations, `@RequiredPermissions` among them, are ignored without an error unless `docblock_annotations` is `true`,
   as 1.x ignored them on Symfony 6.4: an application that keeps them there must set the option
-- Breaking: a route configured with both the bundle's docblock annotations and its attributes, on the action or on its
-  class, fails to load with a `ConfigurationException`. Before, the attributes replaced all of the docblock options, so
-  `#[Body]` on an action dropped the `@RequiredPermissions` of its class; configure each route with one of them
+- Breaking: where the bundle reads docblock annotations (Symfony passes its annotation reader, or
+  `docblock_annotations` is `true`), a route configured with both the bundle's docblock annotations and its attributes,
+  on the action or on its class, fails to load with a `ConfigurationException`. Before, the attributes replaced all of
+  the docblock options, so `#[Body]` on an action dropped the `@RequiredPermissions` of its class; configure each route
+  with one of them. Where the bundle reads no docblock annotations, only the attributes apply, as the entry above says
 
 ## [1.8.2]
 ### Changed

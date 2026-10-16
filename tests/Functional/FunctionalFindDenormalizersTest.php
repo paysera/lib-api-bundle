@@ -42,7 +42,7 @@ class FunctionalFindDenormalizersTest extends FunctionalTestCase
         $this->assertEquals('420', $response->getContent());
     }
 
-    public function routesProvider(): array
+    public static function routesProvider(): array
     {
         return [
             'annotated' => ['annotated', ''],

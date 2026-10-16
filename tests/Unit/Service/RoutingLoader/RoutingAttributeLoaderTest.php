@@ -133,18 +133,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
      */
     public function testLoadWithAnnotationReader(bool $docblockAnnotationsEnabled): void
     {
-        if (!property_exists(AttributeClassLoader::class, 'reader')) {
-            $this->markTestSkipped('Symfony 7 passes no annotation reader to the route loader');
-        }
-
-        $reader = Mockery::mock(Reader::class);
-        $reader->shouldReceive('getClassAnnotation')->andReturn(null);
-        $reader->shouldReceive('getClassAnnotations')->andReturn([]);
-        $reader->shouldReceive('getMethodAnnotations')->andReturn([
-            new RequiredPermissions(['permissions' => ['ROLE_ADMIN']]),
-        ]);
-        $loader = $this->createLoader($reader);
-        $loader->setDocblockAnnotationsEnabled($docblockAnnotationsEnabled);
+        $loader = $this->createLoaderWithAnnotationReader($docblockAnnotationsEnabled);
 
         $this->assertEquals(
             [
@@ -168,18 +157,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
      */
     public function testLoadWithAnnotationReaderFailsOnMixedRoute(bool $docblockAnnotationsEnabled): void
     {
-        if (!property_exists(AttributeClassLoader::class, 'reader')) {
-            $this->markTestSkipped('Symfony 7 passes no annotation reader to the route loader');
-        }
-
-        $reader = Mockery::mock(Reader::class);
-        $reader->shouldReceive('getClassAnnotation')->andReturn(null);
-        $reader->shouldReceive('getClassAnnotations')->andReturn([]);
-        $reader->shouldReceive('getMethodAnnotations')->andReturn([
-            new RequiredPermissions(['permissions' => ['ROLE_USER']]),
-        ]);
-        $loader = $this->createLoader($reader);
-        $loader->setDocblockAnnotationsEnabled($docblockAnnotationsEnabled);
+        $loader = $this->createLoaderWithAnnotationReader($docblockAnnotationsEnabled);
 
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage(
@@ -220,6 +198,15 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 [
                     MethodDocblockAndAttributeController::class . '::show' => (new RestRequestOptions())
                         ->setRequiredPermissions(['ROLE_ADMIN']),
+                ],
+            ],
+            'annotation on the class and attribute on the action: only the attribute is read' => [
+                ClassDocblockAndMethodAttributeController::class,
+                [
+                    ClassDocblockAndMethodAttributeController::class . '::update' => (new RestRequestOptions())
+                        ->setBodyParameterName('data')
+                        ->setBodyDenormalizationType('plain')
+                        ->setBodyOptional(false),
                 ],
             ],
         ];
@@ -298,6 +285,24 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         exec(implode(' ', array_map('escapeshellarg', $command)) . ' 2>&1', $lines);
 
         return $lines;
+    }
+
+    private function createLoaderWithAnnotationReader(bool $docblockAnnotationsEnabled): RoutingAttributeLoader
+    {
+        if (!property_exists(AttributeClassLoader::class, 'reader')) {
+            $this->markTestSkipped('Symfony 7 passes no annotation reader to the route loader');
+        }
+
+        $reader = Mockery::mock(Reader::class);
+        $reader->shouldReceive('getClassAnnotation')->andReturn(null);
+        $reader->shouldReceive('getClassAnnotations')->andReturn([]);
+        $reader->shouldReceive('getMethodAnnotations')->andReturn([
+            new RequiredPermissions(['permissions' => ['ROLE_ADMIN']]),
+        ]);
+        $loader = $this->createLoader($reader);
+        $loader->setDocblockAnnotationsEnabled($docblockAnnotationsEnabled);
+
+        return $loader;
     }
 
     private function createLoader(?Reader $reader = null): RoutingAttributeLoader
