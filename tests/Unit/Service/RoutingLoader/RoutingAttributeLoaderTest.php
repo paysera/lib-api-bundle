@@ -22,8 +22,11 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\Attribute
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAndActionDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassDocblockAndMethodAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsOnAttributeRouteController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredBundleAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredNoteTagController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MethodDocblockAndAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBundleAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibraryAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitDocblockOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedAnnotationDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedNoteTagController;
@@ -81,6 +84,18 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 NoBundleAnnotationController::class,
                 [NoBundleAnnotationController::class . '::show' => null],
             ],
+            'annotation of another library next to the one of the bundle' => [
+                OtherLibraryAnnotationController::class,
+                [OtherLibraryAnnotationController::class . '::show' => $adminOnly],
+            ],
+            'tag listed in IgnoreAnnotation on the class' => [
+                IgnoredNoteTagController::class,
+                [IgnoredNoteTagController::class . '::show' => $adminOnly],
+            ],
+            'annotation of the bundle listed in IgnoreAnnotation: not applied, as by Doctrine\'s reader' => [
+                IgnoredBundleAnnotationController::class,
+                [IgnoredBundleAnnotationController::class . '::show' => null],
+            ],
         ];
     }
 
@@ -117,13 +132,15 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 ClassDocblockAndMethodAttributeController::class,
                 ConfigurationException::class,
                 'The route of method ' . ClassDocblockAndMethodAttributeController::class . '::update() is configured'
-                . ' with both docblock annotations and attributes of the bundle',
+                . ' with both docblock annotations and attributes of the bundle, on the method or its class: use one'
+                . ' of them',
             ],
             'annotation and attribute on the action' => [
                 MethodDocblockAndAttributeController::class,
                 ConfigurationException::class,
                 'The route of method ' . MethodDocblockAndAttributeController::class . '::show() is configured'
-                . ' with both docblock annotations and attributes of the bundle',
+                . ' with both docblock annotations and attributes of the bundle, on the method or its class: use one'
+                . ' of them',
             ],
         ];
     }
@@ -162,7 +179,8 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage(
             'The route of method ' . AttributeOptionsController::class . '::show() is configured'
-            . ' with both docblock annotations and attributes of the bundle'
+            . ' with both docblock annotations and attributes of the bundle, on the method or its class: use one of'
+            . ' them'
         );
 
         $loader->load(AttributeOptionsController::class);
@@ -294,11 +312,18 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         }
 
         $reader = Mockery::mock(Reader::class);
-        $reader->shouldReceive('getClassAnnotation')->andReturn(null);
-        $reader->shouldReceive('getClassAnnotations')->andReturn([]);
-        $reader->shouldReceive('getMethodAnnotations')->andReturn([
-            new RequiredPermissions(['permissions' => ['ROLE_ADMIN']]),
-        ]);
+        $reader
+            ->shouldReceive('getClassAnnotation')
+            ->andReturn(null)
+        ;
+        $reader
+            ->shouldReceive('getClassAnnotations')
+            ->andReturn([])
+        ;
+        $reader
+            ->shouldReceive('getMethodAnnotations')
+            ->andReturn([new RequiredPermissions(['permissions' => ['ROLE_ADMIN']])])
+        ;
         $loader = $this->createLoader($reader);
         $loader->setDocblockAnnotationsEnabled($docblockAnnotationsEnabled);
 

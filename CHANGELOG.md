@@ -12,18 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   loader (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and
   `symfony/routing` 7): `true` reads the docblock annotations of `#[Route]` actions and of their classes with Doctrine's
   `AnnotationReader`, so the route load fails where that reader fails: on a docblock tag it cannot resolve, such as one
-  that is neither imported nor ignored (`@note`; list it with `@IgnoreAnnotation`), and when OPcache is loaded with
-  `opcache.save_comments=0`; `false` reads only attributes.
-  Where Symfony passes its annotation reader, the bundle reads its docblock annotations with it, as before, whatever the
-  option says
+  that is neither imported nor ignored (`@note`; list it with `@IgnoreAnnotation` in the class docblock, which also
+  keeps an annotation of the bundle listed there from applying), and when OPcache is loaded with
+  `opcache.save_comments=0`; `false` reads only attributes. Where Symfony passes its annotation reader, the bundle reads
+  its docblock annotations with it, as before, whatever the option says. Before Symfony 6.4 the option has no effect
 
 ### Changed
-- The Symfony components the bundle uses directly are required explicitly: `symfony/config`, `symfony/dependency-injection`,
-  `symfony/http-foundation`, `symfony/http-kernel`, `symfony/property-access`, `symfony/routing` and `symfony/security-core`
+- The Symfony components the bundle uses directly are required explicitly: `symfony/config`,
+  `symfony/dependency-injection`, `symfony/http-foundation`, `symfony/http-kernel`, `symfony/property-access`,
+  `symfony/routing` and `symfony/security-core`
 - `doctrine/annotations` is required at 1.14.4 or 2.0.2 and later, the first releases whose `AnnotationReader` refuses
   to run with `opcache.save_comments=0` instead of reading the stripped docblocks as empty
-- `Configuration::getConfigTreeBuilder()` declares its `TreeBuilder` return type. Breaking for subclasses that override it
-  without the return type: add `: TreeBuilder` to the override
+- `Configuration::getConfigTreeBuilder()` declares its `TreeBuilder` return type. Breaking for subclasses that override
+  it without the return type: add `: TreeBuilder` to the override
 - The services are registered by `PayseraApiExtension` instead of the XML files in `Resources/config`, which are
   removed, so Symfony 7.4 no longer reports that the XML configuration format is deprecated. The service ids, classes,
   arguments, method calls, tags and visibility are unchanged
@@ -43,12 +44,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Where Symfony passes no annotation reader to the route loader (on Symfony 7, on Symfony 6.4 with
   `framework.annotations` disabled, and with FrameworkBundle 6.4 and `symfony/routing` 7), the bundle's docblock
   annotations, `@RequiredPermissions` among them, are ignored without an error unless `docblock_annotations` is `true`,
-  as 1.x ignored them on Symfony 6.4: an application that keeps them there must set the option
+  as 1.x did on Symfony 6.4 with `framework.annotations` disabled. An application that moves to Symfony 7 from Symfony
+  6.4 with `framework.annotations` enabled, where Symfony's reader applied them, must set the option to keep them
 - Breaking: where the bundle reads docblock annotations (Symfony passes its annotation reader, or
-  `docblock_annotations` is `true`), a route configured with both the bundle's docblock annotations and its attributes,
-  on the action or on its class, fails to load with a `ConfigurationException`. Before, the attributes replaced all of
-  the docblock options, so `#[Body]` on an action dropped the `@RequiredPermissions` of its class; configure each route
-  with one of them. Where the bundle reads no docblock annotations, only the attributes apply, as the entry above says
+  `docblock_annotations` is `true`), a route configured with both docblock annotations and attributes of the bundle, or
+  of the application's own classes implementing its interfaces, on the action or on its class, fails to load with a
+  `ConfigurationException`. Before, the attributes replaced all of the docblock options, so `#[Body]` on an action
+  dropped the `@RequiredPermissions` of its class; configure each route with one of them. Where the bundle reads no
+  docblock annotations, only the attributes apply, as the entry above says
 
 ## [1.8.2]
 ### Changed

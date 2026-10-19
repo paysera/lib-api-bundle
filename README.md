@@ -52,7 +52,7 @@ new PayseraApiBundle(),
 ```yaml
 paysera_api:
     locales: ['en', 'lt', 'lv']        # Optional list of accepted locales
-    docblock_annotations: false        # Optional; true reads docblock annotations where Symfony passes no reader
+    docblock_annotations: false        # Optional (Symfony 6.4+); true reads docblocks where Symfony passes no reader
     validation:
         property_path_converter: your_service_id    # Optional service ID to use for property path converter
     path_attribute_resolvers:          # Registered path attribute resolvers. See below for more information
@@ -663,11 +663,13 @@ bundle reads its docblock annotations with the annotation reader Symfony passes 
 passes none (on Symfony 7, on Symfony 6.4 with `framework.annotations` disabled, and with FrameworkBundle 6.4 and
 `symfony/routing` 7), the bundle reads only the attributes, and ignores its docblock annotations, `@RequiredPermissions`
 among them, unless `docblock_annotations` is `true`. With `true`, it reads the docblocks of each `#[Route]` action and
-of its class with Doctrine's `AnnotationReader`, as Symfony 6.4 does: loading the routes fails on a docblock tag it
-cannot resolve, such as one that is neither imported nor ignored (list it with `@IgnoreAnnotation`), and when OPcache
-is loaded with `opcache.save_comments=0`. Where Symfony passes its annotation reader, the option has no effect. Where
-the bundle reads docblock annotations, a route configured with both docblock annotations and attributes of the bundle,
-on the action or on its class, fails to load: configure it with one of them.
+of its class with Doctrine's `AnnotationReader`, the reader Symfony 6.4 also uses: loading the routes fails on a
+docblock tag it cannot resolve, such as one that is neither imported nor ignored (list it with `@IgnoreAnnotation` in
+the class docblock; an annotation of the bundle listed there is not applied), and when OPcache is loaded with
+`opcache.save_comments=0`. Where Symfony passes its annotation reader, and before Symfony 6.4, the option has no
+effect. Where the bundle reads docblock annotations, a route configured with both docblock annotations and attributes
+of the bundle, or of your own classes implementing its interfaces, on the action or on its class, fails to load:
+configure it with one of them.
 The attributes take the same options, passed by name:
 `@RequiredPermissions(permissions={"ROLE_ADMIN"})` becomes `#[RequiredPermissions(permissions: ['ROLE_ADMIN'])]`.
 
