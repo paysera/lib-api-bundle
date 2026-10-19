@@ -180,10 +180,22 @@ class LocaleListenerTest extends MockeryTestCase
                 "'",
                 true,
             ],
-            'an empty i- item, which Symfony 3.4 to 7.0 read as an empty language that matches first' => [
+            'an empty i- item, which Symfony 3.4 to 7.0 reads as an empty language, matching the empty placeholder' => [
                 $tagsFormattedBySymfony ? 'de' : 'unchanged',
                 ['de'],
                 'i-, de',
+                true,
+            ],
+            'the language default, which matched the former placeholder' => [
+                'de',
+                ['de'],
+                'default, de',
+                true,
+            ],
+            'the language i-default, which matched the former placeholder' => [
+                'de',
+                ['de'],
+                'i-default, de',
                 true,
             ],
             'a malformed item next to a language' => [

@@ -77,8 +77,8 @@ class RoutingAttributeLoader extends AttributeRouteControllerLoader
         $attributes = $this->getRestAttributes($class, $method);
         if ($annotations !== [] && $attributes !== []) {
             throw new ConfigurationException(sprintf(
-                'The route of method %s::%s() is configured with both docblock annotations and attributes of the'
-                . ' bundle, on the method or its class: use one of them',
+                'The route of method %s::%s() is configured with both docblock annotations and attributes that'
+                . ' implement the bundle\'s interfaces, on the method or its class: use one of them',
                 $class->getName(),
                 $method->getName()
             ));

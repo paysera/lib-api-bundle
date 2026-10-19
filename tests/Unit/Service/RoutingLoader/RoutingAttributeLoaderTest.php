@@ -23,6 +23,7 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAndA
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassDocblockAndMethodAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsOnAttributeRouteController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredBundleAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredImportedBundleAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\IgnoredNoteTagController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MethodDocblockAndAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBundleAnnotationController;
@@ -36,6 +37,9 @@ use Symfony\Component\Routing\Loader\AttributeClassLoader;
 
 class RoutingAttributeLoaderTest extends MockeryTestCase
 {
+    private const MIXED_ROUTE_MESSAGE = 'The route of method %s() is configured with both docblock annotations and'
+        . ' attributes that implement the bundle\'s interfaces, on the method or its class: use one of them';
+
     protected function setUp(): void
     {
         if (!class_exists(AttributeRouteControllerLoader::class)) {
@@ -92,9 +96,13 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 IgnoredNoteTagController::class,
                 [IgnoredNoteTagController::class . '::show' => $adminOnly],
             ],
-            'annotation of the bundle listed in IgnoreAnnotation: not applied, as by Doctrine\'s reader' => [
+            'annotation of the bundle, not imported, in IgnoreAnnotation: skipped, as by Doctrine\'s reader' => [
                 IgnoredBundleAnnotationController::class,
                 [IgnoredBundleAnnotationController::class . '::show' => null],
+            ],
+            'imported annotation of the bundle listed in IgnoreAnnotation: applied, as by Doctrine\'s reader' => [
+                IgnoredImportedBundleAnnotationController::class,
+                [IgnoredImportedBundleAnnotationController::class . '::show' => $adminOnly],
             ],
         ];
     }
@@ -131,16 +139,12 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             'annotation on the class and attribute on the action' => [
                 ClassDocblockAndMethodAttributeController::class,
                 ConfigurationException::class,
-                'The route of method ' . ClassDocblockAndMethodAttributeController::class . '::update() is configured'
-                . ' with both docblock annotations and attributes of the bundle, on the method or its class: use one'
-                . ' of them',
+                sprintf(self::MIXED_ROUTE_MESSAGE, ClassDocblockAndMethodAttributeController::class . '::update'),
             ],
             'annotation and attribute on the action' => [
                 MethodDocblockAndAttributeController::class,
                 ConfigurationException::class,
-                'The route of method ' . MethodDocblockAndAttributeController::class . '::show() is configured'
-                . ' with both docblock annotations and attributes of the bundle, on the method or its class: use one'
-                . ' of them',
+                sprintf(self::MIXED_ROUTE_MESSAGE, MethodDocblockAndAttributeController::class . '::show'),
             ],
         ];
     }
@@ -177,11 +181,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         $loader = $this->createLoaderWithAnnotationReader($docblockAnnotationsEnabled);
 
         $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage(
-            'The route of method ' . AttributeOptionsController::class . '::show() is configured'
-            . ' with both docblock annotations and attributes of the bundle, on the method or its class: use one of'
-            . ' them'
-        );
+        $this->expectExceptionMessage(sprintf(self::MIXED_ROUTE_MESSAGE, AttributeOptionsController::class . '::show'));
 
         $loader->load(AttributeOptionsController::class);
     }
