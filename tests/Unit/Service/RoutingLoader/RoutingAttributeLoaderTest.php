@@ -96,7 +96,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 IgnoredNoteTagController::class,
                 [IgnoredNoteTagController::class . '::show' => $adminOnly],
             ],
-            'annotation of the bundle, not imported, in IgnoreAnnotation: skipped, as by Doctrine\'s reader' => [
+            'unimported short name of the bundle in IgnoreAnnotation: skipped, as by Doctrine\'s reader' => [
                 IgnoredBundleAnnotationController::class,
                 [IgnoredBundleAnnotationController::class . '::show' => null],
             ],

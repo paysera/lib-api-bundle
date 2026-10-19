@@ -13,9 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `symfony/routing` 7): `true` reads the docblock annotations of `#[Route]` actions and of their classes with Doctrine's
   `AnnotationReader`, so the route load fails where that reader fails: on a docblock tag it cannot resolve, such as one
   that is neither imported nor ignored (`@note`; list it with `@IgnoreAnnotation` in the class docblock, where an
-  annotation of the bundle that is not imported is then skipped too), and when OPcache is loaded with
-  `opcache.save_comments=0`; `false` reads only attributes. Where Symfony passes its annotation reader, the bundle reads
-  its docblock annotations with it, as before, whatever the option says. Before Symfony 6.4 the option has no effect
+  annotation of the bundle listed there is then skipped too, unless a `use` statement imports it or it is written with
+  its full class name), and when OPcache is loaded with `opcache.save_comments=0`; `false` reads only attributes. Where
+  Symfony passes its annotation reader, the bundle reads its docblock annotations with it, as before, whatever the
+  option says. Before Symfony 6.4 the option has no effect
 
 ### Changed
 - The Symfony components the bundle uses directly are required explicitly: `symfony/config`,
@@ -34,9 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Configuration` is marked `@final`, so Symfony's `DebugClassLoader` reports classes that extend it
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
 - CI runs the tests on PHP 8.4, on Symfony 7 with PHP 8.2 to 8.4, and with lowest dependencies
-- `LocaleListener`'s internal placeholder is empty instead of `default`. On every Symfony line, `default, de` and
-  `i-default, de` with `de` configured now give `de`, where 1.x kept the default locale; on Symfony 3.4 to 7.0,
-  `i-, de` keeps the default locale, where 1.x gave `de`
+- `LocaleListener`'s internal placeholder is empty instead of `default`, which changes the result for a header item
+  before a configured locale that Symfony reads as the language `default` or as an empty language. An item read as
+  `default` (`default` and `i-default`, and except on Symfony 7.1 also `default-CH`) now gives the configured locale,
+  where 1.x kept the default one. An item read as an empty language (`""` on Symfony 3.4 to 7.1, `0` on 7.1, and `i-`
+  or `-de` on 3.4 to 7.0) now keeps the default locale, where 1.x gave the configured one
 
 ### Fixed
 - On Symfony 7.1 and later, `LocaleListener` kept the default locale when the language of a tag is the start of its
