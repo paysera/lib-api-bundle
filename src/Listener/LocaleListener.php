@@ -13,6 +13,8 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
  */
 class LocaleListener
 {
+    private const NO_LOCALE_MATCHED = ',';
+
     private $requestHelper;
     private $locales;
 
@@ -21,7 +23,7 @@ class LocaleListener
         array $locales
     ) {
         $this->requestHelper = $requestHelper;
-        $this->locales = $locales;
+        $this->locales = array_values(array_diff(array_map('strval', $locales), ['']));
     }
 
     /**
@@ -42,15 +44,10 @@ class LocaleListener
         }
     }
 
-    private function resolveFromHeaders(Request $request)
+    private function resolveFromHeaders(Request $request): ?string
     {
-        $defaultLocale = 'default';
-        $preferredLanguage = $request->getPreferredLanguage(array_merge([$defaultLocale], $this->locales));
+        $locale = (string)$request->getPreferredLanguage(array_merge([self::NO_LOCALE_MATCHED], $this->locales));
 
-        if ($preferredLanguage !== null && $preferredLanguage !== $defaultLocale) {
-            return $preferredLanguage;
-        }
-
-        return null;
+        return $locale === self::NO_LOCALE_MATCHED ? null : $locale;
     }
 }
