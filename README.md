@@ -147,12 +147,15 @@ class ApiController
     }
 }
 ```
-Controller example using attributes:
+Controller example using attributes. The examples import `Symfony\Component\Routing\Attribute\Route`, which exists
+from Symfony 6.4. On Symfony 5.2 to 6.3, import `Symfony\Component\Routing\Annotation\Route` instead; Symfony skips
+an attribute class it does not know, so the route would not exist. Symfony before 5.2 reads no `#[Route]`: use a
+docblock `@Route` there.
 ```php
 <?php
 declare(strict_types=1);
 
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Paysera\Bundle\ApiBundle\Attribute\Body;
 
 class ApiController
@@ -173,18 +176,35 @@ class ApiController
 }
 ```
 
-Don't forget to also import your controller (or `Controller` directory) into routing configuration. For example:
-
-```xml
-<!-- Resources/config/routing.xml -->
-<import resource="../../Controller/" type="annotation" prefix="/rest/v1/"/>
-```
+Don't forget to also import your controller (or `Controller` directory) into routing configuration, once: an import of
+each type below loads the same controllers twice. Up to Symfony 6.0, for example:
 
 ```yaml
 acme_something:
     resource: "@AcmeSomethingBundle/Controller/"
     type: annotation
     prefix: /rest/v1/
+```
+
+```xml
+<!-- Resources/config/routing.xml -->
+<import resource="../../Controller/" type="annotation" prefix="/rest/v1/"/>
+```
+
+From Symfony 6.1, import them with `type: attribute`, which up to 6.4 also loads docblock `@Route` controllers (with
+annotations enabled); Symfony 7 reads only `#[Route]`. Symfony 6.4 deprecates `type: annotation` and Symfony 7 rejects
+it (Symfony 7.4 also deprecates XML route files):
+
+```yaml
+acme_something:
+    resource: "@AcmeSomethingBundle/Controller/"
+    type: attribute
+    prefix: /rest/v1/
+```
+
+```xml
+<!-- Resources/config/routing.xml -->
+<import resource="../../Controller/" type="attribute" prefix="/rest/v1/"/>
 ```
 
 This also requires that your controller's service ID would be the same as its FQCN.
@@ -257,7 +277,7 @@ Controller example using attributes:
 <?php
 declare(strict_types=1);
 
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Paysera\Bundle\ApiBundle\Attribute\PathAttribute;
 
 class ApiController
@@ -395,7 +415,7 @@ Controller example using attributes:
 <?php
 declare(strict_types=1);
 
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Paysera\Bundle\ApiBundle\Attribute\Query;
 use Paysera\Pagination\Entity\Pager;
 use Paysera\Bundle\ApiBundle\Entity\PagedQuery;
@@ -644,6 +664,29 @@ In this case, if there would be zero results, `_metadata.cursors.before` would s
 cursor and iterating this way until we have `"has_previous": false` is a reliable way to synchronize resources.
 
 ## Annotations/Attributes reference
+
+Every option below exists as a docblock annotation (`Paysera\Bundle\ApiBundle\Annotation\*`) and as a PHP attribute of
+the same name (`Paysera\Bundle\ApiBundle\Attribute\*`) taking the same options by name:
+`@RequiredPermissions(permissions={"ROLE_ADMIN"})` becomes `#[RequiredPermissions(permissions: ['ROLE_ADMIN'])]`.
+The attributes need PHP 8 and are applied on every supported Symfony version since 2.0.0 (1.8 applies them only from
+Symfony 6.4); the `#[Route]` class to import depends on the Symfony version, see the attribute controller example.
+A route configured with both docblock annotations and attributes of the bundle fails to load: configure each route with
+one of them. So does a route with an attribute named under `Paysera\Bundle\ApiBundle\` that is none of the bundle's
+attributes, such as a misspelt one.
+
+Where Symfony passes no annotation reader to the route loader (Symfony 7, and Symfony 5.4 on PHP 8 or Symfony 6 with
+`framework.annotations` disabled), the bundle reads the docblocks with Doctrine's `AnnotationReader` where Doctrine
+would find its annotations: where a docblock uses an annotation implementing `RestAnnotationInterface` (the bundle's or
+your own) as Doctrine's `DocParser` resolves it, from the imports and namespace of the class for its docblock, and of
+the declaring class and the traits in the action's file for an action's docblock; and where the routed class, the
+declaring class or a trait in the action's file imports `Paysera\Bundle\ApiBundle\Annotation`. Code that uses only
+attributes is not read with that reader, unless Doctrine's parser fails on one of its docblocks (a tag naming a class
+that cannot be loaded). There, loading the routes fails with a `ConfigurationException` naming the action on a docblock
+tag that Doctrine cannot resolve (import it, or list it with `@IgnoreAnnotation` in the class docblock). Where OPcache
+is set to strip doc comments (`opcache.save_comments=0`), Doctrine's reader refuses to run, so loading fails where those
+classes import the annotation namespace; remove an unused `use` of it. Not detected in a file that does not import
+`Paysera\Bundle\ApiBundle\Annotation`: an annotation that Doctrine cannot resolve (written with no import, with a
+misspelt import such as `Annotations`, or misspelt) and, where OPcache has stripped the doc comments, any annotation.
 
 ### `Body`
 
