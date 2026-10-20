@@ -1,0 +1,412 @@
+{
+    "paysera_api.annotations.loader": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RoutingLoader\\RoutingAnnotationLoader",
+        "parent": "routing.loader.annotation",
+        "calls": [
+            [
+                "setRequestHelper",
+                [
+                    {
+                        "reference": "paysera_api.rest_request_helper",
+                        "invalid_behavior": 1
+                    }
+                ]
+            ],
+            [
+                "setRestRequestOptionsBuilder",
+                [
+                    {
+                        "reference": "paysera_api.annotations.options_builder",
+                        "invalid_behavior": 1
+                    }
+                ]
+            ]
+        ],
+        "decorated": [
+            "routing.loader.annotation",
+            null,
+            0
+        ]
+    },
+    "paysera_api.annotations.options_builder": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RoutingLoader\\RestRequestAnnotationOptionsBuilder",
+        "arguments": [
+            {
+                "reference": "paysera_api.rest_request_options_validator",
+                "invalid_behavior": 1
+            }
+        ]
+    },
+    "paysera_api.attributes.options_builder": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RoutingLoader\\RestRequestAttributeOptionsBuilder",
+        "arguments": [
+            {
+                "reference": "paysera_api.rest_request_options_validator",
+                "invalid_behavior": 1
+            }
+        ]
+    },
+    "paysera_api.camel_case_to_snake_case_converter": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\Validation\\CamelCaseToSnakeCaseConverter"
+    },
+    "paysera_api.content_type_matcher": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\ContentTypeMatcher"
+    },
+    "paysera_api.entity_validator": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\Validation\\EntityValidator",
+        "arguments": [
+            {
+                "reference": "validator",
+                "invalid_behavior": 2
+            },
+            {
+                "reference": "paysera_api.validation.property_path_converter",
+                "invalid_behavior": 1
+            }
+        ]
+    },
+    "paysera_api.error_builder": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\ErrorBuilder",
+        "calls": [
+            [
+                "configureError",
+                [
+                    "invalid_request",
+                    400,
+                    "Request content is invalid"
+                ]
+            ],
+            [
+                "configureError",
+                [
+                    "invalid_parameters",
+                    400,
+                    "Some required parameter is missing or it's format is invalid"
+                ]
+            ],
+            [
+                "configureError",
+                [
+                    "invalid_state",
+                    409,
+                    "Requested action cannot be made to the current state of resource"
+                ]
+            ],
+            [
+                "configureError",
+                [
+                    "unauthorized",
+                    401,
+                    "You have not provided any credentials or they are invalid"
+                ]
+            ],
+            [
+                "configureError",
+                [
+                    "forbidden",
+                    403,
+                    "You have no rights to access requested resource or make requested action"
+                ]
+            ],
+            [
+                "configureError",
+                [
+                    "not_found",
+                    404,
+                    "Resource was not found"
+                ]
+            ],
+            [
+                "configureError",
+                [
+                    "internal_server_error",
+                    500,
+                    "Unexpected internal system error"
+                ]
+            ],
+            [
+                "configureError",
+                [
+                    "not_acceptable",
+                    406,
+                    "Unknown request or response format"
+                ]
+            ]
+        ]
+    },
+    "paysera_api.listener.locale": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Listener\\LocaleListener",
+        "arguments": [
+            {
+                "reference": "paysera_api.rest_request_helper",
+                "invalid_behavior": 1
+            },
+            "%paysera_api.locales%"
+        ],
+        "tags": {
+            "kernel.event_listener": [
+                {
+                    "event": "kernel.request",
+                    "priority": 20
+                }
+            ]
+        }
+    },
+    "paysera_api.listener.rest_exception": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Listener\\RestExceptionListener",
+        "arguments": [
+            {
+                "reference": "paysera_api.rest_request_helper",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.error_builder",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_normalization.core_normalizer",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.response_builder",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "logger",
+                "invalid_behavior": 2
+            }
+        ],
+        "tags": {
+            "kernel.event_listener": [
+                {
+                    "event": "kernel.exception",
+                    "priority": 1
+                }
+            ]
+        }
+    },
+    "paysera_api.listener.rest_request": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Listener\\RestRequestListener",
+        "arguments": [
+            {
+                "reference": "paysera_normalization.core_denormalizer",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "security.authorization_checker",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "security.token_storage",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.rest_request_helper",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.entity_validator",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.content_type_matcher",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.path_attribute_resolution_manager",
+                "invalid_behavior": 1
+            }
+        ],
+        "tags": {
+            "kernel.event_listener": [
+                {
+                    "event": "kernel.controller"
+                },
+                {
+                    "event": "kernel.request",
+                    "priority": 31
+                }
+            ]
+        }
+    },
+    "paysera_api.listener.rest_response": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Listener\\RestResponseListener",
+        "arguments": [
+            {
+                "reference": "paysera_normalization.core_normalizer",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.rest_request_helper",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.response_builder",
+                "invalid_behavior": 1
+            }
+        ],
+        "tags": {
+            "kernel.event_listener": [
+                {
+                    "event": "kernel.view"
+                }
+            ]
+        }
+    },
+    "paysera_api.loader.attribute": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RoutingLoader\\RoutingAttributeLoader",
+        "parent": "routing.loader.attribute",
+        "calls": [
+            [
+                "setRequestHelper",
+                [
+                    {
+                        "reference": "paysera_api.rest_request_helper",
+                        "invalid_behavior": 1
+                    }
+                ]
+            ],
+            [
+                "setRestRequestAnnotationOptionsBuilder",
+                [
+                    {
+                        "reference": "paysera_api.annotations.options_builder",
+                        "invalid_behavior": 1
+                    }
+                ]
+            ],
+            [
+                "setRestRequestAttributeOptionsBuilder",
+                [
+                    {
+                        "reference": "paysera_api.attributes.options_builder",
+                        "invalid_behavior": 1
+                    }
+                ]
+            ]
+        ],
+        "decorated": [
+            "routing.loader.attribute",
+            null,
+            0
+        ]
+    },
+    "paysera_api.normalizer.error": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Normalizer\\ErrorNormalizer",
+        "tags": {
+            "paysera_normalization.autoconfigured_normalizer": [
+                []
+            ]
+        }
+    },
+    "paysera_api.normalizer.paged_query": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Normalizer\\Pagination\\PagedQueryNormalizer",
+        "arguments": [
+            {
+                "reference": "paysera_api.pagination.result_provider",
+                "invalid_behavior": 1
+            },
+            "%paysera_api.pagination.default_total_count_strategy%",
+            "%paysera_api.pagination.maximum_offset%"
+        ],
+        "tags": {
+            "paysera_normalization.autoconfigured_normalizer": [
+                []
+            ]
+        }
+    },
+    "paysera_api.normalizer.pager_denormalizer": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Normalizer\\Pagination\\PagerDenormalizer",
+        "arguments": [
+            "%paysera_api.pagination.default_limit%",
+            "%paysera_api.pagination.maximum_limit%"
+        ],
+        "tags": {
+            "paysera_normalization.autoconfigured_normalizer": [
+                []
+            ]
+        }
+    },
+    "paysera_api.normalizer.result": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Normalizer\\Pagination\\ResultNormalizer",
+        "tags": {
+            "paysera_normalization.autoconfigured_normalizer": [
+                []
+            ]
+        }
+    },
+    "paysera_api.normalizer.violation": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Normalizer\\ViolationNormalizer",
+        "tags": {
+            "paysera_normalization.autoconfigured_normalizer": [
+                []
+            ]
+        }
+    },
+    "paysera_api.pagination.result_provider": {
+        "class": "Paysera\\Pagination\\Service\\Doctrine\\ResultProvider",
+        "arguments": [
+            {
+                "inline": {
+                    "class": "Paysera\\Pagination\\Service\\Doctrine\\QueryAnalyser"
+                }
+            },
+            {
+                "inline": {
+                    "class": "Paysera\\Pagination\\Service\\CursorBuilder",
+                    "arguments": [
+                        {
+                            "inline": {
+                                "class": "Symfony\\Component\\PropertyAccess\\PropertyAccessor",
+                                "factory": [
+                                    "Symfony\\Component\\PropertyAccess\\PropertyAccess",
+                                    "createPropertyAccessor"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "paysera_api.path_attribute_resolution_manager": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\PathAttributeResolver\\PathAttributeResolutionManager",
+        "arguments": [
+            {
+                "reference": "paysera_api.path_attribute_resolver_registry",
+                "invalid_behavior": 1
+            }
+        ]
+    },
+    "paysera_api.path_attribute_resolver_registry": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\PathAttributeResolver\\PathAttributeResolverRegistry"
+    },
+    "paysera_api.response_builder": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\ResponseBuilder"
+    },
+    "paysera_api.rest_request_helper": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RestRequestHelper",
+        "arguments": [
+            {
+                "reference": "paysera_api.rest_request_options_registry",
+                "invalid_behavior": 1
+            }
+        ]
+    },
+    "paysera_api.rest_request_options_registry": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RestRequestOptionsRegistry"
+    },
+    "paysera_api.rest_request_options_validator": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RestRequestOptionsValidator",
+        "arguments": [
+            {
+                "reference": "paysera_normalization.normalizer_registry",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.path_attribute_resolver_registry",
+                "invalid_behavior": 1
+            }
+        ]
+    }
+}
