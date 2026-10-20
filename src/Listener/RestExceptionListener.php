@@ -32,7 +32,7 @@ class RestExceptionListener
         ErrorBuilderInterface $errorBuilder,
         CoreNormalizer $coreNormalizer,
         ResponseBuilder $responseBuilder,
-        LoggerInterface $logger = null
+        ?LoggerInterface $logger = null
     ) {
         $this->requestHelper = $requestHelper;
         $this->errorBuilder = $errorBuilder;
