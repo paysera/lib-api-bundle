@@ -68,10 +68,11 @@ class RestRequestAnnotationOptionsBuilderTest extends MockeryTestCase
         $builder = new RestRequestAnnotationOptionsBuilder($optionsValidator);
 
         $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('Only one annotation of type ' . Body::class . ' is supported');
 
         $builder->buildOptions([
-            new Body(['parameterName' => 'a']),
-            new Body(['parameterName' => 'b']),
+            new Body(['parameterName' => 'a', 'denormalizationType' => 'type_a', 'optional' => false]),
+            new Body(['parameterName' => 'b', 'denormalizationType' => 'type_b', 'optional' => false]),
         ], new ReflectionMethod(self::class, 'fixtureMethod'));
     }
 

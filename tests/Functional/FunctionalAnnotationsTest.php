@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
-use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,7 +23,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
     public function testAnnotatedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ) {
         $this->makeTest('annotated', $expectedResponse, $request, $extraResponseVersion);
     }
@@ -38,20 +37,51 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
     public function testAttributedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ) {
         $this->makeTest('attributed', $expectedResponse, $request, $extraResponseVersion);
+    }
+
+    /**
+     * @dataProvider docblockOptionsOnAttributeRouteProvider
+     */
+    public function testDocblockOptionsOnAttributeRoute(
+        int $expectedStatusCode,
+        string $expectedContent,
+        ?string $username
+    ): void {
+        $this->makeTest(
+            'attributed',
+            new Response($expectedContent, $expectedStatusCode),
+            $this->createRequest('GET', '/docblock/testRequiredPermissions', null, [], $username)
+        );
+    }
+
+    public static function docblockOptionsOnAttributeRouteProvider(): array
+    {
+        return [
+            'without auth' => [
+                401,
+                '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found"}',
+                null,
+            ],
+            'without enough permissions' => [
+                403,
+                '{"error":"forbidden",'
+                . '"error_description":"Access to this API endpoint is forbidden for current client"}',
+                'user',
+            ],
+            'with all needed permissions' => [200, 'OK', 'admin'],
+        ];
     }
 
     private function makeTest(
         string $pathPrefix,
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ): void {
-        if ($pathPrefix === 'attributed' && !TestHelper::phpAttributeSupportExists()) {
-            $this->markTestSkipped('Unsupported environment');
-        }
+        $this->skipUnlessRoutesAreLoaded($pathPrefix);
 
         $request->server->set(
             'REQUEST_URI',
@@ -175,6 +205,29 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     '/testBodyNormalizationWithCustomContentType',
                     'my_text',
                     ['Content-Type' => 'text/plain']
+                ),
+            ],
+            'testBodyNormalizationWithCustomContentType and no content type' => [
+                new Response(
+                    '{"error":"invalid_request","error_description":"Content-Type must be provided"}',
+                    400
+                ),
+                $this->createRequest(
+                    'POST',
+                    '/testBodyNormalizationWithCustomContentType',
+                    'my_text'
+                ),
+            ],
+            'testBodyNormalizationWithExtractedKeyValue and a body that is not JSON' => [
+                new Response(
+                    '{"error":"invalid_request","error_description":"Cannot decode request body to JSON"}',
+                    400
+                ),
+                $this->createRequest(
+                    'POST',
+                    '/testBodyNormalizationWithExtractedKeyValue',
+                    '{"key": ',
+                    ['Content-Type' => 'application/json']
                 ),
             ],
             'testBodyNormalizationWithCustomContentTypeAndJsonDecode and JSON content-type' => [

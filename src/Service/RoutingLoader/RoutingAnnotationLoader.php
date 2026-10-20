@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
-use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
-use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Symfony\Bundle\FrameworkBundle\Routing\AnnotatedRouteControllerLoader;
 use Symfony\Component\Routing\Route;
 use ReflectionClass;
@@ -16,49 +14,19 @@ use ReflectionMethod;
 class RoutingAnnotationLoader extends AnnotatedRouteControllerLoader
 {
     /**
-     * @var RestRequestHelper
+     * @var RestRouteConfigurator
      */
-    private $restRequestHelper;
+    private $restRouteConfigurator;
 
-    /**
-     * @var RestRequestAnnotationOptionsBuilder
-     */
-    private $restRequestOptionsBuilder;
-
-    public function setRequestHelper(RestRequestHelper $restRequestHelper)
+    public function setRestRouteConfigurator(RestRouteConfigurator $restRouteConfigurator)
     {
-        $this->restRequestHelper = $restRequestHelper;
-    }
-
-    public function setRestRequestOptionsBuilder(RestRequestAnnotationOptionsBuilder $restRequestOptionsBuilder)
-    {
-        $this->restRequestOptionsBuilder = $restRequestOptionsBuilder;
+        $this->restRouteConfigurator = $restRouteConfigurator;
     }
 
     protected function configureRoute(Route $route, ReflectionClass $class, ReflectionMethod $method, $routeAnnotation)
     {
         parent::configureRoute($route, $class, $method, $routeAnnotation);
 
-        $annotations = [];
-        foreach ($this->reader->getClassAnnotations($class) as $annotation) {
-            if ($annotation instanceof RestAnnotationInterface) {
-                $annotations[] = $annotation;
-            }
-        }
-
-        foreach ($this->reader->getMethodAnnotations($method) as $annotation) {
-            if ($annotation instanceof RestAnnotationInterface) {
-                $annotations[] = $annotation;
-            }
-        }
-
-        if (count($annotations) === 0) {
-            return;
-        }
-
-        $this->restRequestHelper->setOptionsForRoute(
-            $route,
-            $this->restRequestOptionsBuilder->buildOptions($annotations, $method)
-        );
+        $this->restRouteConfigurator->configureRoute($route, $class, $method, $this->reader);
     }
 }

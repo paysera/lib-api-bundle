@@ -5,9 +5,9 @@ namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\TestKernel;
 use PHPUnit\Framework\TestCase;
-use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\ResettableContainerInterface;
 use Symfony\Component\HttpKernel\Kernel;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 abstract class FunctionalTestCase extends TestCase
 {
     /**
-     * @var TestKernel
+     * @var TestKernel|null
      */
     protected $kernel;
 
@@ -31,14 +31,33 @@ abstract class FunctionalTestCase extends TestCase
      */
     protected function setUpContainer($testCase, $commonFile = 'common.yml')
     {
-        $prefix = Kernel::MAJOR_VERSION <= 4 ? 'legacy_' : '';
+        $prefix = '';
+        if (Kernel::MAJOR_VERSION <= 4) {
+            $prefix = 'legacy_';
+        } elseif (!TestHelper::docblockRoutingSupportExists()) {
+            $prefix = 'sf7_';
+        }
         $this->kernel = new TestKernel($testCase, $prefix . $commonFile);
         $this->kernel->boot();
         return $this->kernel->getContainer();
     }
 
+    protected function skipUnlessRoutesAreLoaded(string $routes): void
+    {
+        if ($routes === 'attributed' && !TestHelper::phpAttributeSupportExists()) {
+            $this->markTestSkipped('Unsupported environment');
+        }
+        if ($routes === 'annotated' && !TestHelper::docblockRoutingSupportExists()) {
+            $this->markTestSkipped('Symfony 7 reads no @Route docblocks');
+        }
+    }
+
     protected function tearDown(): void
     {
+        if ($this->kernel === null) {
+            return;
+        }
+
         $container = $this->kernel->getContainer();
         $this->kernel->shutdown();
         if ($container instanceof ResettableContainerInterface || $container instanceof ResetInterface) {
@@ -57,9 +76,9 @@ abstract class FunctionalTestCase extends TestCase
     protected function createRequest(
         string $method,
         string $uri,
-        string $content = null,
+        ?string $content = null,
         array $headers = [],
-        string $username = null
+        ?string $username = null
     ): Request {
         $parts = parse_url($uri);
         parse_str($parts['query'] ?? '', $query);

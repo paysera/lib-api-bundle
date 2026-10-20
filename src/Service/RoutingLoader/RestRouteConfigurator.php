@@ -1,0 +1,167 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
+
+use Doctrine\Common\Annotations\Reader;
+use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
+use Paysera\Bundle\ApiBundle\Attribute\RestAttributeInterface;
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
+use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
+use ReflectionAttribute;
+use ReflectionClass;
+use ReflectionMethod;
+use Symfony\Component\Routing\Route;
+use Throwable;
+
+/**
+ * @internal
+ */
+class RestRouteConfigurator
+{
+    private const BUNDLE_NAMESPACE = 'Paysera\\Bundle\\ApiBundle\\';
+
+    /**
+     * @var RestRequestHelper
+     */
+    private $restRequestHelper;
+
+    /**
+     * @var RestRequestAnnotationOptionsBuilder
+     */
+    private $annotationOptionsBuilder;
+
+    /**
+     * @var RestRequestAttributeOptionsBuilder
+     */
+    private $attributeOptionsBuilder;
+
+    /**
+     * @var DocblockAnnotationReader
+     */
+    private $docblockAnnotationReader;
+
+    public function __construct(
+        RestRequestHelper $restRequestHelper,
+        RestRequestAnnotationOptionsBuilder $annotationOptionsBuilder,
+        RestRequestAttributeOptionsBuilder $attributeOptionsBuilder,
+        DocblockAnnotationReader $docblockAnnotationReader
+    ) {
+        $this->restRequestHelper = $restRequestHelper;
+        $this->annotationOptionsBuilder = $annotationOptionsBuilder;
+        $this->attributeOptionsBuilder = $attributeOptionsBuilder;
+        $this->docblockAnnotationReader = $docblockAnnotationReader;
+    }
+
+    public function configureRoute(
+        Route $route,
+        ReflectionClass $class,
+        ReflectionMethod $method,
+        ?Reader $reader
+    ): void {
+        $annotations = $this->getRestAnnotations($class, $method, $reader);
+        $attributes = $this->getRestAttributes($class, $method);
+        if ($annotations !== [] && $attributes !== []) {
+            throw new ConfigurationException(sprintf(
+                '%s::%s() is configured with both docblock annotations and attributes of the bundle, use one of them',
+                $class->getName(),
+                $method->getName()
+            ));
+        }
+
+        if ($annotations !== []) {
+            $this->restRequestHelper->setOptionsForRoute(
+                $route,
+                $this->annotationOptionsBuilder->buildOptions($annotations, $method)
+            );
+        }
+
+        if ($attributes !== []) {
+            $this->restRequestHelper->setOptionsForRoute(
+                $route,
+                $this->attributeOptionsBuilder->buildOptions($attributes, $method)
+            );
+        }
+    }
+
+    /**
+     * @return RestAnnotationInterface[]
+     */
+    private function getRestAnnotations(
+        ReflectionClass $class,
+        ReflectionMethod $method,
+        ?Reader $reader
+    ): array {
+        try {
+            $annotations = $this->docblockAnnotationReader->readAnnotations($class, $method, $reader);
+        } catch (Throwable $exception) {
+            throw $this->createReadException('docblock annotations', $class, $method, $exception);
+        }
+
+        return array_values(array_filter($annotations, static function ($annotation): bool {
+            return $annotation instanceof RestAnnotationInterface;
+        }));
+    }
+
+    /**
+     * @return RestAttributeInterface[]
+     */
+    private function getRestAttributes(ReflectionClass $class, ReflectionMethod $method): array
+    {
+        if (PHP_VERSION_ID < 80000) {
+            return [];
+        }
+
+        $attributes = array_merge(
+            $class->getAttributes(RestAttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF),
+            $method->getAttributes(RestAttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF)
+        );
+        $this->failOnUnknownBundleAttributes($class, $method);
+
+        $restAttributes = [];
+        try {
+            foreach ($attributes as $attribute) {
+                $restAttributes[] = $attribute->newInstance();
+            }
+        } catch (Throwable $exception) {
+            throw $this->createReadException('attributes', $class, $method, $exception);
+        }
+
+        return $restAttributes;
+    }
+
+    private function failOnUnknownBundleAttributes(ReflectionClass $class, ReflectionMethod $method): void
+    {
+        foreach (array_merge($class->getAttributes(), $method->getAttributes()) as $attribute) {
+            $name = $attribute->getName();
+            if (stripos($name, self::BUNDLE_NAMESPACE) === 0 && !is_a($name, RestAttributeInterface::class, true)) {
+                throw new ConfigurationException(sprintf(
+                    '%s::%s() uses %s, which is no attribute of the bundle',
+                    $class->getName(),
+                    $method->getName(),
+                    $name
+                ));
+            }
+        }
+    }
+
+    private function createReadException(
+        string $source,
+        ReflectionClass $class,
+        ReflectionMethod $method,
+        Throwable $exception
+    ): ConfigurationException {
+        return new ConfigurationException(
+            sprintf(
+                'Cannot read the %s of %s::%s(): %s',
+                $source,
+                $class->getName(),
+                $method->getName(),
+                $exception->getMessage()
+            ),
+            0,
+            $exception
+        );
+    }
+}

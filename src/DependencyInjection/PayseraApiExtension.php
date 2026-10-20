@@ -23,8 +23,10 @@ use Paysera\Bundle\ApiBundle\Service\ResponseBuilder;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsRegistry;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationReader;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRouteConfigurator;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAnnotationLoader;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAttributeLoader;
 use Paysera\Bundle\ApiBundle\Service\Validation\CamelCaseToSnakeCaseConverter;
@@ -191,6 +193,13 @@ class PayseraApiExtension extends Extension
                 RestRequestAttributeOptionsBuilder::class,
                 [$optionsValidator]
             ),
+            'paysera_api.docblock_annotation_reader' => new Definition(DocblockAnnotationReader::class),
+            'paysera_api.rest_route_configurator' => new Definition(RestRouteConfigurator::class, [
+                new Reference('paysera_api.rest_request_helper'),
+                new Reference('paysera_api.annotations.options_builder'),
+                new Reference('paysera_api.attributes.options_builder'),
+                new Reference('paysera_api.docblock_annotation_reader'),
+            ]),
             'paysera_api.response_builder' => new Definition(ResponseBuilder::class),
             'paysera_api.error_builder' => $this->createErrorBuilderDefinition(),
             'paysera_api.content_type_matcher' => new Definition(ContentTypeMatcher::class),
@@ -236,28 +245,21 @@ class PayseraApiExtension extends Extension
      */
     private function createRoutingLoaderDefinitions(): array
     {
-        $restRequestHelper = new Reference('paysera_api.rest_request_helper');
-        $annotationOptionsBuilder = new Reference('paysera_api.annotations.options_builder');
+        $restRouteConfigurator = new Reference('paysera_api.rest_route_configurator');
 
         if (!class_exists(AttributeRouteControllerLoader::class)) {
             return [
                 'paysera_api.annotations.loader' => (new ChildDefinition('routing.loader.annotation'))
                     ->setClass(RoutingAnnotationLoader::class)
                     ->setDecoratedService('routing.loader.annotation')
-                    ->addMethodCall('setRequestHelper', [$restRequestHelper])
-                    ->addMethodCall('setRestRequestOptionsBuilder', [$annotationOptionsBuilder]),
+                    ->addMethodCall('setRestRouteConfigurator', [$restRouteConfigurator]),
             ];
         }
 
         $attributeLoader = (new ChildDefinition('routing.loader.attribute'))
             ->setClass(RoutingAttributeLoader::class)
             ->setDecoratedService('routing.loader.attribute')
-            ->addMethodCall('setRequestHelper', [$restRequestHelper])
-            ->addMethodCall('setRestRequestAnnotationOptionsBuilder', [$annotationOptionsBuilder])
-            ->addMethodCall(
-                'setRestRequestAttributeOptionsBuilder',
-                [new Reference('paysera_api.attributes.options_builder')]
-            )
+            ->addMethodCall('setRestRouteConfigurator', [$restRouteConfigurator])
         ;
 
         return ['paysera_api.loader.attribute' => $attributeLoader];

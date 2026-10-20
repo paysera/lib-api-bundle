@@ -92,6 +92,10 @@
                  public="true">
             <argument type="service" id="doctrine.orm.entity_manager"/>
         </service>
+        <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\Attribute\AttributedPagedQueryController"
+                 public="true">
+            <argument type="service" id="doctrine.orm.entity_manager"/>
+        </service>
 
         <service id="Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\PathAttributeResolver\PrefixedPathAttributeResolver">
             <tag name="paysera_api.path_attribute_resolver" type="prefixed"/>

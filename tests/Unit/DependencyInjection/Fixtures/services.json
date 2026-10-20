@@ -4,19 +4,10 @@
         "parent": "routing.loader.annotation",
         "calls": [
             [
-                "setRequestHelper",
+                "setRestRouteConfigurator",
                 [
                     {
-                        "reference": "paysera_api.rest_request_helper",
-                        "invalid_behavior": 1
-                    }
-                ]
-            ],
-            [
-                "setRestRequestOptionsBuilder",
-                [
-                    {
-                        "reference": "paysera_api.annotations.options_builder",
+                        "reference": "paysera_api.rest_route_configurator",
                         "invalid_behavior": 1
                     }
                 ]
@@ -51,6 +42,9 @@
     },
     "paysera_api.content_type_matcher": {
         "class": "Paysera\\Bundle\\ApiBundle\\Service\\ContentTypeMatcher"
+    },
+    "paysera_api.docblock_annotation_reader": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RoutingLoader\\DocblockAnnotationReader"
     },
     "paysera_api.entity_validator": {
         "class": "Paysera\\Bundle\\ApiBundle\\Service\\Validation\\EntityValidator",
@@ -258,28 +252,10 @@
         "parent": "routing.loader.attribute",
         "calls": [
             [
-                "setRequestHelper",
+                "setRestRouteConfigurator",
                 [
                     {
-                        "reference": "paysera_api.rest_request_helper",
-                        "invalid_behavior": 1
-                    }
-                ]
-            ],
-            [
-                "setRestRequestAnnotationOptionsBuilder",
-                [
-                    {
-                        "reference": "paysera_api.annotations.options_builder",
-                        "invalid_behavior": 1
-                    }
-                ]
-            ],
-            [
-                "setRestRequestAttributeOptionsBuilder",
-                [
-                    {
-                        "reference": "paysera_api.attributes.options_builder",
+                        "reference": "paysera_api.rest_route_configurator",
                         "invalid_behavior": 1
                     }
                 ]
@@ -405,6 +381,27 @@
             },
             {
                 "reference": "paysera_api.path_attribute_resolver_registry",
+                "invalid_behavior": 1
+            }
+        ]
+    },
+    "paysera_api.rest_route_configurator": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RoutingLoader\\RestRouteConfigurator",
+        "arguments": [
+            {
+                "reference": "paysera_api.rest_request_helper",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.annotations.options_builder",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.attributes.options_builder",
+                "invalid_behavior": 1
+            },
+            {
+                "reference": "paysera_api.docblock_annotation_reader",
                 "invalid_behavior": 1
             }
         ]

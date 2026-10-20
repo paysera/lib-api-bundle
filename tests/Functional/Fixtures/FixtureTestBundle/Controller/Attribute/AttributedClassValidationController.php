@@ -8,7 +8,7 @@ use Paysera\Bundle\ApiBundle\Attribute\Validation;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Entity\MyObject;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Validation(groups: ['internal_field1_email'], violationPathMap: ['internalField1' => 'internal.field1'])]
 class AttributedClassValidationController
