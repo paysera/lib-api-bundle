@@ -20,11 +20,14 @@ use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRouteConfigurator;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AnnotationClassAsAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\InvalidAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseMisspeltAttributeController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingAttributeClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingClassAttributeClassController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltAnnotationAliasAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltAttributeNamespaceController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltDocblockAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAttributeBundleClassController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibraryClassNamedLikeAttributeController;
 use ReflectionClass;
 use ReflectionMethod;
 use Symfony\Component\Routing\Route;
@@ -62,8 +65,11 @@ class RestRouteConfiguratorTest extends MockeryTestCase
     /**
      * @dataProvider invalidAttributeProvider
      */
-    public function testConfigureRouteFailsOnInvalidAttributes(string $controller, string $message): void
-    {
+    public function testConfigureRouteFailsOnInvalidAttributes(
+        string $controller,
+        string $message,
+        string $method = 'show'
+    ): void {
         if (PHP_VERSION_ID < 80000) {
             $this->markTestSkipped('PHP 7 has no attributes');
         }
@@ -71,14 +77,27 @@ class RestRouteConfiguratorTest extends MockeryTestCase
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage(sprintf($message, $controller));
 
-        $this->configureRoute($controller, null);
+        $this->configureRoute($controller, null, $method);
+    }
+
+    public function testConfigureRouteIgnoresClassOfOtherLibraryNamedLikeAttribute(): void
+    {
+        if (PHP_VERSION_ID < 80000) {
+            $this->markTestSkipped('PHP 7 has no attributes');
+        }
+
+        $this->assertEquals(
+            new Route('/'),
+            $this->configureRoute(OtherLibraryClassNamedLikeAttributeController::class, null)
+        );
     }
 
     public static function invalidAttributeProvider(): array
     {
         $unknown = '%s::show() uses Paysera\Bundle\ApiBundle\%s, which is no attribute of the bundle';
+        $missing = '%s::%s() uses %s, which does not exist; did you mean Paysera\Bundle\ApiBundle\Attribute\%s?';
 
-        return [
+        $dataSets = [
             'constructor error' => [InvalidAttributeController::class, 'Cannot read the attributes of %s::show(): '],
             'misspelt name' => [
                 MisspeltAttributeController::class,
@@ -105,10 +124,34 @@ class RestRouteConfiguratorTest extends MockeryTestCase
                 AnnotationClassAsAttributeController::class,
                 'Cannot read the attributes of %s::show(): Attempting to use non-attribute class',
             ],
+            'missing class named like an attribute in lowercase' => [
+                MissingAttributeClassController::class,
+                sprintf($missing, '%s', 'lowercaseName', 'requiredpermissions', 'RequiredPermissions'),
+                'lowercaseName',
+            ],
+            'missing class named like an attribute, on the class' => [
+                MissingClassAttributeClassController::class,
+                sprintf($missing, '%s', 'show', 'RequiredPermissions', 'RequiredPermissions'),
+            ],
         ];
+
+        foreach (glob(__DIR__ . '/../../../../src/Attribute/*.php') as $file) {
+            $attribute = basename($file, '.php');
+            if (interface_exists('Paysera\Bundle\ApiBundle\Attribute\\' . $attribute)) {
+                continue;
+            }
+
+            $dataSets['missing class named ' . $attribute] = [
+                MissingAttributeClassController::class,
+                sprintf($missing, '%s', lcfirst($attribute), $attribute, $attribute),
+                lcfirst($attribute),
+            ];
+        }
+
+        return $dataSets;
     }
 
-    private function configureRoute(string $controller, ?Reader $reader): void
+    private function configureRoute(string $controller, ?Reader $reader, string $method = 'show'): Route
     {
         $configurator = new RestRouteConfigurator(
             new RestRequestHelper(new RestRequestOptionsRegistry()),
@@ -116,11 +159,14 @@ class RestRouteConfiguratorTest extends MockeryTestCase
             new RestRequestAttributeOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
             new DocblockAnnotationReader()
         );
+        $route = new Route('/');
         $configurator->configureRoute(
-            new Route('/'),
+            $route,
             new ReflectionClass($controller),
-            new ReflectionMethod($controller, 'show'),
+            new ReflectionMethod($controller, $method),
             $reader
         );
+
+        return $route;
     }
 }

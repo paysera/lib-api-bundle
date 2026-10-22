@@ -672,7 +672,10 @@ The attributes need PHP 8 and are applied on every supported Symfony version sin
 Symfony 6.4); the `#[Route]` class to import depends on the Symfony version, see the attribute controller example.
 A route configured with both docblock annotations and attributes of the bundle fails to load: configure each route with
 one of them. So does a route with an attribute named under `Paysera\Bundle\ApiBundle\` that is none of the bundle's
-attributes, such as a misspelt one.
+attributes, such as a misspelt one, and a route with an attribute whose class does not exist and whose name, without its
+namespace, is one of the bundle's attributes, such as `#[RequiredPermissions]` written without its `use` statement. An
+existing class of that name, such as your own `Body` attribute, is left alone. Not detected: a misspelt attribute name
+written without its `use` statement (`#[RequiredPermission]`).
 
 Where Symfony passes no annotation reader to the route loader (Symfony 7, and Symfony 5.4 on PHP 8 or Symfony 6 with
 `framework.annotations` disabled), the bundle reads the docblocks with Doctrine's `AnnotationReader` where Doctrine
