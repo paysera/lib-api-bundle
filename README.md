@@ -672,10 +672,14 @@ The attributes need PHP 8 and are applied on every supported Symfony version sin
 Symfony 6.4); the `#[Route]` class to import depends on the Symfony version, see the attribute controller example.
 A route configured with both docblock annotations and attributes of the bundle fails to load: configure each route with
 one of them. So does a route with an attribute named under `Paysera\Bundle\ApiBundle\` that is none of the bundle's
-attributes, such as a misspelt one, and a route with an attribute whose class does not exist and whose name, without its
-namespace, is one of the bundle's attributes, such as `#[RequiredPermissions]` written without its `use` statement. An
-existing class of that name, such as your own `Body` attribute, is left alone. Not detected: a misspelt attribute name
-written without its `use` statement (`#[RequiredPermission]`).
+attributes, such as a misspelt one, and a route with an attribute whose class cannot be loaded and whose name, without
+its namespace, is one of the bundle's attributes, such as `#[RequiredPermissions]` written without its `use` statement.
+That includes an attribute of a package that is not installed where the routes are loaded, such as swagger-php's
+`#[OA\Query]` with swagger-php installed for development only: install the package there, or remove the attribute. A
+class of that name that can be loaded, such as your own `Body` attribute, is left alone. Not detected: an attribute
+written without its `use` statement whose name is none of the bundle's seven, such as a misspelt one
+(`#[RequiredPermission]`) or your own attribute, and an alias of a class that does not exist
+(`use App\Missing as RequiredPermissions`).
 
 Where Symfony passes no annotation reader to the route loader (Symfony 7, and Symfony 5.4 on PHP 8 or Symfony 6 with
 `framework.annotations` disabled), the bundle reads the docblocks with Doctrine's `AnnotationReader` where Doctrine

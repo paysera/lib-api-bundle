@@ -163,7 +163,7 @@ class RestRouteConfigurator
             $bundleAttribute = $this->findBundleAttributeNamed($this->getShortName($name));
             if ($bundleAttribute !== null && !class_exists($name)) {
                 throw new ConfigurationException(sprintf(
-                    '%s::%s() uses %s, which does not exist; did you mean %s?',
+                    '%s::%s() uses %s, which is not a class that can be loaded; did you mean %s?',
                     $class->getName(),
                     $method->getName(),
                     $name,

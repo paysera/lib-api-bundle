@@ -27,9 +27,10 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltA
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltAttributeNamespaceController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltDocblockAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAttributeBundleClassController;
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibraryClassNamedLikeAttributeController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibraryAttributeController;
 use ReflectionClass;
 use ReflectionMethod;
+use RuntimeException;
 use Symfony\Component\Routing\Route;
 
 class RestRouteConfiguratorTest extends MockeryTestCase
@@ -80,22 +81,11 @@ class RestRouteConfiguratorTest extends MockeryTestCase
         $this->configureRoute($controller, null, $method);
     }
 
-    public function testConfigureRouteIgnoresClassOfOtherLibraryNamedLikeAttribute(): void
-    {
-        if (PHP_VERSION_ID < 80000) {
-            $this->markTestSkipped('PHP 7 has no attributes');
-        }
-
-        $this->assertEquals(
-            new Route('/'),
-            $this->configureRoute(OtherLibraryClassNamedLikeAttributeController::class, null)
-        );
-    }
-
     public static function invalidAttributeProvider(): array
     {
         $unknown = '%s::show() uses Paysera\Bundle\ApiBundle\%s, which is no attribute of the bundle';
-        $missing = '%s::%s() uses %s, which does not exist; did you mean Paysera\Bundle\ApiBundle\Attribute\%s?';
+        $missing = '%s::%s() uses %s, which is not a class that can be loaded;'
+            . ' did you mean Paysera\Bundle\ApiBundle\Attribute\%s?';
 
         $dataSets = [
             'constructor error' => [InvalidAttributeController::class, 'Cannot read the attributes of %s::show(): '],
@@ -126,16 +116,32 @@ class RestRouteConfiguratorTest extends MockeryTestCase
             ],
             'missing class named like an attribute in lowercase' => [
                 MissingAttributeClassController::class,
-                sprintf($missing, '%s', 'lowercaseName', 'requiredpermissions', 'RequiredPermissions'),
-                'lowercaseName',
+                sprintf(
+                    $missing,
+                    '%s',
+                    'showLowercaseName',
+                    'App\Controller\requiredpermissions',
+                    'RequiredPermissions'
+                ),
+                'showLowercaseName',
+            ],
+            'missing class in the global namespace named like an attribute' => [
+                MissingAttributeClassController::class,
+                sprintf($missing, '%s', 'showGlobalName', 'RequiredPermissions', 'RequiredPermissions'),
+                'showGlobalName',
             ],
             'missing class named like an attribute, on the class' => [
                 MissingClassAttributeClassController::class,
-                sprintf($missing, '%s', 'show', 'RequiredPermissions', 'RequiredPermissions'),
+                sprintf($missing, '%s', 'show', 'App\Controller\RequiredPermissions', 'RequiredPermissions'),
             ],
         ];
 
-        foreach (glob(__DIR__ . '/../../../../src/Attribute/*.php') as $file) {
+        $attributeFiles = glob(__DIR__ . '/../../../../src/Attribute/*.php');
+        if ($attributeFiles === false || $attributeFiles === []) {
+            throw new RuntimeException('No attribute class found in src/Attribute');
+        }
+
+        foreach ($attributeFiles as $file) {
             $attribute = basename($file, '.php');
             if (interface_exists('Paysera\Bundle\ApiBundle\Attribute\\' . $attribute)) {
                 continue;
@@ -143,12 +149,35 @@ class RestRouteConfiguratorTest extends MockeryTestCase
 
             $dataSets['missing class named ' . $attribute] = [
                 MissingAttributeClassController::class,
-                sprintf($missing, '%s', lcfirst($attribute), $attribute, $attribute),
-                lcfirst($attribute),
+                sprintf($missing, '%s', 'show' . $attribute, 'App\Controller\\' . $attribute, $attribute),
+                'show' . $attribute,
             ];
         }
 
         return $dataSets;
+    }
+
+    /**
+     * @dataProvider otherLibraryAttributeProvider
+     */
+    public function testConfigureRouteIgnoresAttributesOfOtherLibraries(string $method): void
+    {
+        if (PHP_VERSION_ID < 80000) {
+            $this->markTestSkipped('PHP 7 has no attributes');
+        }
+
+        $this->assertEquals(
+            new Route('/'),
+            $this->configureRoute(OtherLibraryAttributeController::class, null, $method)
+        );
+    }
+
+    public static function otherLibraryAttributeProvider(): array
+    {
+        return [
+            'class of another library named like an attribute' => ['showClassNamedLikeAttribute'],
+            'missing class with a name that is none of the attributes' => ['showMissingClassWithOtherName'],
+        ];
     }
 
     private function configureRoute(string $controller, ?Reader $reader, string $method = 'show'): Route

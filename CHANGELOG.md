@@ -24,8 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   passes a reader, its own loader reads most docblocks with it first, so their errors come from Symfony unwrapped, and a
   class with a missing parent (before PHP 7.3) or trait (any version) still stops PHP. An attribute named under
   `Paysera\Bundle\ApiBundle\` that is none of the bundle's attributes (a misspelt name or namespace) fails too, and so
-  does an attribute whose class does not exist and whose name, without its namespace, is one of the bundle's attributes
-  (one written without its `use` statement)
+  does an attribute whose class cannot be loaded and whose name, without its namespace, is one of the bundle's
+  attributes: one written without its `use` statement, and also one of a package that is not installed where the routes
+  are loaded, such as swagger-php's `#[OA\Query]` with swagger-php installed for development only (install the package
+  there, or remove the attribute)
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
 - `doctrine/annotations` is required at 1.14.4 or 2.0.2 and later, whose reader refuses to run with
   `opcache.save_comments=0` instead of reading the stripped docblocks as empty
@@ -57,10 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On PHP 8 before Symfony 6.4, 1.x ignored the bundle's attributes, `#[RequiredPermissions]` among them, without an
   error. They are now applied on every supported Symfony version
 - On PHP 8, a bundle attribute written without its `use` statement, `#[RequiredPermissions]` among them, names a class
-  of the controller's namespace that does not exist, which PHP and 1.x skip without an error. Loading the routes now
-  fails with a `ConfigurationException` naming the action and the bundle's attribute of that name; an existing class of
-  that name, such as the application's own `Body` attribute, is left alone. Not detected: a misspelt attribute name
-  written without its `use` statement (`#[RequiredPermission]`)
+  that does not exist in the namespace it is written in, which PHP and 1.x skip without an error. Loading the routes
+  now fails with a `ConfigurationException` naming the action and the bundle's attribute of that name; a class of that
+  name that can be loaded, such as the application's own `Body` attribute, is left alone. Not detected: an attribute
+  written without its `use` statement whose name is none of the bundle's seven, such as a misspelt one
+  (`#[RequiredPermission]`) or the application's own attribute, and an alias of a class that does not exist
+  (`use App\Missing as RequiredPermissions`)
 - On PHP 8, a route configured with both docblock annotations and attributes of the bundle, on the action or on its
   class, fails to load with a `ConfigurationException`. Before, the attributes silently replaced the docblock options
   from Symfony 6.4, so `#[Body]` on an action dropped the `@RequiredPermissions` of its class, and were ignored before
