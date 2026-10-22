@@ -85,7 +85,7 @@ class RestRouteConfiguratorTest extends MockeryTestCase
     {
         $unknown = '%s::show() uses Paysera\Bundle\ApiBundle\%s, which is no attribute of the bundle';
         $missing = '%s::%s() uses %s, which is not a class that can be loaded;'
-            . ' did you mean Paysera\Bundle\ApiBundle\Attribute\%s?';
+            . ' import Paysera\Bundle\ApiBundle\Attribute\%s if the bundle\'s attribute is meant';
 
         $dataSets = [
             'constructor error' => [InvalidAttributeController::class, 'Cannot read the attributes of %s::show(): '],
@@ -136,9 +136,10 @@ class RestRouteConfiguratorTest extends MockeryTestCase
             ],
         ];
 
-        $attributeFiles = glob(__DIR__ . '/../../../../src/Attribute/*.php');
+        $attributePattern = __DIR__ . '/../../../../src/Attribute/*.php';
+        $attributeFiles = glob($attributePattern);
         if ($attributeFiles === false || $attributeFiles === []) {
-            throw new RuntimeException('No attribute class found in src/Attribute');
+            throw new RuntimeException('No attribute class found by the pattern ' . $attributePattern);
         }
 
         foreach ($attributeFiles as $file) {
