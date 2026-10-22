@@ -678,9 +678,9 @@ statement.
 That includes an attribute of a package that is not installed where the routes are loaded, such as swagger-php's
 `#[OA\Query]` with swagger-php installed for development only: install the package there, or remove the attribute. A
 class of that name that can be loaded, such as your own `Body` attribute, is left alone. Not detected: an attribute
-written without its `use` statement whose name is none of the bundle's seven, such as a misspelt one
-(`#[RequiredPermission]`) or your own attribute, and a class that does not exist imported under one of the seven names
-(`use App\Missing as RequiredPermissions`).
+whose class does not exist, is not named under `Paysera\Bundle\ApiBundle\` and whose own name, without its namespace,
+is none of the seven, however it is written or imported: a misspelt `#[RequiredPermission]`, your own attribute without
+its `use` statement, or `use App\Missing as RequiredPermissions`.
 
 Where Symfony passes no annotation reader to the route loader (Symfony 7, and Symfony 5.4 on PHP 8 or Symfony 6 with
 `framework.annotations` disabled), the bundle reads the docblocks with Doctrine's `AnnotationReader` where Doctrine

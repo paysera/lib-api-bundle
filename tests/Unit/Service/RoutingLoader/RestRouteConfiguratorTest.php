@@ -28,6 +28,7 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltA
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltDocblockAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NonAttributeBundleClassController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibraryAttributeController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OtherLibraryClassAttributeController;
 use ReflectionClass;
 use ReflectionMethod;
 use RuntimeException;
@@ -85,7 +86,7 @@ class RestRouteConfiguratorTest extends MockeryTestCase
     {
         $unknown = '%s::show() uses Paysera\Bundle\ApiBundle\%s, which is no attribute of the bundle';
         $missing = '%s::%s() uses %s, which is not a class that can be loaded;'
-            . ' import Paysera\Bundle\ApiBundle\Attribute\%s if the bundle\'s attribute is meant';
+            . ' if the bundle\'s attribute is meant, the name must resolve to Paysera\Bundle\ApiBundle\Attribute\%s';
 
         $dataSets = [
             'constructor error' => [InvalidAttributeController::class, 'Cannot read the attributes of %s::show(): '],
@@ -161,23 +162,30 @@ class RestRouteConfiguratorTest extends MockeryTestCase
     /**
      * @dataProvider otherLibraryAttributeProvider
      */
-    public function testConfigureRouteIgnoresAttributesOfOtherLibraries(string $method): void
+    public function testConfigureRouteIgnoresAttributesOfOtherLibraries(string $controller, string $method): void
     {
         if (PHP_VERSION_ID < 80000) {
             $this->markTestSkipped('PHP 7 has no attributes');
         }
 
-        $this->assertEquals(
-            new Route('/'),
-            $this->configureRoute(OtherLibraryAttributeController::class, null, $method)
-        );
+        $this->assertEquals(new Route('/'), $this->configureRoute($controller, null, $method));
     }
 
     public static function otherLibraryAttributeProvider(): array
     {
         return [
-            'class of another library named like an attribute' => ['showClassNamedLikeAttribute'],
-            'missing class with a name that is none of the attributes' => ['showMissingClassWithOtherName'],
+            'class of another library named like an attribute' => [
+                OtherLibraryAttributeController::class,
+                'showClassNamedLikeAttribute',
+            ],
+            'class of another library named like an attribute, on the class' => [
+                OtherLibraryClassAttributeController::class,
+                'show',
+            ],
+            'missing class with a name that is none of the attributes' => [
+                OtherLibraryAttributeController::class,
+                'showMissingClassWithOtherName',
+            ],
         ];
     }
 

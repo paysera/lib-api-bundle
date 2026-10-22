@@ -62,9 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that does not exist in the namespace it is written in, which PHP and 1.x skip without an error. Loading the routes
   now fails with a `ConfigurationException` naming the action and the bundle's attribute of that name; a class of that
   name that can be loaded, such as the application's own `Body` attribute, is left alone. Not detected: an attribute
-  written without its `use` statement whose name is none of the bundle's seven, such as a misspelt one
-  (`#[RequiredPermission]`) or the application's own attribute, and a class that does not exist imported under one of
-  the seven names (`use App\Missing as RequiredPermissions`)
+  whose class does not exist, is not named under `Paysera\Bundle\ApiBundle\` and whose own name, without its namespace,
+  is none of the seven, however it is written or imported: a misspelt `#[RequiredPermission]`, the application's own
+  attribute without its `use` statement, or `use App\Missing as RequiredPermissions`
 - On PHP 8, a route configured with both docblock annotations and attributes of the bundle, on the action or on its
   class, fails to load with a `ConfigurationException`. Before, the attributes silently replaced the docblock options
   from Symfony 6.4, so `#[Body]` on an action dropped the `@RequiredPermissions` of its class, and were ignored before
