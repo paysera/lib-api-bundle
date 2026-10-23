@@ -18,14 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Services are registered by `PayseraApiExtension` instead of the XML files in `Resources/config`, which are removed,
   because Symfony 7.4 deprecates XML configuration. Service ids, classes, arguments, calls and tags are unchanged,
   except that both internal route loaders take the new `paysera_api.rest_route_configurator` service (with the new
-  `paysera_api.docblock_annotation_reader`) instead of the request helper and the options builders
-- An error while the bundle reads a route's docblock annotations itself or builds the bundle's attributes, from an
-  annotation or attribute constructor too, is wrapped in a `ConfigurationException` naming the action. Where Symfony
-  passes a reader, its own loader reads most docblocks with it first, so their errors come from Symfony unwrapped, and a
-  class with a missing parent (before PHP 7.3) or trait (any version) still stops PHP. An attribute named under
-  `Paysera\Bundle\ApiBundle\` that is none of the bundle's attributes (a misspelt name or namespace) fails too, and so
-  does one of the bundle's attributes written without its `use` statement, except where Security says it is not
-  detected
+  `paysera_api.docblock_annotation_guard`) instead of the request helper and the options builders
+- An error while Symfony's annotation reader reads a route's docblock annotations for the bundle, or while the bundle
+  builds its attributes, from an annotation or attribute constructor too, is wrapped in a `ConfigurationException`
+  naming the action. Symfony's own loader reads most docblocks with that reader first, so their errors come from Symfony
+  unwrapped, and a class with a missing parent (before PHP 7.3) or trait (any version) still stops PHP. An attribute
+  named under `Paysera\Bundle\ApiBundle\` that is none of the bundle's attributes (a misspelt name or namespace) fails
+  too, and so does one of the bundle's attributes written without its `use` statement, except where Security says it is
+  not detected
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
 - `doctrine/annotations` is required at 1.14.4 or 2.0.2 and later, whose reader refuses to run with
   `opcache.save_comments=0` instead of reading the stripped docblocks as empty
@@ -40,20 +40,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Where Symfony passes no annotation reader to the route loader (Symfony 7, and Symfony 5.4 on PHP 8 or Symfony 6 with
   `framework.annotations` disabled), 1.x ignored the bundle's docblock annotations, `@RequiredPermissions` among them,
-  without an error on Symfony 6.4, and failed to load any route before it. The bundle now reads them with Doctrine's
-  `AnnotationReader` where Doctrine would find them: where a docblock uses an annotation implementing
-  `RestAnnotationInterface` (the bundle's or the application's), as Doctrine's `DocParser` resolves it, from the imports
-  and namespace of the class for its docblock, and of the declaring class and the traits in the action's file for an
-  action's docblock; and where the routed class, the declaring class or a trait in the action's file imports
-  `Paysera\Bundle\ApiBundle\Annotation`. Code that uses only attributes is not read with that reader, unless Doctrine's
-  parser fails on one of its docblocks (a tag naming a class that cannot be loaded), and an unused import of the
-  namespace makes the file read too, so remove it. Loading the routes fails with a `ConfigurationException` naming the
-  action where Doctrine's reader fails, on a docblock tag it cannot resolve (import it, or list it with
-  `@IgnoreAnnotation` in the class docblock). Where OPcache is set to strip doc comments (`save_comments=0`), Doctrine's
-  reader refuses to run, so loading fails where those classes import the annotation namespace. Not detected in a file
-  that does not import `Paysera\Bundle\ApiBundle\Annotation`: an annotation that Doctrine cannot resolve (written with
-  no import, with a misspelt import such as `Annotations`, or misspelt) and, where OPcache has stripped the doc
-  comments, any annotation
+  without an error on Symfony 6.4, and failed to load any route before it. Loading the routes now fails there with a
+  `ConfigurationException` naming the action, the file and what was found, when the file of the routed class, of the
+  class declaring the action, of the action itself or of any trait these classes use imports anything from
+  `Paysera\Bundle\ApiBundle\Annotation` (plain, aliased, grouped or as a namespace alias), or has a docblock tag named
+  like one of the bundle's annotations (`@RequiredPermissions`, `@Rest\RequiredPermissions`,
+  `@\Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions`, split across lines too, in any letter case, with or
+  without arguments). The check reads the source files, so OPcache stripping the doc comments
+  (`opcache.save_comments=0`) does not hide them, and a file that cannot be read fails the load too. It refuses more
+  than Doctrine would read: an unused import of the namespace, a tag of another library named like one of the bundle's
+  annotations, and a trait with annotations next to the action; the message names what to remove. Write the options as
+  attributes, or on Symfony 6.4 keep `framework.annotations` enabled. Not detected: an annotation class of your own
+  implementing `RestAnnotationInterface`, which nothing in the controller's file reveals
 - On PHP 8 before Symfony 6.4, 1.x ignored the bundle's attributes, `#[RequiredPermissions]` among them, without an
   error. They are now applied on every supported Symfony version
 - On PHP 8, a bundle attribute written without its `use` statement, `#[RequiredPermissions]` among them, names a class

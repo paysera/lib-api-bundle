@@ -43,8 +43,8 @@
     "paysera_api.content_type_matcher": {
         "class": "Paysera\\Bundle\\ApiBundle\\Service\\ContentTypeMatcher"
     },
-    "paysera_api.docblock_annotation_reader": {
-        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RoutingLoader\\DocblockAnnotationReader"
+    "paysera_api.docblock_annotation_guard": {
+        "class": "Paysera\\Bundle\\ApiBundle\\Service\\RoutingLoader\\DocblockAnnotationGuard"
     },
     "paysera_api.entity_validator": {
         "class": "Paysera\\Bundle\\ApiBundle\\Service\\Validation\\EntityValidator",
@@ -401,7 +401,7 @@
                 "invalid_behavior": 1
             },
             {
-                "reference": "paysera_api.docblock_annotation_reader",
+                "reference": "paysera_api.docblock_annotation_guard",
                 "invalid_behavior": 1
             }
         ]

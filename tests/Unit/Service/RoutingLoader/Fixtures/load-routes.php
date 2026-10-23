@@ -6,7 +6,7 @@ use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsRegistry;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
-use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationReader;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationGuard;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRouteConfigurator;
@@ -20,7 +20,7 @@ $loader->setRestRouteConfigurator(new RestRouteConfigurator(
     new RestRequestHelper(new RestRequestOptionsRegistry()),
     new RestRequestAnnotationOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
     new RestRequestAttributeOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
-    new DocblockAnnotationReader()
+    new DocblockAnnotationGuard()
 ));
 
 $results = ['doc_comments_stripped' => (new ReflectionClass(AppPermission::class))->getDocComment() === false];

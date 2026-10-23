@@ -18,7 +18,7 @@ use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsRegistry;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
-use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationReader;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationGuard;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRouteConfigurator;
@@ -49,13 +49,10 @@ class RestRouteConfiguratorTest extends MockeryTestCase
         'GlobalMissingUseController.php',
     ];
 
-    /**
-     * @dataProvider readerProvider
-     */
-    public function testConfigureRouteWrapsReadErrors(?Reader $reader): void
+    public function testConfigureRouteWrapsReadErrorsOfTheReader(): void
     {
         try {
-            $this->configureRoute(MisspeltDocblockAnnotationController::class, $reader);
+            $this->configureRoute(MisspeltDocblockAnnotationController::class, new AnnotationReader());
             $this->fail('Expected a ConfigurationException');
         } catch (ConfigurationException $exception) {
             $this->assertStringStartsWith(
@@ -69,12 +66,18 @@ class RestRouteConfiguratorTest extends MockeryTestCase
         }
     }
 
-    public static function readerProvider(): array
+    public function testConfigureRouteWithoutReaderRefusesDocblockAnnotations(): void
     {
-        return [
-            'with the reader of Symfony' => [new AnnotationReader()],
-            'without a reader' => [null],
-        ];
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage(sprintf(
+            '%s::show(): %s imports Paysera\Bundle\ApiBundle\Annotation, but docblock annotations of the bundle are'
+            . ' not read here, because Symfony passes no annotation reader to the route loader;'
+            . ' use the attributes of the bundle instead',
+            MisspeltDocblockAnnotationController::class,
+            (new ReflectionClass(MisspeltDocblockAnnotationController::class))->getFileName()
+        ));
+
+        $this->configureRoute(MisspeltDocblockAnnotationController::class, null);
     }
 
     /**
@@ -244,7 +247,7 @@ class RestRouteConfiguratorTest extends MockeryTestCase
             new RestRequestHelper(new RestRequestOptionsRegistry()),
             new RestRequestAnnotationOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
             new RestRequestAttributeOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
-            new DocblockAnnotationReader()
+            new DocblockAnnotationGuard()
         );
         $route = new Route('/');
         $configurator->configureRoute(

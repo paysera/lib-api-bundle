@@ -13,16 +13,18 @@ use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsRegistry;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
-use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationReader;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationGuard;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRouteConfigurator;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RoutingAttributeLoader;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedFullyQualifiedTraitMethodController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedNamespaceAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedNamespaceDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedTraitMethodController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AppAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AppAnnotationFullyQualifiedController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeDocblockReferencesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOptionsWithNoteTagController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ChildImportingForParentController;
@@ -31,27 +33,36 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAndA
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassDocblockAndMethodAttributeController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassDocblockFullyQualifiedController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsOnAttributeRouteController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsTrait;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedDocblockController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedOptionsTrait;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupUseDocblockController;
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseAliasAppAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportingParentController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseAnnotationImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseFullyQualifiedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingParentInUnrelatedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingParentTagController;
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasAppAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceMentionedInStringController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedTraitActionController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionNextToAnnotatedTraitController;
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnNamespaceAppAnnotationController;
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SplitAliasAppAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionNextToNestedTraitController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ParentWithoutImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SplitFullyQualifiedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TagNamedLikeImportsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitDocblockOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnimportedNoteTagController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\UnusedAnnotationImportController;
+use ReflectionClass;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
 use Symfony\Component\Routing\Loader\AttributeClassLoader;
 
 class RoutingAttributeLoaderTest extends MockeryTestCase
 {
+    private const ANNOTATION_NAMESPACE = 'Paysera\Bundle\ApiBundle\Annotation';
+    private const NOT_READ = ', but docblock annotations of the bundle are not read here, because Symfony passes no'
+        . ' annotation reader to the route loader; use the attributes of the bundle instead';
+
     protected function setUp(): void
     {
         if (!class_exists(AttributeRouteControllerLoader::class)) {
@@ -100,119 +111,41 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
                 AttributeOptionsController::class,
                 [AttributeOptionsController::class . '::show' => $adminOnly],
             ],
-            'attribute next to a tag that is not an annotation: the docblock is not read' => [
+            'attribute next to a tag that is not an annotation' => [
                 AttributeOptionsWithNoteTagController::class,
                 [AttributeOptionsWithNoteTagController::class . '::show' => $adminOnly],
             ],
-            'annotation on the action' => [
-                DocblockOptionsOnAttributeRouteController::class,
-                [DocblockOptionsOnAttributeRouteController::class . '::show' => $adminOnly],
+            'attribute through an alias of the bundle namespace' => [
+                AliasedNamespaceAttributeController::class,
+                [AliasedNamespaceAttributeController::class . '::show' => $adminOnly],
             ],
-            'annotations on the class and the action' => [
-                ClassAndActionDocblockController::class,
-                [
-                    ClassAndActionDocblockController::class . '::show' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_USER', 'ROLE_ADMIN'])
-                        ->disableBodyValidation(),
-                ],
+            'attribute next to docblock references to the attribute classes and a tag of another library' => [
+                AttributeDocblockReferencesController::class,
+                [AttributeDocblockReferencesController::class . '::show' => $adminOnly],
             ],
-            'action of a trait that imports the annotation' => [
-                TraitDocblockOptionsController::class,
-                [TraitDocblockOptionsController::class . '::show' => $adminOnly],
-            ],
-            'annotation imported with a group use statement' => [
-                GroupUseDocblockController::class,
-                [GroupUseDocblockController::class . '::show' => $adminOnly],
-            ],
-            'annotation written through an alias of a parent namespace' => [
-                AliasedNamespaceDocblockController::class,
-                [AliasedNamespaceDocblockController::class . '::show' => $adminOnly],
-            ],
-            'fully qualified annotation without a use statement' => [
-                FullyQualifiedDocblockController::class,
-                [FullyQualifiedDocblockController::class . '::show' => $adminOnly],
-            ],
-            'fully qualified annotation on the class without a use statement' => [
-                ClassDocblockFullyQualifiedController::class,
-                [ClassDocblockFullyQualifiedController::class . '::show' => $adminOnly],
-            ],
-            'fully qualified annotation on a trait action renamed with as' => [
-                AliasedFullyQualifiedTraitMethodController::class,
-                [AliasedFullyQualifiedTraitMethodController::class . '::index' => $adminOnly],
-            ],
-            'fully qualified annotation split across docblock lines' => [
-                SplitFullyQualifiedDocblockController::class,
-                [SplitFullyQualifiedDocblockController::class . '::show' => $adminOnly],
-            ],
-            'annotation class of the application, imported' => [
-                AppAnnotationController::class,
-                [
-                    AppAnnotationController::class . '::show' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_AUDITOR']),
-                ],
-            ],
-            'annotation class of the application, fully qualified without a use statement' => [
-                AppAnnotationFullyQualifiedController::class,
-                [
-                    AppAnnotationFullyQualifiedController::class . '::show' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_AUDITOR']),
-                ],
-            ],
-            'annotation class of the application, written through an alias of its namespace' => [
-                NamespaceAliasAppAnnotationController::class,
-                [
-                    NamespaceAliasAppAnnotationController::class . '::show' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_AUDITOR']),
-                ],
-            ],
-            'annotation class of the application, through a namespace alias split across docblock lines' => [
-                SplitAliasAppAnnotationController::class,
-                [
-                    SplitAliasAppAnnotationController::class . '::show' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_AUDITOR']),
-                ],
-            ],
-            'annotation class of the application, imported with a lowercase alias' => [
-                LowercaseAliasAppAnnotationController::class,
-                [
-                    LowercaseAliasAppAnnotationController::class . '::show' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_AUDITOR']),
-                ],
-            ],
-            'annotation class of the application, in the namespace of the controller' => [
-                OwnNamespaceAppAnnotationController::class,
-                [
-                    OwnNamespaceAppAnnotationController::class . '::show' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_AUDITOR']),
-                ],
-            ],
-            'unloadable class tagged outside the route\'s docblocks: the route still loads' => [
-                MissingParentInUnrelatedDocblockController::class,
-                [MissingParentInUnrelatedDocblockController::class . '::show' => $adminOnly],
-            ],
-            'attribute-only child of an annotated parent: only the inherited action\'s docblock is read' => [
-                ChildOfImportingParentController::class,
-                [
-                    ChildOfImportingParentController::class . '::show' => $adminOnly,
-                    ChildOfImportingParentController::class . '::index' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_USER']),
-                ],
-            ],
-            'own action next to an annotated trait: only the trait action\'s docblock is read' => [
-                OwnActionNextToAnnotatedTraitController::class,
-                [
-                    OwnActionNextToAnnotatedTraitController::class . '::show' => $adminOnly,
-                    OwnActionNextToAnnotatedTraitController::class . '::index' => (new RestRequestOptions())
-                        ->setRequiredPermissions(['ROLE_USER']),
-                ],
-            ],
-            'tags named like imports that are not annotations of the application: the docblock is not read' => [
+            'tags named like imports that are not annotations of the application' => [
                 TagNamedLikeImportsController::class,
                 [TagNamedLikeImportsController::class . '::show' => $adminOnly],
             ],
-            'tag-shaped text in a string and a comment: the docblock is not read' => [
+            'tag-shaped text in a string and a comment' => [
                 NamespaceMentionedInStringController::class,
                 [NamespaceMentionedInStringController::class . '::show' => $adminOnly],
+            ],
+            'tag of another class that cannot be loaded, outside the route\'s docblocks' => [
+                MissingParentInUnrelatedDocblockController::class,
+                [MissingParentInUnrelatedDocblockController::class . '::show' => $adminOnly],
+            ],
+            'tag of another class that cannot be loaded, on the action: the class is not loaded' => [
+                MissingParentTagController::class,
+                [MissingParentTagController::class . '::show' => null],
+            ],
+            'annotation class of the application, imported: not detected without a reader' => [
+                AppAnnotationController::class,
+                [AppAnnotationController::class . '::show' => null],
+            ],
+            'annotation class of the application, fully qualified: not detected without a reader' => [
+                AppAnnotationFullyQualifiedController::class,
+                [AppAnnotationFullyQualifiedController::class . '::show' => null],
             ],
         ];
     }
@@ -230,52 +163,179 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
 
     public static function loadWithoutAnnotationReaderFailsProvider(): array
     {
+        $imports = 'imports ' . self::ANNOTATION_NAMESPACE . '\\';
+        $fullyQualifiedTag = 'has the docblock tag @\\' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions';
+
         return [
-            'a tag that is not an annotation next to the annotation' => [
-                UnimportedNoteTagController::class,
-                sprintf(
-                    'Cannot read the docblock annotations of %s::show(): [Semantical Error] The annotation "@note"',
-                    UnimportedNoteTagController::class
+            'annotation on the action' => [
+                DocblockOptionsOnAttributeRouteController::class,
+                self::refusal(
+                    DocblockOptionsOnAttributeRouteController::class,
+                    'show',
+                    DocblockOptionsOnAttributeRouteController::class,
+                    $imports . 'RequiredPermissions'
+                ),
+            ],
+            'annotations on the class and the action' => [
+                ClassAndActionDocblockController::class,
+                self::refusal(
+                    ClassAndActionDocblockController::class,
+                    'show',
+                    ClassAndActionDocblockController::class,
+                    $imports . 'RequiredPermissions'
                 ),
             ],
             'annotation on the class and attribute on the action' => [
                 ClassDocblockAndMethodAttributeController::class,
-                sprintf(
-                    '%s::update() is configured with both docblock annotations and attributes of the bundle',
-                    ClassDocblockAndMethodAttributeController::class
+                self::refusal(
+                    ClassDocblockAndMethodAttributeController::class,
+                    'update',
+                    ClassDocblockAndMethodAttributeController::class,
+                    $imports . 'RequiredPermissions'
                 ),
             ],
-            'action of a trait used by another trait, whose imports Doctrine\'s reader does not see' => [
-                NestedTraitActionController::class,
-                sprintf(
-                    'Cannot read the docblock annotations of %s::show(): [Semantical Error] The annotation'
-                    . ' "@RequiredPermissions"',
-                    NestedTraitActionController::class
+            'annotation imported with a group use statement' => [
+                GroupUseDocblockController::class,
+                self::refusal(
+                    GroupUseDocblockController::class,
+                    'show',
+                    GroupUseDocblockController::class,
+                    $imports . 'RequiredPermissions'
                 ),
             ],
-            'trait action renamed with as, whose imports Doctrine\'s reader does not see' => [
-                AliasedTraitMethodController::class,
-                sprintf(
-                    'Cannot read the docblock annotations of %s::index(): [Semantical Error] The annotation'
-                    . ' "@RequiredPermissions"',
-                    AliasedTraitMethodController::class
+            'annotation next to a tag that is not an annotation' => [
+                UnimportedNoteTagController::class,
+                self::refusal(
+                    UnimportedNoteTagController::class,
+                    'show',
+                    UnimportedNoteTagController::class,
+                    $imports . 'RequiredPermissions'
                 ),
             ],
-            'alias imported by the routed class only, for an action of its parent, refused by Doctrine' => [
+            'import of an annotation that no docblock uses' => [
+                UnusedAnnotationImportController::class,
+                self::refusal(
+                    UnusedAnnotationImportController::class,
+                    'show',
+                    UnusedAnnotationImportController::class,
+                    $imports . 'Body'
+                ),
+            ],
+            'import of an annotation written in lowercase' => [
+                LowercaseAnnotationImportController::class,
+                self::refusal(
+                    LowercaseAnnotationImportController::class,
+                    'show',
+                    LowercaseAnnotationImportController::class,
+                    'imports paysera\bundle\apibundle\annotation\RequiredPermissions'
+                ),
+            ],
+            'annotation written through an alias of a parent namespace' => [
+                AliasedNamespaceDocblockController::class,
+                self::refusal(
+                    AliasedNamespaceDocblockController::class,
+                    'show',
+                    AliasedNamespaceDocblockController::class,
+                    'has the docblock tag @Api\Annotation\RequiredPermissions'
+                ),
+            ],
+            'fully qualified annotation without a use statement' => [
+                FullyQualifiedDocblockController::class,
+                self::refusal(
+                    FullyQualifiedDocblockController::class,
+                    'show',
+                    FullyQualifiedDocblockController::class,
+                    $fullyQualifiedTag
+                ),
+            ],
+            'fully qualified annotation on the class without a use statement' => [
+                ClassDocblockFullyQualifiedController::class,
+                self::refusal(
+                    ClassDocblockFullyQualifiedController::class,
+                    'show',
+                    ClassDocblockFullyQualifiedController::class,
+                    $fullyQualifiedTag
+                ),
+            ],
+            'fully qualified annotation split across docblock lines' => [
+                SplitFullyQualifiedDocblockController::class,
+                self::refusal(
+                    SplitFullyQualifiedDocblockController::class,
+                    'show',
+                    SplitFullyQualifiedDocblockController::class,
+                    $fullyQualifiedTag
+                ),
+            ],
+            'fully qualified annotation written in lowercase, without arguments' => [
+                LowercaseFullyQualifiedDocblockController::class,
+                self::refusal(
+                    LowercaseFullyQualifiedDocblockController::class,
+                    'show',
+                    LowercaseFullyQualifiedDocblockController::class,
+                    'has the docblock tag @\paysera\bundle\apibundle\annotation\validation'
+                ),
+            ],
+            'annotation through an alias that only the routed class imports, for an action of its parent' => [
                 ChildImportingForParentController::class,
-                sprintf(
-                    'Cannot read the docblock annotations of %s::show(): [Semantical Error] The annotation'
-                    . ' "@Rest\RequiredPermissions"',
-                    ChildImportingForParentController::class
+                self::refusal(
+                    ChildImportingForParentController::class,
+                    'show',
+                    ParentWithoutImportController::class,
+                    'has the docblock tag @Rest\RequiredPermissions'
                 ),
             ],
-            'unloadable class tagged on the action' => [
-                MissingParentTagController::class,
-                sprintf(
-                    'Cannot read the docblock annotations of %s::show(): Class "%s" not found',
-                    MissingParentTagController::class,
-                    'Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingParent'
+            'action of a trait that imports the annotation' => [
+                TraitDocblockOptionsController::class,
+                self::refusal(
+                    TraitDocblockOptionsController::class,
+                    'show',
+                    DocblockOptionsTrait::class,
+                    $imports . 'RequiredPermissions'
                 ),
+            ],
+            'action of a trait used by another trait' => [
+                NestedTraitActionController::class,
+                self::refusal(
+                    NestedTraitActionController::class,
+                    'show',
+                    DocblockOptionsTrait::class,
+                    $imports . 'RequiredPermissions'
+                ),
+            ],
+            'own action next to a nested trait that imports the annotation' => [
+                OwnActionNextToNestedTraitController::class,
+                self::refusal(
+                    OwnActionNextToNestedTraitController::class,
+                    'index',
+                    DocblockOptionsTrait::class,
+                    $imports . 'RequiredPermissions'
+                ),
+            ],
+            'own action next to a trait that imports the annotation' => [
+                OwnActionNextToAnnotatedTraitController::class,
+                self::refusal(null, null, DocblockOptionsTrait::class, $imports . 'RequiredPermissions'),
+            ],
+            'trait action renamed with as' => [
+                AliasedTraitMethodController::class,
+                self::refusal(
+                    AliasedTraitMethodController::class,
+                    'index',
+                    DocblockOptionsTrait::class,
+                    $imports . 'RequiredPermissions'
+                ),
+            ],
+            'fully qualified annotation on a trait action renamed with as' => [
+                AliasedFullyQualifiedTraitMethodController::class,
+                self::refusal(
+                    AliasedFullyQualifiedTraitMethodController::class,
+                    'index',
+                    FullyQualifiedOptionsTrait::class,
+                    $fullyQualifiedTag
+                ),
+            ],
+            'attribute-only child of a parent that imports the annotation for an inherited action' => [
+                ChildOfImportingParentController::class,
+                self::refusal(null, null, ImportingParentController::class, $imports . 'RequiredPermissions'),
             ],
         ];
     }
@@ -292,17 +352,18 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             TagNamedLikeImportsController::class,
             MissingParentInUnrelatedDocblockController::class,
         ];
-        $importingControllers = [
+        $annotatedControllers = [
             DocblockOptionsOnAttributeRouteController::class,
             AliasedNamespaceDocblockController::class,
-            ClassAndActionDocblockController::class,
+            FullyQualifiedDocblockController::class,
+            TraitDocblockOptionsController::class,
         ];
         exec(
             sprintf(
                 '%s -d opcache.enable_cli=1 -d opcache.save_comments=0 -d opcache.file_update_protection=0 %s %s',
                 escapeshellarg(PHP_BINARY),
                 escapeshellarg(__DIR__ . '/Fixtures/load-routes.php'),
-                implode(' ', array_map('escapeshellarg', array_merge($attributeOnlyControllers, $importingControllers)))
+                implode(' ', array_map('escapeshellarg', array_merge($attributeOnlyControllers, $annotatedControllers)))
             ),
             $output
         );
@@ -313,13 +374,20 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         foreach ($attributeOnlyControllers as $controller) {
             $this->assertSame([['ROLE_ADMIN']], $results[$controller], $controller);
         }
-        foreach ($importingControllers as $controller) {
-            $this->assertStringContainsString(
-                'save_comments=1',
-                (string)json_encode($results[$controller]),
-                $controller
-            );
+        foreach ($annotatedControllers as $controller) {
+            $this->assertStringContainsString(self::NOT_READ, (string)json_encode($results[$controller]), $controller);
         }
+    }
+
+    private static function refusal(?string $controller, ?string $method, string $fileOwner, string $finding): string
+    {
+        return sprintf(
+            '%s%s %s%s',
+            $controller === null ? '' : sprintf('%s::%s(): ', $controller, $method),
+            (new ReflectionClass($fileOwner))->getFileName(),
+            $finding,
+            self::NOT_READ
+        );
     }
 
     private function createLoader(?Reader $reader = null): RoutingAttributeLoader
@@ -329,7 +397,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             new RestRequestHelper(new RestRequestOptionsRegistry()),
             new RestRequestAnnotationOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
             new RestRequestAttributeOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
-            new DocblockAnnotationReader()
+            new DocblockAnnotationGuard()
         ));
 
         return $loader;

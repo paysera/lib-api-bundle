@@ -3,8 +3,13 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DocblockOptions;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
+use ReflectionClass;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class FunctionalAnnotationsTest extends FunctionalTestCase
 {
@@ -50,6 +55,10 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
         string $expectedContent,
         ?string $username
     ): void {
+        if (!TestHelper::docblockRoutingSupportExists()) {
+            $this->markTestSkipped('Symfony 7 passes no annotation reader: see the refusal test');
+        }
+
         $this->makeTest(
             'attributed',
             new Response($expectedContent, $expectedStatusCode),
@@ -73,6 +82,35 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
             ],
             'with all needed permissions' => [200, 'OK', 'admin'],
         ];
+    }
+
+    public function testDocblockOptionsOnAttributeRouteAreRefusedWithoutReader(): void
+    {
+        if (!TestHelper::phpAttributeSupportExists() || TestHelper::docblockRoutingSupportExists()) {
+            $this->markTestSkipped('Symfony before 7 passes an annotation reader to the route loader');
+        }
+        $this->tearDown();
+        $container = $this->setUpContainer('basic', 'docblock_common.yml');
+
+        try {
+            $container->get('router')->getRouteCollection();
+            $this->fail('Expected the route loading to fail');
+        } catch (Throwable $exception) {
+            $cause = $exception;
+            while ($cause !== null && !$cause instanceof ConfigurationException) {
+                $cause = $cause->getPrevious();
+            }
+            $this->assertNotNull($cause, get_class($exception) . ': ' . $exception->getMessage());
+            $this->assertStringContainsString(
+                sprintf(
+                    '%s::testRequiredPermissions(): %s imports Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions,'
+                    . ' but docblock annotations of the bundle are not read here',
+                    DocblockOptions\AttributedDocblockOptionsController::class,
+                    (new ReflectionClass(DocblockOptions\AttributedDocblockOptionsController::class))->getFileName()
+                ),
+                $cause->getMessage()
+            );
+        }
     }
 
     private function makeTest(

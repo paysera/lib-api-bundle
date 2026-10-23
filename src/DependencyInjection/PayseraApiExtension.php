@@ -23,7 +23,7 @@ use Paysera\Bundle\ApiBundle\Service\ResponseBuilder;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsRegistry;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
-use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationReader;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationGuard;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRouteConfigurator;
@@ -193,12 +193,12 @@ class PayseraApiExtension extends Extension
                 RestRequestAttributeOptionsBuilder::class,
                 [$optionsValidator]
             ),
-            'paysera_api.docblock_annotation_reader' => new Definition(DocblockAnnotationReader::class),
+            'paysera_api.docblock_annotation_guard' => new Definition(DocblockAnnotationGuard::class),
             'paysera_api.rest_route_configurator' => new Definition(RestRouteConfigurator::class, [
                 new Reference('paysera_api.rest_request_helper'),
                 new Reference('paysera_api.annotations.options_builder'),
                 new Reference('paysera_api.attributes.options_builder'),
-                new Reference('paysera_api.docblock_annotation_reader'),
+                new Reference('paysera_api.docblock_annotation_guard'),
             ]),
             'paysera_api.response_builder' => new Definition(ResponseBuilder::class),
             'paysera_api.error_builder' => $this->createErrorBuilderDefinition(),

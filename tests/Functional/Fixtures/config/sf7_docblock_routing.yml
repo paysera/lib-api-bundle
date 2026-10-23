@@ -1,0 +1,13 @@
+paysera_fixture_test:
+    resource: "@PayseraFixtureTestBundle/Resources/config/explicit_routing.yml"
+    prefix:   /
+
+paysera_fixture_attributed_test:
+    resource: '@PayseraFixtureTestBundle/Controller/Attribute/'
+    type:     attribute
+    prefix:   /
+
+paysera_fixture_docblock_options_test:
+    resource: '@PayseraFixtureTestBundle/Controller/DocblockOptions/'
+    type:     attribute
+    prefix:   /

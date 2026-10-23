@@ -13,7 +13,7 @@ use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsRegistry;
 use Paysera\Bundle\ApiBundle\Service\RestRequestOptionsValidator;
-use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationReader;
+use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationGuard;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAnnotationOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRequestAttributeOptionsBuilder;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\RestRouteConfigurator;
@@ -27,6 +27,9 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class RoutingAnnotationLoaderTest extends MockeryTestCase
 {
+    private const NOT_READ = ', but docblock annotations of the bundle are not read here, because Symfony passes no'
+        . ' annotation reader to the route loader; use the attributes of the bundle instead';
+
     protected function setUp(): void
     {
         if (PHP_VERSION_ID < 80000) {
@@ -56,36 +59,63 @@ class RoutingAnnotationLoaderTest extends MockeryTestCase
         );
     }
 
-    /**
-     * @dataProvider readerProvider
-     */
-    public function testLoadFailsWithAnnotationsAndAttributes(?Reader $reader): void
-    {
-        $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage(sprintf(
-            '%s::update() is configured with both docblock annotations and attributes of the bundle',
-            NativeRouteMixedOptionsController::class
-        ));
-
-        $this->createLoader($reader)->load(NativeRouteMixedOptionsController::class);
-    }
-
     public static function optionsProvider(): array
     {
-        $cases = [];
-        foreach (self::readerProvider() as $readerCase => [$reader]) {
-            $cases['attributes ' . $readerCase] = [NativeRouteAttributeOptionsController::class, $reader];
-            $cases['docblock annotations ' . $readerCase] = [NativeRouteDocblockOptionsController::class, $reader];
-        }
-
-        return $cases;
+        return [
+            'attributes with the reader of Symfony' => [
+                NativeRouteAttributeOptionsController::class,
+                new AnnotationReader(),
+            ],
+            'attributes with framework.annotations disabled' => [NativeRouteAttributeOptionsController::class, null],
+            'docblock annotations with the reader of Symfony' => [
+                NativeRouteDocblockOptionsController::class,
+                new AnnotationReader(),
+            ],
+        ];
     }
 
-    public static function readerProvider(): array
+    /**
+     * @dataProvider failureProvider
+     */
+    public function testLoadFails(string $controller, ?Reader $reader, string $expectedMessage): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $this->createLoader($reader)->load($controller);
+    }
+
+    public static function failureProvider(): array
     {
         return [
-            'with the reader of Symfony' => [new AnnotationReader()],
-            'with framework.annotations disabled' => [null],
+            'docblock annotations with framework.annotations disabled' => [
+                NativeRouteDocblockOptionsController::class,
+                null,
+                sprintf(
+                    '%s::show(): %s imports Paysera\Bundle\ApiBundle\Annotation%s',
+                    NativeRouteDocblockOptionsController::class,
+                    (new ReflectionClass(NativeRouteDocblockOptionsController::class))->getFileName(),
+                    self::NOT_READ
+                ),
+            ],
+            'docblock annotations and attributes with the reader of Symfony' => [
+                NativeRouteMixedOptionsController::class,
+                new AnnotationReader(),
+                sprintf(
+                    '%s::update() is configured with both docblock annotations and attributes of the bundle',
+                    NativeRouteMixedOptionsController::class
+                ),
+            ],
+            'docblock annotations and attributes with framework.annotations disabled' => [
+                NativeRouteMixedOptionsController::class,
+                null,
+                sprintf(
+                    '%s::update(): %s imports Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions%s',
+                    NativeRouteMixedOptionsController::class,
+                    (new ReflectionClass(NativeRouteMixedOptionsController::class))->getFileName(),
+                    self::NOT_READ
+                ),
+            ],
         ];
     }
 
@@ -96,7 +126,7 @@ class RoutingAnnotationLoaderTest extends MockeryTestCase
             new RestRequestHelper(new RestRequestOptionsRegistry()),
             new RestRequestAnnotationOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
             new RestRequestAttributeOptionsBuilder(Mockery::spy(RestRequestOptionsValidator::class)),
-            new DocblockAnnotationReader()
+            new DocblockAnnotationGuard()
         ));
 
         return $loader;

@@ -683,18 +683,16 @@ attribute, are left alone. Not detected: any other attribute whose class cannot 
 global namespace, `#[Rest\RequiredPermissions]` without its alias import, which PHP reads as a complete name.
 
 Where Symfony passes no annotation reader to the route loader (Symfony 7, and Symfony 5.4 on PHP 8 or Symfony 6 with
-`framework.annotations` disabled), the bundle reads the docblocks with Doctrine's `AnnotationReader` where Doctrine
-would find its annotations: where a docblock uses an annotation implementing `RestAnnotationInterface` (the bundle's or
-your own) as Doctrine's `DocParser` resolves it, from the imports and namespace of the class for its docblock, and of
-the declaring class and the traits in the action's file for an action's docblock; and where the routed class, the
-declaring class or a trait in the action's file imports `Paysera\Bundle\ApiBundle\Annotation`. Code that uses only
-attributes is not read with that reader, unless Doctrine's parser fails on one of its docblocks (a tag naming a class
-that cannot be loaded). There, loading the routes fails with a `ConfigurationException` naming the action on a docblock
-tag that Doctrine cannot resolve (import it, or list it with `@IgnoreAnnotation` in the class docblock). Where OPcache
-is set to strip doc comments (`opcache.save_comments=0`), Doctrine's reader refuses to run, so loading fails where those
-classes import the annotation namespace; remove an unused `use` of it. Not detected in a file that does not import
-`Paysera\Bundle\ApiBundle\Annotation`: an annotation that Doctrine cannot resolve (written with no import, with a
-misspelt import such as `Annotations`, or misspelt) and, where OPcache has stripped the doc comments, any annotation.
+`framework.annotations` disabled), the bundle does not read docblock annotations and refuses them instead: loading the
+routes fails with a `ConfigurationException` naming the action, the file and what was found, when the file of the routed
+class, of the class declaring the action, of the action itself or of any trait these classes use imports anything from
+`Paysera\Bundle\ApiBundle\Annotation`, or has a docblock tag named like one of the bundle's annotations
+(`@RequiredPermissions`, `@Rest\RequiredPermissions`, `@\Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions`, split
+across lines too, in any letter case). The check reads the source files, so `opcache.save_comments=0` does not hide
+them. It refuses more than Doctrine would read: an unused import of the namespace, a tag of another library named like
+one of the bundle's annotations, and a trait with annotations next to the action; remove what the message names. Write
+the options as attributes, or on Symfony 6.4 keep `framework.annotations` enabled. Not detected: an annotation class of
+your own implementing `RestAnnotationInterface`, which nothing in the controller's file reveals.
 
 ### `Body`
 

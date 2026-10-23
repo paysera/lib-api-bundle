@@ -54,20 +54,26 @@ class RestRouteConfigurator
     private $attributeOptionsBuilder;
 
     /**
-     * @var DocblockAnnotationReader
+     * @var DocblockAnnotationGuard
      */
-    private $docblockAnnotationReader;
+    private $docblockAnnotationGuard;
+
+    /**
+     * @var array<string, object[]>
+     */
+    private $classAnnotations;
 
     public function __construct(
         RestRequestHelper $restRequestHelper,
         RestRequestAnnotationOptionsBuilder $annotationOptionsBuilder,
         RestRequestAttributeOptionsBuilder $attributeOptionsBuilder,
-        DocblockAnnotationReader $docblockAnnotationReader
+        DocblockAnnotationGuard $docblockAnnotationGuard
     ) {
         $this->restRequestHelper = $restRequestHelper;
         $this->annotationOptionsBuilder = $annotationOptionsBuilder;
         $this->attributeOptionsBuilder = $attributeOptionsBuilder;
-        $this->docblockAnnotationReader = $docblockAnnotationReader;
+        $this->docblockAnnotationGuard = $docblockAnnotationGuard;
+        $this->classAnnotations = [];
     }
 
     public function configureRoute(
@@ -76,8 +82,14 @@ class RestRouteConfigurator
         ReflectionMethod $method,
         ?Reader $reader
     ): void {
-        $annotations = $this->getRestAnnotations($class, $method, $reader);
         $attributes = $this->getRestAttributes($class, $method);
+        if ($reader === null) {
+            $this->docblockAnnotationGuard->failOnDocblockAnnotations($class, $method);
+            $annotations = [];
+        } else {
+            $annotations = $this->getRestAnnotations($class, $method, $reader);
+        }
+
         if ($annotations !== [] && $attributes !== []) {
             throw new ConfigurationException(sprintf(
                 '%s::%s() is configured with both docblock annotations and attributes of the bundle, use one of them',
@@ -104,13 +116,13 @@ class RestRouteConfigurator
     /**
      * @return RestAnnotationInterface[]
      */
-    private function getRestAnnotations(
-        ReflectionClass $class,
-        ReflectionMethod $method,
-        ?Reader $reader
-    ): array {
+    private function getRestAnnotations(ReflectionClass $class, ReflectionMethod $method, Reader $reader): array
+    {
         try {
-            $annotations = $this->docblockAnnotationReader->readAnnotations($class, $method, $reader);
+            $annotations = array_merge(
+                $this->getClassAnnotations($reader, $class),
+                $reader->getMethodAnnotations($method)
+            );
         } catch (Throwable $exception) {
             throw $this->createReadException('docblock annotations', $class, $method, $exception);
         }
@@ -118,6 +130,19 @@ class RestRouteConfigurator
         return array_values(array_filter($annotations, static function ($annotation): bool {
             return $annotation instanceof RestAnnotationInterface;
         }));
+    }
+
+    /**
+     * @return object[]
+     */
+    private function getClassAnnotations(Reader $reader, ReflectionClass $class): array
+    {
+        $className = $class->getName();
+        if (!isset($this->classAnnotations[$className])) {
+            $this->classAnnotations[$className] = $reader->getClassAnnotations($class);
+        }
+
+        return $this->classAnnotations[$className];
     }
 
     /**
@@ -152,7 +177,7 @@ class RestRouteConfigurator
         $this->failOnUnknownAttributes($class->getAttributes(), [$class], $class, $method);
         $this->failOnUnknownAttributes(
             $method->getAttributes(),
-            $this->docblockAnnotationReader->getActionScopes($method),
+            $this->docblockAnnotationGuard->getActionScopes($method),
             $class,
             $method
         );
