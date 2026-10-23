@@ -17,6 +17,7 @@
     "require": {
         "php": "^7.1 || ^8.0",
         "ext-json": "*",
+        "ext-tokenizer": "*",
         "symfony/config": "^3.4.34|^4.3|^5.4|^6.0|^7.0",
         "symfony/dependency-injection": "^3.4.34|^4.3|^5.4|^6.0|^7.0",
         "symfony/framework-bundle": "^3.4.34|^4.3|^5.4|^6.0|^7.4",

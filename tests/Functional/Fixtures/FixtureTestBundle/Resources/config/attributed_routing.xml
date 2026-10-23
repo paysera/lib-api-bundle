@@ -5,5 +5,5 @@
         xsi:schemaLocation="http://symfony.com/schema/routing https://symfony.com/schema/routing/routing-1.0.xsd">
 
     <import resource="../../Controller/Attribute/" type="attribute"/>
-    <import resource="../../Controller/DocblockOptions/" type="attribute"/>
+    <import resource="../../Controller/Docblock/" type="attribute"/>
 </routes>

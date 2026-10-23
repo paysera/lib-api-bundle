@@ -51,7 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   than Doctrine would read: an unused import of the namespace, a tag of another library named like one of the bundle's
   annotations, and a trait with annotations next to the action; the message names what to remove. Write the options as
   attributes, or on Symfony 6.4 keep `framework.annotations` enabled. Not detected: an annotation class of your own
-  implementing `RestAnnotationInterface`, which nothing in the controller's file reveals
+  implementing `RestAnnotationInterface`, which nothing in the controller's file reveals (write such an option as an
+  attribute implementing `RestAttributeInterface`, which is applied on every path), and an alias of a bundle annotation
+  class made with `class_alias()`
 - On PHP 8 before Symfony 6.4, 1.x ignored the bundle's attributes, `#[RequiredPermissions]` among them, without an
   error. They are now applied on every supported Symfony version
 - On PHP 8, a bundle attribute written without its `use` statement, `#[RequiredPermissions]` among them, names a class

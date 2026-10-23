@@ -15,6 +15,7 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AppAnnota
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeDocblockReferencesController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOptionsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AttributeOptionsWithNoteTagController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\BackslashBeforeTagDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ChildImportingForParentController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ChildOfImportingParentController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassAndActionDocblockController;
@@ -22,10 +23,12 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassDocb
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ClassDocblockFullyQualifiedController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsOnAttributeRouteController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DocblockOptionsTrait;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\DoubleBackslashDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedOptionsTrait;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupUseDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportingParentController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\InvalidUtf8DocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseAnnotationImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseFullyQualifiedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingParentInUnrelatedDocblockController;
@@ -33,6 +36,7 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingPa
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltDocblockAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceMentionedInStringController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedTraitActionController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBreakSpaceSplitDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionNextToAnnotatedTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionNextToNestedTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnNamespaceAppAnnotationController;
@@ -50,22 +54,25 @@ use RuntimeException;
 class DocblockAnnotationGuardTest extends TestCase
 {
     private const ANNOTATION_NAMESPACE = 'Paysera\Bundle\ApiBundle\Annotation';
+    private const GENERATED_NAMESPACE = 'Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Generated';
     private const NOT_READ = ', but docblock annotations of the bundle are not read here, because Symfony passes no'
         . ' annotation reader to the route loader; use the attributes of the bundle instead';
+    private const OTHER_LIBRARY = ' (for an annotation of another library named like one of the bundle\'s, import its'
+        . ' class under another alias)';
 
     /**
-     * @dataProvider refusedProvider
+     * @var string[]
      */
-    public function testFailOnDocblockAnnotationsRefuses(
-        string $controller,
-        string $method,
-        string $fileOwner,
-        string $finding
-    ): void {
-        $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage(self::refusal($controller, $method, $fileOwner, $finding));
+    private static $generatedFiles = [];
 
-        $this->check($controller, $method);
+    public static function tearDownAfterClass(): void
+    {
+        foreach (self::$generatedFiles as $file) {
+            if (file_exists($file)) {
+                unlink($file);
+            }
+        }
+        self::$generatedFiles = [];
     }
 
     public static function refusedProvider(): array
@@ -146,6 +153,30 @@ class DocblockAnnotationGuardTest extends TestCase
                 SplitFullyQualifiedDocblockController::class,
                 $fullyQualifiedTag,
             ],
+            'fully qualified tag with two leading backslashes' => [
+                DoubleBackslashDocblockController::class,
+                'show',
+                DoubleBackslashDocblockController::class,
+                'has the docblock tag @\\\\' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions',
+            ],
+            'fully qualified tag after a line of prose ending with a backslash' => [
+                BackslashBeforeTagDocblockController::class,
+                'show',
+                BackslashBeforeTagDocblockController::class,
+                $fullyQualifiedTag,
+            ],
+            'fully qualified tag split across lines at a no-break space' => [
+                NoBreakSpaceSplitDocblockController::class,
+                'show',
+                NoBreakSpaceSplitDocblockController::class,
+                $fullyQualifiedTag,
+            ],
+            'fully qualified tag in a docblock with invalid UTF-8' => [
+                InvalidUtf8DocblockController::class,
+                'show',
+                InvalidUtf8DocblockController::class,
+                $fullyQualifiedTag,
+            ],
             'fully qualified tag written in lowercase, without arguments' => [
                 LowercaseFullyQualifiedDocblockController::class,
                 'show',
@@ -203,16 +234,6 @@ class DocblockAnnotationGuardTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider passingProvider
-     */
-    public function testFailOnDocblockAnnotationsPasses(string $controller, string $method = 'show'): void
-    {
-        $this->check($controller, $method);
-
-        $this->addToAssertionCount(1);
-    }
-
     public static function passingProvider(): array
     {
         return [
@@ -239,6 +260,48 @@ class DocblockAnnotationGuardTest extends TestCase
                 OwnNamespaceAppAnnotationController::class,
             ],
         ];
+    }
+
+    /**
+     * @dataProvider refusedProvider
+     */
+    public function testFailOnDocblockAnnotationsRefuses(
+        string $controller,
+        string $method,
+        string $fileOwner,
+        string $finding
+    ): void {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage($this->buildRefusalMessage($controller, $method, $fileOwner, $finding));
+
+        $this->check($controller, $method);
+    }
+
+    public function testFailOnDocblockAnnotationsNamesTheRemedyForAnotherLibrary(): void
+    {
+        try {
+            $this->check(FullyQualifiedDocblockController::class);
+            $this->fail('Expected a ConfigurationException');
+        } catch (ConfigurationException $exception) {
+            $this->assertStringEndsWith(self::NOT_READ . self::OTHER_LIBRARY, $exception->getMessage());
+        }
+
+        try {
+            $this->check(DocblockOptionsOnAttributeRouteController::class);
+            $this->fail('Expected a ConfigurationException');
+        } catch (ConfigurationException $exception) {
+            $this->assertStringEndsWith(self::NOT_READ, $exception->getMessage());
+        }
+    }
+
+    /**
+     * @dataProvider passingProvider
+     */
+    public function testFailOnDocblockAnnotationsPasses(string $controller, string $method = 'show'): void
+    {
+        $this->check($controller, $method);
+
+        $this->addToAssertionCount(1);
     }
 
     public function testFailOnDocblockAnnotationsRefusesEveryAnnotationOfTheBundle(): void
@@ -278,10 +341,10 @@ class DocblockAnnotationGuardTest extends TestCase
 
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage(sprintf(
-            '%s::show(): %s cannot be read to check its docblocks for annotations of the bundle%s',
+            '%s::show(): %s cannot be read, so its docblocks cannot be checked for annotations of the bundle;'
+            . ' docblock annotations of the bundle are not read here',
             $controller,
-            $file,
-            self::NOT_READ
+            $file
         ));
 
         $this->check($controller);
@@ -289,15 +352,22 @@ class DocblockAnnotationGuardTest extends TestCase
 
     public function testFailOnDocblockAnnotationsFailsWhenTheClassHasNoSourceFile(): void
     {
-        eval('namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Generated;'
-            . ' class EvaluatedController { public function show(): void {} }');
-        $controller = 'Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Generated\EvaluatedController';
+        eval(sprintf(
+            'namespace %s; class EvaluatedController { public function show(): void {} }',
+            self::GENERATED_NAMESPACE
+        ));
+        $controller = self::GENERATED_NAMESPACE . '\EvaluatedController';
 
-        $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage($controller . '::show(): ');
-        $this->expectExceptionMessage('cannot be read to check its docblocks for annotations of the bundle');
-
-        $this->check($controller);
+        try {
+            $this->check($controller);
+            $this->fail('Expected a ConfigurationException');
+        } catch (ConfigurationException $exception) {
+            $this->assertStringStartsWith($controller . '::show(): ', $exception->getMessage());
+            $this->assertStringContainsString(
+                'cannot be read, so its docblocks cannot be checked for annotations of the bundle',
+                $exception->getMessage()
+            );
+        }
     }
 
     public function testFailOnDocblockAnnotationsFailsWhenTheDocblockCannotBeMatched(): void
@@ -320,7 +390,7 @@ class DocblockAnnotationGuardTest extends TestCase
         }
     }
 
-    private static function refusal(string $controller, string $method, string $fileOwner, string $finding): string
+    private function buildRefusalMessage(string $controller, string $method, string $fileOwner, string $finding): string
     {
         return sprintf(
             '%s::%s(): %s %s%s',
@@ -334,18 +404,23 @@ class DocblockAnnotationGuardTest extends TestCase
 
     private function declareController(string $shortName, string $docblockLine): string
     {
-        $namespace = 'Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Generated';
-        $file = tempnam(sys_get_temp_dir(), 'guard') . '.php';
+        $placeholder = tempnam(sys_get_temp_dir(), 'guard');
+        if ($placeholder === false) {
+            throw new RuntimeException('Cannot create a temporary file');
+        }
+        $file = $placeholder . '.php';
+        unlink($placeholder);
+        self::$generatedFiles[] = $file;
         file_put_contents($file, sprintf(
             "<?php\nnamespace %s;\nclass %s\n{\n    /**\n     * %s\n     */\n"
             . "    public function show(): void\n    {\n    }\n}\n",
-            $namespace,
+            self::GENERATED_NAMESPACE,
             $shortName,
             $docblockLine
         ));
         require $file;
 
-        return $namespace . '\\' . $shortName;
+        return self::GENERATED_NAMESPACE . '\\' . $shortName;
     }
 
     private function check(string $controller, string $method = 'show'): void

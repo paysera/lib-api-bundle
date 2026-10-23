@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
-use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DocblockOptions;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\Docblock;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\Request;
@@ -92,25 +92,27 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
         $this->tearDown();
         $container = $this->setUpContainer('basic', 'docblock_common.yml');
 
+        $cause = null;
         try {
             $container->get('router')->getRouteCollection();
-            $this->fail('Expected the route loading to fail');
         } catch (Throwable $exception) {
             $cause = $exception;
             while ($cause !== null && !$cause instanceof ConfigurationException) {
                 $cause = $cause->getPrevious();
             }
             $this->assertNotNull($cause, get_class($exception) . ': ' . $exception->getMessage());
-            $this->assertStringContainsString(
-                sprintf(
-                    '%s::testRequiredPermissions(): %s imports Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions,'
-                    . ' but docblock annotations of the bundle are not read here',
-                    DocblockOptions\AttributedDocblockOptionsController::class,
-                    (new ReflectionClass(DocblockOptions\AttributedDocblockOptionsController::class))->getFileName()
-                ),
-                $cause->getMessage()
-            );
         }
+
+        $this->assertNotNull($cause, 'Expected the route loading to fail');
+        $this->assertStringContainsString(
+            sprintf(
+                '%s::testRequiredPermissions(): %s imports Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions,'
+                . ' but docblock annotations of the bundle are not read here',
+                Docblock\AttributedDocblockOptionsController::class,
+                (new ReflectionClass(Docblock\AttributedDocblockOptionsController::class))->getFileName()
+            ),
+            $cause->getMessage()
+        );
     }
 
     private function makeTest(

@@ -169,7 +169,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         return [
             'annotation on the action' => [
                 DocblockOptionsOnAttributeRouteController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     DocblockOptionsOnAttributeRouteController::class,
                     'show',
                     DocblockOptionsOnAttributeRouteController::class,
@@ -178,7 +178,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'annotations on the class and the action' => [
                 ClassAndActionDocblockController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     ClassAndActionDocblockController::class,
                     'show',
                     ClassAndActionDocblockController::class,
@@ -187,7 +187,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'annotation on the class and attribute on the action' => [
                 ClassDocblockAndMethodAttributeController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     ClassDocblockAndMethodAttributeController::class,
                     'update',
                     ClassDocblockAndMethodAttributeController::class,
@@ -196,7 +196,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'annotation imported with a group use statement' => [
                 GroupUseDocblockController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     GroupUseDocblockController::class,
                     'show',
                     GroupUseDocblockController::class,
@@ -205,7 +205,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'annotation next to a tag that is not an annotation' => [
                 UnimportedNoteTagController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     UnimportedNoteTagController::class,
                     'show',
                     UnimportedNoteTagController::class,
@@ -214,7 +214,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'import of an annotation that no docblock uses' => [
                 UnusedAnnotationImportController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     UnusedAnnotationImportController::class,
                     'show',
                     UnusedAnnotationImportController::class,
@@ -223,7 +223,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'import of an annotation written in lowercase' => [
                 LowercaseAnnotationImportController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     LowercaseAnnotationImportController::class,
                     'show',
                     LowercaseAnnotationImportController::class,
@@ -232,7 +232,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'annotation written through an alias of a parent namespace' => [
                 AliasedNamespaceDocblockController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     AliasedNamespaceDocblockController::class,
                     'show',
                     AliasedNamespaceDocblockController::class,
@@ -241,7 +241,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'fully qualified annotation without a use statement' => [
                 FullyQualifiedDocblockController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     FullyQualifiedDocblockController::class,
                     'show',
                     FullyQualifiedDocblockController::class,
@@ -250,7 +250,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'fully qualified annotation on the class without a use statement' => [
                 ClassDocblockFullyQualifiedController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     ClassDocblockFullyQualifiedController::class,
                     'show',
                     ClassDocblockFullyQualifiedController::class,
@@ -259,7 +259,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'fully qualified annotation split across docblock lines' => [
                 SplitFullyQualifiedDocblockController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     SplitFullyQualifiedDocblockController::class,
                     'show',
                     SplitFullyQualifiedDocblockController::class,
@@ -268,7 +268,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'fully qualified annotation written in lowercase, without arguments' => [
                 LowercaseFullyQualifiedDocblockController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     LowercaseFullyQualifiedDocblockController::class,
                     'show',
                     LowercaseFullyQualifiedDocblockController::class,
@@ -277,7 +277,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'annotation through an alias that only the routed class imports, for an action of its parent' => [
                 ChildImportingForParentController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     ChildImportingForParentController::class,
                     'show',
                     ParentWithoutImportController::class,
@@ -286,7 +286,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'action of a trait that imports the annotation' => [
                 TraitDocblockOptionsController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     TraitDocblockOptionsController::class,
                     'show',
                     DocblockOptionsTrait::class,
@@ -295,7 +295,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'action of a trait used by another trait' => [
                 NestedTraitActionController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     NestedTraitActionController::class,
                     'show',
                     DocblockOptionsTrait::class,
@@ -304,7 +304,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'own action next to a nested trait that imports the annotation' => [
                 OwnActionNextToNestedTraitController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     OwnActionNextToNestedTraitController::class,
                     'index',
                     DocblockOptionsTrait::class,
@@ -313,11 +313,11 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'own action next to a trait that imports the annotation' => [
                 OwnActionNextToAnnotatedTraitController::class,
-                self::refusal(null, null, DocblockOptionsTrait::class, $imports . 'RequiredPermissions'),
+                self::buildRefusalMessage(null, null, DocblockOptionsTrait::class, $imports . 'RequiredPermissions'),
             ],
             'trait action renamed with as' => [
                 AliasedTraitMethodController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     AliasedTraitMethodController::class,
                     'index',
                     DocblockOptionsTrait::class,
@@ -326,7 +326,7 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'fully qualified annotation on a trait action renamed with as' => [
                 AliasedFullyQualifiedTraitMethodController::class,
-                self::refusal(
+                self::buildRefusalMessage(
                     AliasedFullyQualifiedTraitMethodController::class,
                     'index',
                     FullyQualifiedOptionsTrait::class,
@@ -335,7 +335,12 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             ],
             'attribute-only child of a parent that imports the annotation for an inherited action' => [
                 ChildOfImportingParentController::class,
-                self::refusal(null, null, ImportingParentController::class, $imports . 'RequiredPermissions'),
+                self::buildRefusalMessage(
+                    null,
+                    null,
+                    ImportingParentController::class,
+                    $imports . 'RequiredPermissions'
+                ),
             ],
         ];
     }
@@ -375,11 +380,20 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
             $this->assertSame([['ROLE_ADMIN']], $results[$controller], $controller);
         }
         foreach ($annotatedControllers as $controller) {
-            $this->assertStringContainsString(self::NOT_READ, (string)json_encode($results[$controller]), $controller);
+            $this->assertStringContainsString(
+                self::NOT_READ,
+                (string)json_encode($results[$controller]),
+                $controller
+            );
         }
     }
 
-    private static function refusal(?string $controller, ?string $method, string $fileOwner, string $finding): string
+    private static function buildRefusalMessage(
+        ?string $controller,
+        ?string $method,
+        string $fileOwner,
+        string $finding
+    ): string
     {
         return sprintf(
             '%s%s %s%s',

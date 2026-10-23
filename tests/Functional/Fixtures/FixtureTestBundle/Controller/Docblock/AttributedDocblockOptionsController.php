@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\DocblockOptions;
+namespace Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\Docblock;
 
 use Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions;
 use Symfony\Component\HttpFoundation\Request;

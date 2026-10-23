@@ -692,7 +692,9 @@ across lines too, in any letter case). The check reads the source files, so `opc
 them. It refuses more than Doctrine would read: an unused import of the namespace, a tag of another library named like
 one of the bundle's annotations, and a trait with annotations next to the action; remove what the message names. Write
 the options as attributes, or on Symfony 6.4 keep `framework.annotations` enabled. Not detected: an annotation class of
-your own implementing `RestAnnotationInterface`, which nothing in the controller's file reveals.
+your own implementing `RestAnnotationInterface`, which nothing in the controller's file reveals (write such an option as
+an attribute implementing `RestAttributeInterface`, which is applied on every path), and an alias of a bundle annotation
+class made with `class_alias()`.
 
 ### `Body`
 

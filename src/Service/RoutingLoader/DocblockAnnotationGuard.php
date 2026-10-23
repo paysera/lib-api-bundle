@@ -30,8 +30,12 @@ class DocblockAnnotationGuard
         ResponseNormalization::class,
         Validation::class,
     ];
-    private const NOT_READ = 'but docblock annotations of the bundle are not read here, because Symfony passes no'
+    private const NOT_READ = 'docblock annotations of the bundle are not read here, because Symfony passes no'
         . ' annotation reader to the route loader; use the attributes of the bundle instead';
+    private const TAG_FOUND = 'has the docblock tag @';
+    private const OTHER_LIBRARY = ' (for an annotation of another library named like one of the bundle\'s, import its'
+        . ' class under another alias)';
+    private const SPLIT_NAME_PATTERN = '/\\\\[\s*]+(?=[A-Za-z_])/';
 
     /**
      * @var array<string, string|null>
@@ -50,7 +54,7 @@ class DocblockAnnotationGuard
             return substr($annotation, strrpos($annotation, '\\') + 1);
         }, self::ANNOTATIONS);
         $this->tagPattern = sprintf(
-            '/(?<![A-Za-z0-9_\\\\])@(\\\\?(?:[A-Za-z_][A-Za-z0-9_]*\\\\)*(?:%s))(?![A-Za-z0-9_\\\\])/i',
+            '/(?<![A-Za-z0-9_\\\\])@(\\\\*(?:[A-Za-z_][A-Za-z0-9_]*\\\\)*(?:%s))(?![A-Za-z0-9_\\\\])/i',
             implode('|', $names)
         );
     }
@@ -61,12 +65,13 @@ class DocblockAnnotationGuard
             $finding = $this->findAnnotationUse($class, $method, $file);
             if ($finding !== null) {
                 throw new ConfigurationException(sprintf(
-                    '%s::%s(): %s %s, %s',
+                    '%s::%s(): %s %s, but %s%s',
                     $class->getName(),
                     $method->getName(),
                     $file,
                     $finding,
-                    self::NOT_READ
+                    self::NOT_READ,
+                    strpos($finding, self::TAG_FOUND) === 0 ? self::OTHER_LIBRARY : ''
                 ));
             }
         }
@@ -89,7 +94,7 @@ class DocblockAnnotationGuard
     }
 
     /**
-     * @return array<string|false>
+     * @return array<string|null>
      */
     private function getFiles(ReflectionClass $class, ReflectionMethod $method): array
     {
@@ -104,7 +109,9 @@ class DocblockAnnotationGuard
             $files[] = $scope->getFileName();
         }
 
-        return array_unique($files);
+        return array_map(function ($file): ?string {
+            return $file === false ? null : $file;
+        }, array_unique($files));
     }
 
     /**
@@ -121,22 +128,19 @@ class DocblockAnnotationGuard
         return $traits;
     }
 
-    /**
-     * @param string|false $file
-     */
-    private function findAnnotationUse(ReflectionClass $class, ReflectionMethod $method, $file): ?string
+    private function findAnnotationUse(ReflectionClass $class, ReflectionMethod $method, ?string $file): ?string
     {
-        if ($file !== false && array_key_exists($file, $this->findings)) {
+        if ($file !== null && array_key_exists($file, $this->findings)) {
             return $this->findings[$file];
         }
 
-        $source = $file === false ? false : @file_get_contents($file);
+        $source = $file === null ? false : @file_get_contents($file);
         if ($source === false) {
             throw new ConfigurationException(sprintf(
-                '%s::%s(): %s cannot be read to check its docblocks for annotations of the bundle, %s',
+                '%s::%s(): %s cannot be read, so its docblocks cannot be checked for annotations of the bundle; %s',
                 $class->getName(),
                 $method->getName(),
-                $file === false ? 'the source of ' . $class->getName() : $file,
+                $file === null ? 'the source of ' . $class->getName() : $file,
                 self::NOT_READ
             ));
         }
@@ -173,14 +177,23 @@ class DocblockAnnotationGuard
 
     private function findTag(string $docComment): ?string
     {
-        // Doctrine's lexer joins a name that continues on the next docblock line after a backslash
-        $joined = preg_replace('/\\\\[\s*]+/', '\\\\', $docComment);
+        $joined = $this->joinNamesSplitAcrossLines($docComment);
         $matched = $joined === null ? false : preg_match($this->tagPattern, $joined, $match);
         if ($matched === false) {
             return 'has a docblock that cannot be checked (preg error ' . preg_last_error() . ')';
         }
 
-        return $matched === 1 ? 'has the docblock tag @' . $match[1] : null;
+        return $matched === 1 ? self::TAG_FOUND . $match[1] : null;
+    }
+
+    private function joinNamesSplitAcrossLines(string $docComment): ?string
+    {
+        $joined = preg_replace(self::SPLIT_NAME_PATTERN . 'u', '\\\\', $docComment);
+        if ($joined === null && preg_last_error() === PREG_BAD_UTF8_ERROR) {
+            $joined = preg_replace(self::SPLIT_NAME_PATTERN, '\\\\', $docComment);
+        }
+
+        return $joined;
     }
 
     /**
@@ -207,8 +220,7 @@ class DocblockAnnotationGuard
                 if ($token === ';') {
                     break;
                 }
-                if ($token === '(' || ($token === '{' && substr(rtrim($statement), -1) !== '\\')) {
-                    // the use clause of a closure, or a trait use with a conflict resolution block
+                if ($this->opensClosureOrTraitBlock($token, $statement)) {
                     $statement = '';
                     break;
                 }
@@ -221,27 +233,43 @@ class DocblockAnnotationGuard
         return $imports;
     }
 
+    private function opensClosureOrTraitBlock(string $token, string $statement): bool
+    {
+        return $token === '(' || ($token === '{' && substr(rtrim($statement), -1) !== '\\');
+    }
+
     /**
      * @return string[]
      */
     private function expandImports(string $statement): array
     {
-        $statement = trim((string)preg_replace('/\s+/', ' ', $statement));
-        if ($statement === '') {
+        $normalized = preg_replace('/\s+/', ' ', $statement);
+        if ($normalized === null) {
+            return [$statement];
+        }
+
+        $normalized = trim($normalized);
+        if ($normalized === '') {
             return [];
         }
 
         $prefix = '';
-        $openingBrace = strpos($statement, '{');
+        $names = $normalized;
+        $openingBrace = strpos($normalized, '{');
         if ($openingBrace !== false) {
-            $prefix = trim(substr($statement, 0, $openingBrace));
-            $statement = substr($statement, $openingBrace + 1, (int)strrpos($statement, '}') - $openingBrace - 1);
+            $closingBrace = strrpos($normalized, '}');
+            $prefix = trim(substr($normalized, 0, $openingBrace));
+            $names = substr(
+                $normalized,
+                $openingBrace + 1,
+                ($closingBrace === false ? strlen($normalized) : $closingBrace) - $openingBrace - 1
+            );
         }
 
         $imports = [];
-        foreach (explode(',', $statement) as $import) {
-            $import = (string)preg_replace('/\s+as\s+\S+$/i', '', trim($import));
-            $imports[] = str_replace(' ', '', $prefix . $import);
+        foreach (explode(',', $names) as $name) {
+            $withoutAlias = preg_replace('/\s+as\s+\S+$/i', '', trim($name));
+            $imports[] = str_replace(' ', '', $prefix . ($withoutAlias === null ? $name : $withoutAlias));
         }
 
         return $imports;

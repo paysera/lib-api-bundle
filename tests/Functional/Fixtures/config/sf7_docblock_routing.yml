@@ -8,6 +8,6 @@ paysera_fixture_attributed_test:
     prefix:   /
 
 paysera_fixture_docblock_options_test:
-    resource: '@PayseraFixtureTestBundle/Controller/DocblockOptions/'
+    resource: '@PayseraFixtureTestBundle/Controller/Docblock/'
     type:     attribute
     prefix:   /
