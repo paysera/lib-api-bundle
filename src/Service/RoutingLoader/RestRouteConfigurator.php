@@ -6,7 +6,14 @@ namespace Paysera\Bundle\ApiBundle\Service\RoutingLoader;
 
 use Doctrine\Common\Annotations\Reader;
 use Paysera\Bundle\ApiBundle\Annotation\RestAnnotationInterface;
+use Paysera\Bundle\ApiBundle\Attribute\Body;
+use Paysera\Bundle\ApiBundle\Attribute\BodyContentType;
+use Paysera\Bundle\ApiBundle\Attribute\PathAttribute;
+use Paysera\Bundle\ApiBundle\Attribute\Query;
+use Paysera\Bundle\ApiBundle\Attribute\RequiredPermissions;
+use Paysera\Bundle\ApiBundle\Attribute\ResponseNormalization;
 use Paysera\Bundle\ApiBundle\Attribute\RestAttributeInterface;
+use Paysera\Bundle\ApiBundle\Attribute\Validation;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RestRequestHelper;
 use ReflectionAttribute;
@@ -21,6 +28,15 @@ use Throwable;
 class RestRouteConfigurator
 {
     private const BUNDLE_NAMESPACE = 'Paysera\\Bundle\\ApiBundle\\';
+    private const BUNDLE_ATTRIBUTES = [
+        Body::class,
+        BodyContentType::class,
+        PathAttribute::class,
+        Query::class,
+        RequiredPermissions::class,
+        ResponseNormalization::class,
+        Validation::class,
+    ];
 
     /**
      * @var RestRequestHelper
@@ -133,7 +149,26 @@ class RestRouteConfigurator
 
     private function failOnUnknownBundleAttributes(ReflectionClass $class, ReflectionMethod $method): void
     {
-        foreach (array_merge($class->getAttributes(), $method->getAttributes()) as $attribute) {
+        $this->failOnUnknownAttributes($class->getAttributes(), [$class], $class, $method);
+        $this->failOnUnknownAttributes(
+            $method->getAttributes(),
+            $this->docblockAnnotationReader->getActionScopes($method),
+            $class,
+            $method
+        );
+    }
+
+    /**
+     * @param ReflectionAttribute[] $attributes
+     * @param ReflectionClass[] $scopes
+     */
+    private function failOnUnknownAttributes(
+        array $attributes,
+        array $scopes,
+        ReflectionClass $class,
+        ReflectionMethod $method
+    ): void {
+        foreach ($attributes as $attribute) {
             $name = $attribute->getName();
             if (stripos($name, self::BUNDLE_NAMESPACE) === 0 && !is_a($name, RestAttributeInterface::class, true)) {
                 throw new ConfigurationException(sprintf(
@@ -143,7 +178,52 @@ class RestRouteConfigurator
                     $name
                 ));
             }
+
+            $bundleAttribute = $this->findBundleAttributeNamed($this->getShortName($name));
+            if ($bundleAttribute !== null && $this->isInNamespaceOf($name, $scopes) && !class_exists($name)) {
+                throw new ConfigurationException(sprintf(
+                    '%s::%s() uses %s, which is not a class that can be loaded;'
+                    . ' if the bundle\'s attribute is meant, the name must resolve to %s',
+                    $class->getName(),
+                    $method->getName(),
+                    $name,
+                    $bundleAttribute
+                ));
+            }
         }
+    }
+
+    /**
+     * @param ReflectionClass[] $scopes
+     */
+    private function isInNamespaceOf(string $name, array $scopes): bool
+    {
+        foreach ($scopes as $scope) {
+            $namespace = $scope->getNamespaceName();
+            if ($namespace === '' ? strpos($name, '\\') === false : stripos($name, $namespace . '\\') === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function findBundleAttributeNamed(string $shortName): ?string
+    {
+        foreach (self::BUNDLE_ATTRIBUTES as $bundleAttribute) {
+            if (strcasecmp($this->getShortName($bundleAttribute), $shortName) === 0) {
+                return $bundleAttribute;
+            }
+        }
+
+        return null;
+    }
+
+    private function getShortName(string $className): string
+    {
+        $position = strrpos($className, '\\');
+
+        return $position === false ? $className : substr($className, $position + 1);
     }
 
     private function createReadException(

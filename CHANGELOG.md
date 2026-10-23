@@ -23,7 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   annotation or attribute constructor too, is wrapped in a `ConfigurationException` naming the action. Where Symfony
   passes a reader, its own loader reads most docblocks with it first, so their errors come from Symfony unwrapped, and a
   class with a missing parent (before PHP 7.3) or trait (any version) still stops PHP. An attribute named under
-  `Paysera\Bundle\ApiBundle\` that is none of the bundle's attributes (a misspelt name or namespace) fails too
+  `Paysera\Bundle\ApiBundle\` that is none of the bundle's attributes (a misspelt name or namespace) fails too, and so
+  does one of the bundle's attributes written without its `use` statement, except where Security says it is not
+  detected
 - Optional parameters are declared nullable explicitly (`?Type $parameter = null`), as PHP 8.4 expects
 - `doctrine/annotations` is required at 1.14.4 or 2.0.2 and later, whose reader refuses to run with
   `opcache.save_comments=0` instead of reading the stripped docblocks as empty
@@ -54,12 +56,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   comments, any annotation
 - On PHP 8 before Symfony 6.4, 1.x ignored the bundle's attributes, `#[RequiredPermissions]` among them, without an
   error. They are now applied on every supported Symfony version
+- On PHP 8, a bundle attribute written without its `use` statement, `#[RequiredPermissions]` among them, names a class
+  in the namespace it is written in that cannot be loaded, which PHP and 1.x skip without an error. Loading the routes
+  now fails with a `ConfigurationException` naming the action and the bundle's attribute, for an attribute whose class
+  cannot be loaded, whose name without its namespace is one of the bundle's attributes, and whose name lies in the
+  namespace of the class it is written in (for an action, of its declaring class or a trait in its file) or below it; in
+  the global namespace, it must have no namespace part. An attribute imported from a package that is not installed, such
+  as swagger-php's `#[OA\Query]`, and a class of that name that can be loaded, such as the application's own `Body`
+  attribute, are left alone. Not detected: any other attribute whose class cannot be loaded, outside
+  `Paysera\Bundle\ApiBundle\`, such as a misspelt `#[RequiredPermission]`, the application's own attribute of another
+  name without its `use` statement, one imported from a misspelt namespace such as `Paysera\ApiBundle\Attribute`, and,
+  in a class of the global namespace, `#[Rest\RequiredPermissions]` without its alias import, which PHP reads as a
+  complete name
 - On PHP 8, a route configured with both docblock annotations and attributes of the bundle, on the action or on its
   class, fails to load with a `ConfigurationException`. Before, the attributes silently replaced the docblock options
   from Symfony 6.4, so `#[Body]` on an action dropped the `@RequiredPermissions` of its class, and were ignored before
 - These fixes are not backported to 1.x. 1.x still drops the bundle's permission checks without an error on Symfony 6.4
-  with `framework.annotations` disabled, on PHP 8 before Symfony 6.4 for the bundle's attributes, and on routes
-  configured with both. Upgrade to 2.0.0, which applies the checks there or fails to load the routes where it cannot
+  with `framework.annotations` disabled, on PHP 8 before Symfony 6.4 for the bundle's attributes, on routes configured
+  with both, and for an attribute written without its `use` statement. Upgrade to 2.0.0, which applies the checks there
+  or fails to load the routes where it cannot, except in the cases listed above as not detected
 
 ## [1.8.2]
 ### Changed

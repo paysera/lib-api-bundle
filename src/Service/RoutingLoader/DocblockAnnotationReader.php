@@ -126,7 +126,7 @@ class DocblockAnnotationReader
     /**
      * @return ReflectionClass[]
      */
-    private function getActionScopes(ReflectionMethod $method): array
+    public function getActionScopes(ReflectionMethod $method): array
     {
         $declaringClass = $method->getDeclaringClass();
         $scopes = [$declaringClass];
