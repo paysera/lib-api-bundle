@@ -32,6 +32,7 @@ TEXT;
         $length = static function () use ($text, $data): int {
             return strlen($text . $data);
         };
+
         return $length();
     }
 }

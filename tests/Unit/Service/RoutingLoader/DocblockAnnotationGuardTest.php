@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader;
 
+use ArrayObject;
 use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
 use Paysera\Bundle\ApiBundle\Service\RoutingLoader\DocblockAnnotationGuard;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\AliasedFullyQualifiedTraitMethodController;
@@ -28,18 +29,20 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQual
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedOptionsTrait;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupUseDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportingParentController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseAliasAppAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseAnnotationImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseFullyQualifiedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingParentInUnrelatedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingParentTagController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MisspeltDocblockAnnotationController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceAliasAppAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NamespaceMentionedInStringController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NestedTraitActionController;
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\NoBreakSpaceSplitDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionNextToAnnotatedTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnActionNextToNestedTraitController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\OwnNamespaceAppAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ParentWithoutImportController;
+use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SplitAliasAppAnnotationController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\SplitFullyQualifiedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TagNamedLikeImportsController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\TraitDocblockOptionsController;
@@ -54,8 +57,9 @@ class DocblockAnnotationGuardTest extends TestCase
 {
     private const ANNOTATION_NAMESPACE = 'Paysera\Bundle\ApiBundle\Annotation';
     private const GENERATED_NAMESPACE = 'Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Generated';
-    private const NOT_READ = ', but docblock annotations of the bundle are not read here, because Symfony passes no'
+    private const NOT_READ_REASON = 'docblock annotations of the bundle are not read here, because Symfony passes no'
         . ' annotation reader to the route loader; use the attributes of the bundle instead';
+    private const NOT_READ = ', but ' . self::NOT_READ_REASON;
     private const OTHER_LIBRARY = ' (for an annotation of another library named like one of the bundle\'s, import its'
         . ' class under another alias)';
 
@@ -74,6 +78,9 @@ class DocblockAnnotationGuardTest extends TestCase
         self::$generatedFiles = [];
     }
 
+    /**
+     * @return array<string, array{0: string, 1: string, 2: string, 3: string, 4?: string}>
+     */
     public static function refusedProvider(): array
     {
         $imports = 'imports ' . self::ANNOTATION_NAMESPACE . '\\';
@@ -165,12 +172,6 @@ class DocblockAnnotationGuardTest extends TestCase
                 BackslashBeforeTagDocblockController::class,
                 $fullyQualifiedTag,
             ],
-            'fully qualified tag split across lines at a no-break space' => [
-                NoBreakSpaceSplitDocblockController::class,
-                'show',
-                NoBreakSpaceSplitDocblockController::class,
-                $fullyQualifiedTag,
-            ],
             'fully qualified tag written in lowercase, without arguments' => [
                 LowercaseFullyQualifiedDocblockController::class,
                 'show',
@@ -229,6 +230,9 @@ class DocblockAnnotationGuardTest extends TestCase
         ];
     }
 
+    /**
+     * @return array<string, array{0: string, 1?: string}>
+     */
     public static function passingProvider(): array
     {
         return [
@@ -254,25 +258,145 @@ class DocblockAnnotationGuardTest extends TestCase
             'annotation class of the application, in the namespace of the controller: not detected' => [
                 OwnNamespaceAppAnnotationController::class,
             ],
+            'annotation class of the application, through a lowercase alias: not detected' => [
+                LowercaseAliasAppAnnotationController::class,
+            ],
+            'annotation class of the application, through an alias of a parent namespace: not detected' => [
+                NamespaceAliasAppAnnotationController::class,
+            ],
+            'annotation class of the application, split across lines through an alias: not detected' => [
+                SplitAliasAppAnnotationController::class,
+            ],
         ];
     }
 
-    public static function invalidUtf8DocblockProvider(): array
+    /**
+     * @return array<string, array{0: string, 1: string, 2: string, 3: string, 4?: string}>
+     */
+    public static function generatedRefusedProvider(): array
     {
-        $finding = 'has the docblock tag @\\' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions';
+        $tag = '@\\' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions(permissions={"ROLE_ADMIN"})';
+        $fullyQualifiedTag = 'has the docblock tag @\\' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions';
 
         return [
             'Latin-1 prose before a fully qualified tag' => [
                 'GeneratedLatin1ProseController',
-                "R\xE9sum\xE9 of the exports\n     * @\\" . self::ANNOTATION_NAMESPACE
-                . '\RequiredPermissions(permissions={"ROLE_ADMIN"})',
-                $finding,
+                '',
+                "R\xE9sum\xE9 of the exports\n     * " . $tag,
+                $fullyQualifiedTag,
+            ],
+            'Latin-1 prose after a fully qualified tag' => [
+                'GeneratedLatin1ProseAfterTagController',
+                '',
+                $tag . "\n     * R\xE9sum\xE9 of the exports",
+                $fullyQualifiedTag,
+            ],
+            'Latin-1 prose ending with a backslash before a fully qualified tag' => [
+                'GeneratedLatin1BackslashProseController',
+                '',
+                "R\xE9sum\xE9 under C:\\exports\\\n     * " . $tag,
+                $fullyQualifiedTag,
             ],
             'Latin-1 prose before a tag split across lines at a no-break space' => [
                 'GeneratedLatin1ProseSplitTagController',
+                '',
                 "R\xE9sum\xE9 of the exports\n     * @\\Paysera\\Bundle\\\n"
                 . "     *\xC2\xA0ApiBundle\\Annotation\\RequiredPermissions(permissions={\"ROLE_ADMIN\"})",
-                $finding,
+                $fullyQualifiedTag,
+            ],
+            'fully qualified tag split across lines at a no-break space' => [
+                'GeneratedNoBreakSpaceSplitController',
+                '',
+                "@\\Paysera\\Bundle\\\n"
+                . "     *\u{00A0}ApiBundle\\Annotation\\RequiredPermissions(permissions={\"ROLE_ADMIN\"})",
+                $fullyQualifiedTag,
+            ],
+            'fully qualified tag right after a quoted string of another tag' => [
+                'GeneratedTagAfterStringController',
+                '',
+                '@deprecated "x"' . $tag,
+                $fullyQualifiedTag,
+            ],
+            'fully qualified tag quoted in prose' => [
+                'GeneratedQuotedTagController',
+                '',
+                '"@\\' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions" is gone',
+                $fullyQualifiedTag,
+            ],
+            'fully qualified tag at the start of a docblock line' => [
+                'GeneratedLineStartTagController',
+                '',
+                "\n" . $tag,
+                $fullyQualifiedTag,
+            ],
+            'import of an annotation in a comma-separated use statement' => [
+                'GeneratedCommaImportController',
+                'use Psr\Log\LoggerInterface, ' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions as Perm;',
+                '@Perm(permissions={"ROLE_ADMIN"})',
+                'imports ' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions',
+            ],
+            'tag through an alias of a parent namespace spelt with a long s' => [
+                'GeneratedLongSAliasController',
+                "use Paysera\\Bundle\\ApiBundle as Api\u{017F};",
+                "@Api\u{017F}\\Annotation\\RequiredPermissions(permissions={\"ROLE_ADMIN\"})",
+                "has the docblock tag @Api\u{017F}\\Annotation\\RequiredPermissions",
+                self::OTHER_LIBRARY,
+            ],
+            'tag through an alias of a parent namespace spelt with a Kelvin sign' => [
+                'GeneratedKelvinAliasController',
+                "use Paysera\\Bundle\\ApiBundle as Api\u{212A};",
+                "@Api\u{212A}\\Annotation\\Validation",
+                "has the docblock tag @Api\u{212A}\\Annotation\\Validation",
+                self::OTHER_LIBRARY,
+            ],
+            'fully qualified tag name followed by a dash and a digit' => [
+                'GeneratedDashDigitTagController',
+                '',
+                '@\\' . self::ANNOTATION_NAMESPACE . '\Validation-1',
+                'has the docblock tag @\\' . self::ANNOTATION_NAMESPACE . '\Validation',
+            ],
+            'tag whose alias has a non-ASCII letter Doctrine does not accept' => [
+                'GeneratedUmlautAliasController',
+                '',
+                "@\u{00DC}nicode\\Query(type=\"String\")",
+                "has the docblock tag @\u{00DC}nicode\\Query",
+                self::OTHER_LIBRARY,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string, 2: string}>
+     */
+    public static function generatedPassingProvider(): array
+    {
+        $name = '@\\' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions';
+
+        return [
+            'fully qualified tag name followed by a dash' => [
+                'GeneratedDashedTagController',
+                '',
+                $name . '-only(permissions={"ROLE_ADMIN"})',
+            ],
+            'fully qualified tag in backticks in prose' => [
+                'GeneratedBacktickProseController',
+                '',
+                'Replaces the `' . $name . '(permissions={"ROLE_ADMIN"})` of 1.x',
+            ],
+            'fully qualified tag in parentheses in prose' => [
+                'GeneratedParenthesisProseController',
+                '',
+                '(' . $name . ' is gone)',
+            ],
+            'fully qualified tag in braces in prose' => [
+                'GeneratedBraceProseController',
+                '',
+                '{' . $name . '}',
+            ],
+            'fully qualified tag right after a single-quoted string' => [
+                'GeneratedTagAfterSingleQuotedStringController',
+                '',
+                "@deprecated 'x'" . $name . '(permissions={"ROLE_ADMIN"})',
             ],
         ];
     }
@@ -295,16 +419,34 @@ class DocblockAnnotationGuardTest extends TestCase
     }
 
     /**
-     * @dataProvider invalidUtf8DocblockProvider
+     * @dataProvider generatedRefusedProvider
      */
-    public function testFailOnDocblockAnnotationsRefusesADocblockWithInvalidUtf8(
+    public function testFailOnDocblockAnnotationsRefusesAGeneratedController(
         string $shortName,
+        string $imports,
         string $docblock,
-        string $finding
+        string $finding,
+        string $remedy = ''
     ): void {
-        $controller = $this->declareController($shortName, $docblock);
+        $controller = $this->declareController($shortName, $docblock, $imports);
 
-        $this->assertRefusedWith($this->buildRefusalMessage($controller, 'show', $controller, $finding), $controller);
+        $this->assertRefusedWith(
+            $this->buildRefusalMessage($controller, 'show', $controller, $finding) . $remedy,
+            $controller
+        );
+    }
+
+    /**
+     * @dataProvider generatedPassingProvider
+     */
+    public function testFailOnDocblockAnnotationsPassesAGeneratedController(
+        string $shortName,
+        string $imports,
+        string $docblock
+    ): void {
+        $this->check($this->declareController($shortName, $docblock, $imports));
+
+        $this->addToAssertionCount(1);
     }
 
     public function testFailOnDocblockAnnotationsNamesTheRemedyForAnotherLibrary(): void
@@ -363,18 +505,10 @@ class DocblockAnnotationGuardTest extends TestCase
         $file = (new ReflectionClass($controller))->getFileName();
         unlink($file);
 
-        $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage(sprintf(
-            '%s::show(): %s cannot be read, so its docblocks cannot be checked for annotations of the bundle;'
-            . ' docblock annotations of the bundle are not read here',
-            $controller,
-            $file
-        ));
-
-        $this->check($controller);
+        $this->assertRefusedWith($this->buildUnreadableMessage($controller, 'show', $file), $controller);
     }
 
-    public function testFailOnDocblockAnnotationsFailsWhenTheClassHasNoSourceFile(): void
+    public function testFailOnDocblockAnnotationsFailsWhenTheClassIsEvaluatedCode(): void
     {
         eval(sprintf(
             'namespace %s; class EvaluatedController { public function show(): void {} }',
@@ -382,16 +516,19 @@ class DocblockAnnotationGuardTest extends TestCase
         ));
         $controller = self::GENERATED_NAMESPACE . '\EvaluatedController';
 
-        try {
-            $this->check($controller);
-            $this->fail('Expected a ConfigurationException');
-        } catch (ConfigurationException $exception) {
-            $this->assertStringStartsWith($controller . '::show(): ', $exception->getMessage());
-            $this->assertStringContainsString(
-                'cannot be read, so its docblocks cannot be checked for annotations of the bundle',
-                $exception->getMessage()
-            );
-        }
+        $this->assertRefusedWith(
+            $this->buildUnreadableMessage($controller, 'show', (new ReflectionClass($controller))->getFileName()),
+            $controller
+        );
+    }
+
+    public function testFailOnDocblockAnnotationsFailsWhenTheClassHasNoSourceFile(): void
+    {
+        $this->assertRefusedWith(
+            $this->buildUnreadableMessage(ArrayObject::class, 'count', 'the source of ' . ArrayObject::class),
+            ArrayObject::class,
+            'count'
+        );
     }
 
     public function testFailOnDocblockAnnotationsFailsWhenTheDocblockCannotBeMatched(): void
@@ -426,7 +563,18 @@ class DocblockAnnotationGuardTest extends TestCase
         );
     }
 
-    private function declareController(string $shortName, string $docblock): string
+    private function buildUnreadableMessage(string $controller, string $method, string $source): string
+    {
+        return sprintf(
+            '%s::%s(): %s cannot be read, so its docblocks cannot be checked for annotations of the bundle; %s',
+            $controller,
+            $method,
+            $source,
+            self::NOT_READ_REASON
+        );
+    }
+
+    private function declareController(string $shortName, string $docblock, string $imports = ''): string
     {
         $placeholder = tempnam(sys_get_temp_dir(), 'guard');
         if ($placeholder === false) {
@@ -436,9 +584,10 @@ class DocblockAnnotationGuardTest extends TestCase
         unlink($placeholder);
         self::$generatedFiles[] = $file;
         file_put_contents($file, sprintf(
-            "<?php\nnamespace %s;\nclass %s\n{\n    /**\n     * %s\n     */\n"
+            "<?php\nnamespace %s;\n%sclass %s\n{\n    /**\n     * %s\n     */\n"
             . "    public function show(): void\n    {\n    }\n}\n",
             self::GENERATED_NAMESPACE,
+            $imports === '' ? '' : $imports . "\n",
             $shortName,
             $docblock
         ));

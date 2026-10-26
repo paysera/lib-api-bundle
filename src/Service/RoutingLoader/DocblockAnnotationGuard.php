@@ -55,7 +55,8 @@ class DocblockAnnotationGuard
             return substr($annotation, strrpos($annotation, '\\') + 1);
         }, self::ANNOTATIONS);
         $this->tagPattern = sprintf(
-            '/(?<![A-Za-z0-9_\\\\])@(\\\\*(?:[A-Za-z_][A-Za-z0-9_]*\\\\)*(?:%s))(?![A-Za-z0-9_\\\\])/i',
+            '/(?<![^\s*"\x80-\xFF])@(\\\\*(?:[A-Za-z_\x80-\xFF][A-Za-z0-9_\x80-\xFF]*\\\\)*(?:%s))'
+            . '(?![A-Za-z0-9_\\\\]|-(?![0-9]))/i',
             implode('|', $names)
         );
     }
@@ -100,19 +101,17 @@ class DocblockAnnotationGuard
     private function getFiles(ReflectionClass $class, ReflectionMethod $method): array
     {
         $declaringClass = $method->getDeclaringClass();
-        $files = [$method->getFileName()];
-        $scopes = array_merge(
-            [$class, $declaringClass],
+        $sources = array_merge(
+            [$method, $class, $declaringClass],
             $this->getTraits($class),
             $this->getTraits($declaringClass)
         );
-        foreach ($scopes as $scope) {
-            $files[] = $scope->getFileName();
+        $files = [];
+        foreach ($sources as $source) {
+            $files[] = $source->getFileName() ?: null;
         }
 
-        return array_map(function ($file): ?string {
-            return $file === false ? null : $file;
-        }, array_unique($files));
+        return array_unique($files);
     }
 
     /**
@@ -231,7 +230,7 @@ class DocblockAnnotationGuard
                 if ($token === ';') {
                     break;
                 }
-                if ($this->opensClosureOrTraitBlock($token, $statement)) {
+                if ($this->isClosureOrTraitBlockOpening($token, $statement)) {
                     $statement = '';
                     break;
                 }
@@ -244,7 +243,7 @@ class DocblockAnnotationGuard
         return $imports;
     }
 
-    private function opensClosureOrTraitBlock(string $token, string $statement): bool
+    private function isClosureOrTraitBlockOpening(string $token, string $statement): bool
     {
         return $token === '(' || ($token === '{' && substr(rtrim($statement), -1) !== '\\');
     }
@@ -254,12 +253,7 @@ class DocblockAnnotationGuard
      */
     private function expandImports(string $statement): array
     {
-        $normalized = preg_replace('/\s+/', ' ', $statement);
-        if ($normalized === null) {
-            return [$statement];
-        }
-
-        $normalized = trim($normalized);
+        $normalized = trim($statement);
         if ($normalized === '') {
             return [];
         }

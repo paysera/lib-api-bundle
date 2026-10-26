@@ -50,12 +50,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`opcache.save_comments=0`) does not hide them, and a file that cannot be read fails the load too. It refuses more
   than Doctrine would read: an unused import of the namespace (remove it), a tag of another library named like one of
   the bundle's annotations (import the other library's class under another alias), a trait with annotations next to the
-  action, a bundle tag in a docblock Doctrine reads for no route, such as a property's (remove it), and a bundle tag in
-  a docblock with invalid UTF-8 that Doctrine would read nothing from; the message names the import, the tag or the
-  trait. Write the options as attributes, or on Symfony 6.4 keep `framework.annotations` enabled. Not detected: an
-  annotation class of your own implementing `RestAnnotationInterface`, which nothing in the controller's file reveals
-  (write such an option as an attribute implementing `RestAttributeInterface`, which is applied on every path), and an
-  alias of a bundle annotation class made with `class_alias()`
+  action, a bundle tag in a docblock Doctrine reads for no route, such as a property's (remove it), a bundle tag at the
+  very start of a line or right after a double quote or a non-ASCII character, which Doctrine reads in some of these
+  places and skips in others (move it after a space), a tag path with non-ASCII characters beyond the long s and the
+  Kelvin sign that Doctrine accepts inside a name (remove or reword it; for another library's tag, import its class
+  under another alias), and a bundle tag in a docblock with invalid UTF-8 that Doctrine would read nothing from; the
+  message names the import, the tag or the trait. Write the options as attributes, or on Symfony 6.4 keep
+  `framework.annotations` enabled. Not detected: an annotation class of your own implementing `RestAnnotationInterface`,
+  which nothing in the controller's file reveals (write such an option as an attribute implementing
+  `RestAttributeInterface`, which is applied on every path), and an alias of a bundle annotation class made with
+  `class_alias()`
 - On PHP 8 before Symfony 6.4, 1.x ignored the bundle's attributes, `#[RequiredPermissions]` among them, without an
   error. They are now applied on every supported Symfony version
 - On PHP 8, a bundle attribute written without its `use` statement, `#[RequiredPermissions]` among them, names a class

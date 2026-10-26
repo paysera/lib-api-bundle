@@ -153,10 +153,15 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
     /**
      * @dataProvider loadWithoutAnnotationReaderFailsProvider
      */
-    public function testLoadWithoutAnnotationReaderFails(string $controller, string $expectedMessage): void
-    {
+    public function testLoadWithoutAnnotationReaderFails(
+        string $controller,
+        ?string $owner,
+        ?string $method,
+        string $fileOwner,
+        string $finding
+    ): void {
         $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessage($this->buildRefusalMessage($owner, $method, $fileOwner, $finding));
 
         $this->createLoader()->load($controller);
     }
@@ -169,178 +174,143 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         return [
             'annotation on the action' => [
                 DocblockOptionsOnAttributeRouteController::class,
-                self::buildRefusalMessage(
-                    DocblockOptionsOnAttributeRouteController::class,
-                    'show',
-                    DocblockOptionsOnAttributeRouteController::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                DocblockOptionsOnAttributeRouteController::class,
+                'show',
+                DocblockOptionsOnAttributeRouteController::class,
+                $imports . 'RequiredPermissions',
             ],
             'annotations on the class and the action' => [
                 ClassAndActionDocblockController::class,
-                self::buildRefusalMessage(
-                    ClassAndActionDocblockController::class,
-                    'show',
-                    ClassAndActionDocblockController::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                ClassAndActionDocblockController::class,
+                'show',
+                ClassAndActionDocblockController::class,
+                $imports . 'RequiredPermissions',
             ],
             'annotation on the class and attribute on the action' => [
                 ClassDocblockAndMethodAttributeController::class,
-                self::buildRefusalMessage(
-                    ClassDocblockAndMethodAttributeController::class,
-                    'update',
-                    ClassDocblockAndMethodAttributeController::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                ClassDocblockAndMethodAttributeController::class,
+                'update',
+                ClassDocblockAndMethodAttributeController::class,
+                $imports . 'RequiredPermissions',
             ],
             'annotation imported with a group use statement' => [
                 GroupUseDocblockController::class,
-                self::buildRefusalMessage(
-                    GroupUseDocblockController::class,
-                    'show',
-                    GroupUseDocblockController::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                GroupUseDocblockController::class,
+                'show',
+                GroupUseDocblockController::class,
+                $imports . 'RequiredPermissions',
             ],
             'annotation next to a tag that is not an annotation' => [
                 UnimportedNoteTagController::class,
-                self::buildRefusalMessage(
-                    UnimportedNoteTagController::class,
-                    'show',
-                    UnimportedNoteTagController::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                UnimportedNoteTagController::class,
+                'show',
+                UnimportedNoteTagController::class,
+                $imports . 'RequiredPermissions',
             ],
             'import of an annotation that no docblock uses' => [
                 UnusedAnnotationImportController::class,
-                self::buildRefusalMessage(
-                    UnusedAnnotationImportController::class,
-                    'show',
-                    UnusedAnnotationImportController::class,
-                    $imports . 'Body'
-                ),
+                UnusedAnnotationImportController::class,
+                'show',
+                UnusedAnnotationImportController::class,
+                $imports . 'Body',
             ],
             'import of an annotation written in lowercase' => [
                 LowercaseAnnotationImportController::class,
-                self::buildRefusalMessage(
-                    LowercaseAnnotationImportController::class,
-                    'show',
-                    LowercaseAnnotationImportController::class,
-                    'imports paysera\bundle\apibundle\annotation\RequiredPermissions'
-                ),
+                LowercaseAnnotationImportController::class,
+                'show',
+                LowercaseAnnotationImportController::class,
+                'imports paysera\bundle\apibundle\annotation\RequiredPermissions',
             ],
             'annotation written through an alias of a parent namespace' => [
                 AliasedNamespaceDocblockController::class,
-                self::buildRefusalMessage(
-                    AliasedNamespaceDocblockController::class,
-                    'show',
-                    AliasedNamespaceDocblockController::class,
-                    'has the docblock tag @Api\Annotation\RequiredPermissions'
-                ),
+                AliasedNamespaceDocblockController::class,
+                'show',
+                AliasedNamespaceDocblockController::class,
+                'has the docblock tag @Api\Annotation\RequiredPermissions',
             ],
             'fully qualified annotation without a use statement' => [
                 FullyQualifiedDocblockController::class,
-                self::buildRefusalMessage(
-                    FullyQualifiedDocblockController::class,
-                    'show',
-                    FullyQualifiedDocblockController::class,
-                    $fullyQualifiedTag
-                ),
+                FullyQualifiedDocblockController::class,
+                'show',
+                FullyQualifiedDocblockController::class,
+                $fullyQualifiedTag,
             ],
             'fully qualified annotation on the class without a use statement' => [
                 ClassDocblockFullyQualifiedController::class,
-                self::buildRefusalMessage(
-                    ClassDocblockFullyQualifiedController::class,
-                    'show',
-                    ClassDocblockFullyQualifiedController::class,
-                    $fullyQualifiedTag
-                ),
+                ClassDocblockFullyQualifiedController::class,
+                'show',
+                ClassDocblockFullyQualifiedController::class,
+                $fullyQualifiedTag,
             ],
             'fully qualified annotation split across docblock lines' => [
                 SplitFullyQualifiedDocblockController::class,
-                self::buildRefusalMessage(
-                    SplitFullyQualifiedDocblockController::class,
-                    'show',
-                    SplitFullyQualifiedDocblockController::class,
-                    $fullyQualifiedTag
-                ),
+                SplitFullyQualifiedDocblockController::class,
+                'show',
+                SplitFullyQualifiedDocblockController::class,
+                $fullyQualifiedTag,
             ],
             'fully qualified annotation written in lowercase, without arguments' => [
                 LowercaseFullyQualifiedDocblockController::class,
-                self::buildRefusalMessage(
-                    LowercaseFullyQualifiedDocblockController::class,
-                    'show',
-                    LowercaseFullyQualifiedDocblockController::class,
-                    'has the docblock tag @\paysera\bundle\apibundle\annotation\validation'
-                ),
+                LowercaseFullyQualifiedDocblockController::class,
+                'show',
+                LowercaseFullyQualifiedDocblockController::class,
+                'has the docblock tag @\paysera\bundle\apibundle\annotation\validation',
             ],
             'annotation through an alias that only the routed class imports, for an action of its parent' => [
                 ChildImportingForParentController::class,
-                self::buildRefusalMessage(
-                    ChildImportingForParentController::class,
-                    'show',
-                    ParentWithoutImportController::class,
-                    'has the docblock tag @Rest\RequiredPermissions'
-                ),
+                ChildImportingForParentController::class,
+                'show',
+                ParentWithoutImportController::class,
+                'has the docblock tag @Rest\RequiredPermissions',
             ],
             'action of a trait that imports the annotation' => [
                 TraitDocblockOptionsController::class,
-                self::buildRefusalMessage(
-                    TraitDocblockOptionsController::class,
-                    'show',
-                    DocblockOptionsTrait::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                TraitDocblockOptionsController::class,
+                'show',
+                DocblockOptionsTrait::class,
+                $imports . 'RequiredPermissions',
             ],
             'action of a trait used by another trait' => [
                 NestedTraitActionController::class,
-                self::buildRefusalMessage(
-                    NestedTraitActionController::class,
-                    'show',
-                    DocblockOptionsTrait::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                NestedTraitActionController::class,
+                'show',
+                DocblockOptionsTrait::class,
+                $imports . 'RequiredPermissions',
             ],
             'own action next to a nested trait that imports the annotation' => [
                 OwnActionNextToNestedTraitController::class,
-                self::buildRefusalMessage(
-                    OwnActionNextToNestedTraitController::class,
-                    'index',
-                    DocblockOptionsTrait::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                OwnActionNextToNestedTraitController::class,
+                'index',
+                DocblockOptionsTrait::class,
+                $imports . 'RequiredPermissions',
             ],
             'own action next to a trait that imports the annotation' => [
                 OwnActionNextToAnnotatedTraitController::class,
-                self::buildRefusalMessage(null, null, DocblockOptionsTrait::class, $imports . 'RequiredPermissions'),
+                null,
+                null,
+                DocblockOptionsTrait::class,
+                $imports . 'RequiredPermissions',
             ],
             'trait action renamed with as' => [
                 AliasedTraitMethodController::class,
-                self::buildRefusalMessage(
-                    AliasedTraitMethodController::class,
-                    'index',
-                    DocblockOptionsTrait::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                AliasedTraitMethodController::class,
+                'index',
+                DocblockOptionsTrait::class,
+                $imports . 'RequiredPermissions',
             ],
             'fully qualified annotation on a trait action renamed with as' => [
                 AliasedFullyQualifiedTraitMethodController::class,
-                self::buildRefusalMessage(
-                    AliasedFullyQualifiedTraitMethodController::class,
-                    'index',
-                    FullyQualifiedOptionsTrait::class,
-                    $fullyQualifiedTag
-                ),
+                AliasedFullyQualifiedTraitMethodController::class,
+                'index',
+                FullyQualifiedOptionsTrait::class,
+                $fullyQualifiedTag,
             ],
             'attribute-only child of a parent that imports the annotation for an inherited action' => [
                 ChildOfImportingParentController::class,
-                self::buildRefusalMessage(
-                    null,
-                    null,
-                    ImportingParentController::class,
-                    $imports . 'RequiredPermissions'
-                ),
+                null,
+                null,
+                ImportingParentController::class,
+                $imports . 'RequiredPermissions',
             ],
         ];
     }
@@ -388,13 +358,12 @@ class RoutingAttributeLoaderTest extends MockeryTestCase
         }
     }
 
-    private static function buildRefusalMessage(
+    private function buildRefusalMessage(
         ?string $controller,
         ?string $method,
         string $fileOwner,
         string $finding
-    ): string
-    {
+    ): string {
         return sprintf(
             '%s%s %s%s',
             $controller === null ? '' : sprintf('%s::%s(): ', $controller, $method),
