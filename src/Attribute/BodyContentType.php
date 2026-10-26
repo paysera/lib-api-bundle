@@ -23,7 +23,7 @@ class BodyContentType implements RestAttributeInterface
 
     public function __construct(
         array $options = [],
-        array $supportedContentTypes = null,
+        ?array $supportedContentTypes = null,
         bool $jsonEncodedBody = false
     ) {
         $this->setSupportedContentTypes($options['supportedContentTypes'] ?? $supportedContentTypes);

@@ -19,6 +19,24 @@ class FunctionalPagedQueryTest extends FunctionalTestCase
      */
     public function testRequestWithPagedQuery(Response $expectedResponse, Request $request, string $testCase = 'basic')
     {
+        $this->makeTest('annotated', $expectedResponse, $request, $testCase);
+    }
+
+    /**
+     * @dataProvider requestWithPagedQueryProvider
+     */
+    public function testAttributedRequestWithPagedQuery(
+        Response $expectedResponse,
+        Request $request,
+        string $testCase = 'basic'
+    ) {
+        $request->server->set('REQUEST_URI', '/attributed' . $request->server->get('REQUEST_URI'));
+        $this->makeTest('attributed', $expectedResponse, $request, $testCase);
+    }
+
+    private function makeTest(string $routes, Response $expectedResponse, Request $request, string $testCase): void
+    {
+        $this->skipUnlessRoutesAreLoaded($routes);
         $this->setUpFor($testCase);
         $response = $this->handleRequest($request);
         $this->assertEquals(

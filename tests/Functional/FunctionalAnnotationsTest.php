@@ -3,9 +3,13 @@ declare(strict_types=1);
 
 namespace Paysera\Bundle\ApiBundle\Tests\Functional;
 
+use Paysera\Bundle\ApiBundle\Exception\ConfigurationException;
+use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Controller\Docblock;
 use Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\Service\TestHelper;
+use ReflectionClass;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class FunctionalAnnotationsTest extends FunctionalTestCase
 {
@@ -24,7 +28,7 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
     public function testAnnotatedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ) {
         $this->makeTest('annotated', $expectedResponse, $request, $extraResponseVersion);
     }
@@ -38,20 +42,86 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
     public function testAttributedRestRequestConfiguration(
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ) {
         $this->makeTest('attributed', $expectedResponse, $request, $extraResponseVersion);
+    }
+
+    /**
+     * @dataProvider docblockOptionsOnAttributeRouteProvider
+     */
+    public function testDocblockOptionsOnAttributeRoute(
+        int $expectedStatusCode,
+        string $expectedContent,
+        ?string $username
+    ): void {
+        if (!TestHelper::docblockRoutingSupportExists()) {
+            $this->markTestSkipped('Symfony 7 passes no annotation reader: see the refusal test');
+        }
+
+        $this->makeTest(
+            'attributed',
+            new Response($expectedContent, $expectedStatusCode),
+            $this->createRequest('GET', '/docblock/testRequiredPermissions', null, [], $username)
+        );
+    }
+
+    public static function docblockOptionsOnAttributeRouteProvider(): array
+    {
+        return [
+            'without auth' => [
+                401,
+                '{"error":"unauthorized","error_description":"This API endpoint requires authentication, none found"}',
+                null,
+            ],
+            'without enough permissions' => [
+                403,
+                '{"error":"forbidden",'
+                . '"error_description":"Access to this API endpoint is forbidden for current client"}',
+                'user',
+            ],
+            'with all needed permissions' => [200, 'OK', 'admin'],
+        ];
+    }
+
+    public function testDocblockOptionsOnAttributeRouteAreRefusedWithoutReader(): void
+    {
+        if (!TestHelper::phpAttributeSupportExists() || TestHelper::docblockRoutingSupportExists()) {
+            $this->markTestSkipped('Symfony before 7 passes an annotation reader to the route loader');
+        }
+        $this->tearDown();
+        $container = $this->setUpContainer('basic', 'docblock_common.yml');
+
+        $cause = null;
+        try {
+            $container->get('router')->getRouteCollection();
+        } catch (Throwable $exception) {
+            $cause = $exception;
+            while ($cause !== null && !$cause instanceof ConfigurationException) {
+                $cause = $cause->getPrevious();
+            }
+            $this->assertNotNull($cause, get_class($exception) . ': ' . $exception->getMessage());
+        }
+
+        $this->assertNotNull($cause, 'Expected the route loading to fail');
+        $this->assertStringContainsString(
+            sprintf(
+                '%s::testRequiredPermissions(): %s imports Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions,'
+                . ' but docblock annotations of the bundle are not read here',
+                Docblock\AttributedDocblockOptionsController::class,
+                (new ReflectionClass(Docblock\AttributedDocblockOptionsController::class))->getFileName()
+            ),
+            $cause->getMessage()
+        );
     }
 
     private function makeTest(
         string $pathPrefix,
         Response $expectedResponse,
         Request $request,
-        Response $extraResponseVersion = null
+        ?Response $extraResponseVersion = null
     ): void {
-        if ($pathPrefix === 'attributed' && !TestHelper::phpAttributeSupportExists()) {
-            $this->markTestSkipped('Unsupported environment');
-        }
+        $this->skipUnlessRoutesAreLoaded($pathPrefix);
 
         $request->server->set(
             'REQUEST_URI',
@@ -175,6 +245,29 @@ class FunctionalAnnotationsTest extends FunctionalTestCase
                     '/testBodyNormalizationWithCustomContentType',
                     'my_text',
                     ['Content-Type' => 'text/plain']
+                ),
+            ],
+            'testBodyNormalizationWithCustomContentType and no content type' => [
+                new Response(
+                    '{"error":"invalid_request","error_description":"Content-Type must be provided"}',
+                    400
+                ),
+                $this->createRequest(
+                    'POST',
+                    '/testBodyNormalizationWithCustomContentType',
+                    'my_text'
+                ),
+            ],
+            'testBodyNormalizationWithExtractedKeyValue and a body that is not JSON' => [
+                new Response(
+                    '{"error":"invalid_request","error_description":"Cannot decode request body to JSON"}',
+                    400
+                ),
+                $this->createRequest(
+                    'POST',
+                    '/testBodyNormalizationWithExtractedKeyValue',
+                    '{"key": ',
+                    ['Content-Type' => 'application/json']
                 ),
             ],
             'testBodyNormalizationWithCustomContentTypeAndJsonDecode and JSON content-type' => [

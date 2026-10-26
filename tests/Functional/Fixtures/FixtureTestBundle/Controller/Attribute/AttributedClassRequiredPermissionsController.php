@@ -6,7 +6,7 @@ namespace Paysera\Bundle\ApiBundle\Tests\Functional\Fixtures\FixtureTestBundle\C
 use Paysera\Bundle\ApiBundle\Attribute\RequiredPermissions;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[RequiredPermissions(permissions: ['ROLE_USER'])]
 class AttributedClassRequiredPermissionsController

@@ -1,0 +1,6 @@
+imports:
+    - { resource: sf7_common.yml }
+
+framework:
+    router:
+        resource: '%kernel.project_dir%/tests/Functional/Fixtures/config/sf7_docblock_routing.yml'

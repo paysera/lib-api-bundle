@@ -15,9 +15,14 @@ class FunctionalFindDenormalizersTest extends FunctionalTestCase
         $this->setUpDatabase();
     }
 
-    public function testRestRequestWithCustomPathConverter()
+    /**
+     * @dataProvider routesProvider
+     */
+    public function testRestRequestWithCustomPathConverter(string $routes, string $pathPrefix)
     {
-        $response = $this->makeGetRequest('/persisted-entities/someField1');
+        $this->skipUnlessRoutesAreLoaded($routes);
+
+        $response = $this->makeGetRequest($pathPrefix . '/persisted-entities/someField1');
         $this->assertEquals(404, $response->getStatusCode());
 
         $manager = $this->getEntityManager();
@@ -25,15 +30,23 @@ class FunctionalFindDenormalizersTest extends FunctionalTestCase
         $manager->persist((new SimplePersistedEntity())->setId(420));
         $manager->flush();
 
-        $response = $this->makeGetRequest('/persisted-entities/someField1');
+        $response = $this->makeGetRequest($pathPrefix . '/persisted-entities/someField1');
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('42', $response->getContent());
 
-        $response = $this->makeGetRequest('/simple-persisted-entities/1');
+        $response = $this->makeGetRequest($pathPrefix . '/simple-persisted-entities/1');
         $this->assertEquals(404, $response->getStatusCode());
 
-        $response = $this->makeGetRequest('/simple-persisted-entities/420');
+        $response = $this->makeGetRequest($pathPrefix . '/simple-persisted-entities/420');
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('420', $response->getContent());
+    }
+
+    public static function routesProvider(): array
+    {
+        return [
+            'annotated' => ['annotated', ''],
+            'attributed' => ['attributed', '/attributed'],
+        ];
     }
 }

@@ -34,7 +34,7 @@ class Body implements RestAttributeInterface
 
     public function __construct(
         array $options = [],
-        string $parameterName = null,
+        ?string $parameterName = null,
         ?string $denormalizationType = null,
         ?string $denormalizationGroup = null,
         ?bool $optional = null
