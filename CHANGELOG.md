@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0]
 ### Added
 - Support for Symfony 7.4 and `psr/log` 3; CI runs PHP 8.4, Symfony 7 and lowest dependencies
-- Explicit requirements for the Symfony components the bundle uses directly: `symfony/config`,
+- Explicit requirements for `ext-tokenizer` and the Symfony components the bundle uses directly: `symfony/config`,
   `dependency-injection`, `http-foundation`, `http-kernel`, `property-access`, `routing` and `security-core`
 
 ### Changed
@@ -48,12 +48,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `@\Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions`, split across lines too, in any letter case, with or
   without arguments). The check reads the source files, so OPcache stripping the doc comments
   (`opcache.save_comments=0`) does not hide them, and a file that cannot be read fails the load too. It refuses more
-  than Doctrine would read: an unused import of the namespace, a tag of another library named like one of the bundle's
-  annotations, and a trait with annotations next to the action; the message names what to remove. Write the options as
-  attributes, or on Symfony 6.4 keep `framework.annotations` enabled. Not detected: an annotation class of your own
-  implementing `RestAnnotationInterface`, which nothing in the controller's file reveals (write such an option as an
-  attribute implementing `RestAttributeInterface`, which is applied on every path), and an alias of a bundle annotation
-  class made with `class_alias()`
+  than Doctrine would read: an unused import of the namespace (remove it), a tag of another library named like one of
+  the bundle's annotations (import the other library's class under another alias), a trait with annotations next to the
+  action, a bundle tag in a docblock Doctrine reads for no route, such as a property's (remove it), and a bundle tag in
+  a docblock with invalid UTF-8 that Doctrine would read nothing from; the message names the import, the tag or the
+  trait. Write the options as attributes, or on Symfony 6.4 keep `framework.annotations` enabled. Not detected: an
+  annotation class of your own implementing `RestAnnotationInterface`, which nothing in the controller's file reveals
+  (write such an option as an attribute implementing `RestAttributeInterface`, which is applied on every path), and an
+  alias of a bundle annotation class made with `class_alias()`
 - On PHP 8 before Symfony 6.4, 1.x ignored the bundle's attributes, `#[RequiredPermissions]` among them, without an
   error. They are now applied on every supported Symfony version
 - On PHP 8, a bundle attribute written without its `use` statement, `#[RequiredPermissions]` among them, names a class

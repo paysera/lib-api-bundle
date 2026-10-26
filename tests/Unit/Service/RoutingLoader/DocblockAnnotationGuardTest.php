@@ -28,7 +28,6 @@ use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQual
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\FullyQualifiedOptionsTrait;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\GroupUseDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\ImportingParentController;
-use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\InvalidUtf8DocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseAnnotationImportController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\LowercaseFullyQualifiedDocblockController;
 use Paysera\Bundle\ApiBundle\Tests\Unit\Service\RoutingLoader\Fixtures\MissingParentInUnrelatedDocblockController;
@@ -134,6 +133,7 @@ class DocblockAnnotationGuardTest extends TestCase
                 'show',
                 AliasedNamespaceDocblockController::class,
                 'has the docblock tag @Api\Annotation\RequiredPermissions',
+                self::OTHER_LIBRARY,
             ],
             'fully qualified tag' => [
                 FullyQualifiedDocblockController::class,
@@ -171,12 +171,6 @@ class DocblockAnnotationGuardTest extends TestCase
                 NoBreakSpaceSplitDocblockController::class,
                 $fullyQualifiedTag,
             ],
-            'fully qualified tag in a docblock with invalid UTF-8' => [
-                InvalidUtf8DocblockController::class,
-                'show',
-                InvalidUtf8DocblockController::class,
-                $fullyQualifiedTag,
-            ],
             'fully qualified tag written in lowercase, without arguments' => [
                 LowercaseFullyQualifiedDocblockController::class,
                 'show',
@@ -188,6 +182,7 @@ class DocblockAnnotationGuardTest extends TestCase
                 'show',
                 ParentWithoutImportController::class,
                 'has the docblock tag @Rest\RequiredPermissions',
+                self::OTHER_LIBRARY,
             ],
             'import in the trait declaring the action' => [
                 TraitDocblockOptionsController::class,
@@ -262,6 +257,26 @@ class DocblockAnnotationGuardTest extends TestCase
         ];
     }
 
+    public static function invalidUtf8DocblockProvider(): array
+    {
+        $finding = 'has the docblock tag @\\' . self::ANNOTATION_NAMESPACE . '\RequiredPermissions';
+
+        return [
+            'Latin-1 prose before a fully qualified tag' => [
+                'GeneratedLatin1ProseController',
+                "R\xE9sum\xE9 of the exports\n     * @\\" . self::ANNOTATION_NAMESPACE
+                . '\RequiredPermissions(permissions={"ROLE_ADMIN"})',
+                $finding,
+            ],
+            'Latin-1 prose before a tag split across lines at a no-break space' => [
+                'GeneratedLatin1ProseSplitTagController',
+                "R\xE9sum\xE9 of the exports\n     * @\\Paysera\\Bundle\\\n"
+                . "     *\xC2\xA0ApiBundle\\Annotation\\RequiredPermissions(permissions={\"ROLE_ADMIN\"})",
+                $finding,
+            ],
+        ];
+    }
+
     /**
      * @dataProvider refusedProvider
      */
@@ -269,29 +284,38 @@ class DocblockAnnotationGuardTest extends TestCase
         string $controller,
         string $method,
         string $fileOwner,
+        string $finding,
+        string $remedy = ''
+    ): void {
+        $this->assertRefusedWith(
+            $this->buildRefusalMessage($controller, $method, $fileOwner, $finding) . $remedy,
+            $controller,
+            $method
+        );
+    }
+
+    /**
+     * @dataProvider invalidUtf8DocblockProvider
+     */
+    public function testFailOnDocblockAnnotationsRefusesADocblockWithInvalidUtf8(
+        string $shortName,
+        string $docblock,
         string $finding
     ): void {
-        $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage($this->buildRefusalMessage($controller, $method, $fileOwner, $finding));
+        $controller = $this->declareController($shortName, $docblock);
 
-        $this->check($controller, $method);
+        $this->assertRefusedWith($this->buildRefusalMessage($controller, 'show', $controller, $finding), $controller);
     }
 
     public function testFailOnDocblockAnnotationsNamesTheRemedyForAnotherLibrary(): void
     {
-        try {
-            $this->check(FullyQualifiedDocblockController::class);
-            $this->fail('Expected a ConfigurationException');
-        } catch (ConfigurationException $exception) {
-            $this->assertStringEndsWith(self::NOT_READ . self::OTHER_LIBRARY, $exception->getMessage());
-        }
+        $controller = $this->declareController('GeneratedOtherLibraryTagController', '@GQL\Query(type="String")');
 
-        try {
-            $this->check(DocblockOptionsOnAttributeRouteController::class);
-            $this->fail('Expected a ConfigurationException');
-        } catch (ConfigurationException $exception) {
-            $this->assertStringEndsWith(self::NOT_READ, $exception->getMessage());
-        }
+        $this->assertRefusedWith(
+            $this->buildRefusalMessage($controller, 'show', $controller, 'has the docblock tag @GQL\Query')
+            . self::OTHER_LIBRARY,
+            $controller
+        );
     }
 
     /**
@@ -402,7 +426,7 @@ class DocblockAnnotationGuardTest extends TestCase
         );
     }
 
-    private function declareController(string $shortName, string $docblockLine): string
+    private function declareController(string $shortName, string $docblock): string
     {
         $placeholder = tempnam(sys_get_temp_dir(), 'guard');
         if ($placeholder === false) {
@@ -416,11 +440,21 @@ class DocblockAnnotationGuardTest extends TestCase
             . "    public function show(): void\n    {\n    }\n}\n",
             self::GENERATED_NAMESPACE,
             $shortName,
-            $docblockLine
+            $docblock
         ));
         require $file;
 
         return self::GENERATED_NAMESPACE . '\\' . $shortName;
+    }
+
+    private function assertRefusedWith(string $message, string $controller, string $method = 'show'): void
+    {
+        try {
+            $this->check($controller, $method);
+            $this->fail('Expected a ConfigurationException');
+        } catch (ConfigurationException $exception) {
+            $this->assertSame($message, $exception->getMessage());
+        }
     }
 
     private function check(string $controller, string $method = 'show'): void

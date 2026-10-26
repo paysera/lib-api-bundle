@@ -36,6 +36,7 @@ class DocblockAnnotationGuard
     private const OTHER_LIBRARY = ' (for an annotation of another library named like one of the bundle\'s, import its'
         . ' class under another alias)';
     private const SPLIT_NAME_PATTERN = '/\\\\[\s*]+(?=[A-Za-z_])/';
+    private const SPLIT_NAME_BYTE_PATTERN = '/\\\\[\s*\x80-\xFF]+(?=[A-Za-z_])/';
 
     /**
      * @var array<string, string|null>
@@ -71,7 +72,7 @@ class DocblockAnnotationGuard
                     $file,
                     $finding,
                     self::NOT_READ,
-                    strpos($finding, self::TAG_FOUND) === 0 ? self::OTHER_LIBRARY : ''
+                    $this->isTagOutsideAnnotationNamespace($finding) ? self::OTHER_LIBRARY : ''
                 ));
             }
         }
@@ -186,11 +187,21 @@ class DocblockAnnotationGuard
         return $matched === 1 ? self::TAG_FOUND . $match[1] : null;
     }
 
+    private function isTagOutsideAnnotationNamespace(string $finding): bool
+    {
+        if (strpos($finding, self::TAG_FOUND) !== 0) {
+            return false;
+        }
+        $name = ltrim(substr($finding, strlen(self::TAG_FOUND)), '\\');
+
+        return stripos($name, self::ANNOTATION_NAMESPACE . '\\') !== 0;
+    }
+
     private function joinNamesSplitAcrossLines(string $docComment): ?string
     {
         $joined = preg_replace(self::SPLIT_NAME_PATTERN . 'u', '\\\\', $docComment);
         if ($joined === null && preg_last_error() === PREG_BAD_UTF8_ERROR) {
-            $joined = preg_replace(self::SPLIT_NAME_PATTERN, '\\\\', $docComment);
+            $joined = preg_replace(self::SPLIT_NAME_BYTE_PATTERN, '\\\\', $docComment);
         }
 
         return $joined;

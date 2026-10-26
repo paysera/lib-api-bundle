@@ -689,12 +689,14 @@ class, of the class declaring the action, of the action itself or of any trait t
 `Paysera\Bundle\ApiBundle\Annotation`, or has a docblock tag named like one of the bundle's annotations
 (`@RequiredPermissions`, `@Rest\RequiredPermissions`, `@\Paysera\Bundle\ApiBundle\Annotation\RequiredPermissions`, split
 across lines too, in any letter case). The check reads the source files, so `opcache.save_comments=0` does not hide
-them. It refuses more than Doctrine would read: an unused import of the namespace, a tag of another library named like
-one of the bundle's annotations, and a trait with annotations next to the action; remove what the message names. Write
-the options as attributes, or on Symfony 6.4 keep `framework.annotations` enabled. Not detected: an annotation class of
-your own implementing `RestAnnotationInterface`, which nothing in the controller's file reveals (write such an option as
-an attribute implementing `RestAttributeInterface`, which is applied on every path), and an alias of a bundle annotation
-class made with `class_alias()`.
+them. It refuses more than Doctrine would read: an unused import of the namespace (remove it), a tag of another library
+named like one of the bundle's annotations (import the other library's class under another alias), a trait with
+annotations next to the action, a bundle tag in a docblock Doctrine reads for no route, such as a property's (remove
+it), and a bundle tag in a docblock with invalid UTF-8 that Doctrine would read nothing from; the message names the
+import, the tag or the trait. Write the options as attributes, or on Symfony 6.4 keep `framework.annotations` enabled.
+Not detected: an annotation class of your own implementing `RestAnnotationInterface`, which nothing in the controller's
+file reveals (write such an option as an attribute implementing `RestAttributeInterface`, which is applied on every
+path), and an alias of a bundle annotation class made with `class_alias()`.
 
 ### `Body`
 
