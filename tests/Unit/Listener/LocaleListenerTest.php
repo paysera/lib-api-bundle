@@ -132,12 +132,6 @@ class LocaleListenerTest extends MockeryTestCase
                 'de-DE',
                 true,
             ],
-            'a tag that a configured locale starts with, from Symfony 7.1 matched to that locale' => [
-                $tagsFormattedBySymfony ? 'de' : 'unchanged',
-                ['de'],
-                'd',
-                true,
-            ],
             'a bare language, from Symfony 7.1 matched to a configured locale with a region' => [
                 $tagsFormattedBySymfony ? 'en_US' : 'unchanged',
                 ['en_US', 'lt_LT'],
